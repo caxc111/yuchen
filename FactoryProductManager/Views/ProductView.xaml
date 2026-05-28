@@ -1,0 +1,55 @@
+<UserControl x:Class="FactoryProductManager.Views.ProductView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
+            <Image Source="pack://application:,,,/Resources/Icons/icon_product.png" Width="32" Height="32" Margin="0,0,10,0"/>
+            <TextBlock Text="产品管理" FontSize="24" FontWeight="Bold"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBox Width="200" materialDesign:HintAssist.Hint="搜索产品..." Margin="0,0,10,0"/>
+            <Button Style="{StaticResource MaterialDesignRaisedButton}" Content="搜索"/>
+            <Button Style="{StaticResource MaterialDesignFloatingActionButton}" Margin="10,0,0,0">
+                <materialDesign:PackIcon Kind="Plus"/>
+            </Button>
+        </StackPanel>
+
+        <DataGrid Grid.Row="2" AutoGenerateColumns="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="产品编码" Binding="{Binding FactoryProductCode}"/>
+                <DataGridTextColumn Header="我的编码" Binding="{Binding MyProductCode}"/>
+                <DataGridTextColumn Header="产品名称" Binding="{Binding ProductName}"/>
+                <DataGridTextColumn Header="品牌" Binding="{Binding Brand}"/>
+                <DataGridTextColumn Header="规格" Binding="{Binding Specification}"/>
+                <DataGridTextColumn Header="所属工厂" Binding="{Binding FactoryName}"/>
+                <DataGridTextColumn Header="类别" Binding="{Binding Category}"/>
+                <DataGridTemplateColumn Header="操作">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="编辑">
+                                    <materialDesign:PackIcon Kind="Edit"/>
+                                </Button>
+                                <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="删除">
+                                    <materialDesign:PackIcon Kind="Delete"/>
+                                </Button>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>
