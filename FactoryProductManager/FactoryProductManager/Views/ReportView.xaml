@@ -1,0 +1,48 @@
+<UserControl x:Class="FactoryProductManager.Views.ReportView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
+            <Image Source="pack://application:,,,/Resources/Icons/icon_report.png" Width="32" Height="32" Margin="0,0,10,0"/>
+            <TextBlock Text="报表统计" FontSize="24" FontWeight="Bold"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
+            <Button Content="库存报表" Margin="0,0,10,0" Background="#2196F3" Foreground="White" 
+                    BorderBrush="#1976D2" BorderThickness="1" Padding="10,5" MinWidth="80"/>
+            <Button Content="采购报表" Margin="0,0,10,0" Background="#2196F3" Foreground="White" 
+                    BorderBrush="#1976D2" BorderThickness="1" Padding="10,5" MinWidth="80"/>
+            <Button Content="销售报表" Margin="0,0,10,0" Background="#2196F3" Foreground="White" 
+                    BorderBrush="#1976D2" BorderThickness="1" Padding="10,5" MinWidth="80"/>
+            <Button Content="导出Excel" Background="#4CAF50" Foreground="White" 
+                    BorderBrush="#388E3C" BorderThickness="1" Padding="10,5" MinWidth="80"/>
+        </StackPanel>
+
+        <Grid Grid.Row="2">
+            <DataGrid AutoGenerateColumns="False" 
+                      BorderBrush="#CCCCCC" BorderThickness="1"
+                      GridLinesVisibility="All"
+                      HorizontalGridLinesBrush="#CCCCCC"
+                      VerticalGridLinesBrush="#CCCCCC"
+                      ColumnHeaderHeight="35"
+                      RowHeight="40">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="统计项" Binding="{Binding ItemName}" Width="*"/>
+                    <DataGridTextColumn Header="数量" Binding="{Binding Quantity}" Width="*"/>
+                    <DataGridTextColumn Header="金额" Binding="{Binding Amount}" Width="*"/>
+                    <DataGridTextColumn Header="占比" Binding="{Binding Percentage}" Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+    </Grid>
+</UserControl>
