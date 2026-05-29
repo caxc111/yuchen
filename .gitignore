@@ -1,0 +1,36 @@
+# Build outputs
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+
+# Logs
+Logs/
+*.log
+
+# Database files
+*.db
+*.sqlite
+
+# NuGet packages
+packages/
+*.nupkg
+
+# Visual Studio settings
+.vs/
+*.suo
+*.user
+*.csproj.user
+
+# Rider/Resharper settings
+.idea/
+*.sln.iml
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Backup files
+*.bak
+*.backup
