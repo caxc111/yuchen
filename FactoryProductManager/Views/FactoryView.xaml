@@ -14,8 +14,9 @@
         </Grid.RowDefinitions>
 
         <!-- 标题区域 -->
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,25">
-            <TextBlock Text="工厂管理" FontSize="32" FontWeight="Bold" Foreground="#333333"/>
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
+            <Image Source="pack://application:,,,/Resources/Icons/icon_factory.png" Width="32" Height="32" Margin="0,0,10,0"/>
+            <TextBlock Text="工厂管理" FontSize="24" FontWeight="Bold" Foreground="#000000"/>
         </StackPanel>
 
         <!-- 搜索和添加区域 -->
@@ -23,7 +24,7 @@
             <!-- 背景层 -->
             <Border BorderBrush="White" BorderThickness="1.2" CornerRadius="10" Padding="10">
                 <Border.Background>
-                    <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                    <SolidColorBrush Color="#FFF5E6D3" Opacity="0.7"/>
                 </Border.Background>
             </Border>
             <!-- 内容层（清晰） -->
@@ -37,7 +38,7 @@
                         </Border>
                         <TextBox x:Name="SearchTextBox"
                                  Background="Transparent" BorderBrush="Transparent" BorderThickness="0" 
-                                 Foreground="#333333" Padding="10" FontSize="14"
+                                 Foreground="#000000" Padding="10" FontSize="14"
                                  ToolTip="搜索工厂名称..."/>
                     </Grid>
                     <Border Width="80" Height="35" Margin="20,0,0,0" Cursor="Hand" CornerRadius="10" BorderBrush="White" BorderThickness="1.2" Background="Transparent" ClipToBounds="False">
@@ -87,7 +88,7 @@
             <!-- 边框层 -->
             <Border BorderBrush="White" BorderThickness="1.2" CornerRadius="10" Padding="10">
                 <Border.Background>
-                    <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                    <SolidColorBrush Color="#FFF5E6D3" Opacity="0.7"/>
                 </Border.Background>
                 <DataGrid ItemsSource="{Binding Factories}"
                           AutoGenerateColumns="False"
@@ -115,7 +116,7 @@
                             <Style TargetType="DataGridColumnHeader">
                                 <Setter Property="HorizontalContentAlignment" Value="Center"/>
                                 <Setter Property="VerticalContentAlignment" Value="Center"/>
-                                <Setter Property="Foreground" Value="#666666"/>
+                                <Setter Property="Foreground" Value="#000000"/>
                                 <Setter Property="FontWeight" Value="Bold"/>
                                 <Setter Property="BorderThickness" Value="0"/>
                                 <Setter Property="Padding" Value="8"/>
@@ -144,7 +145,7 @@
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="HorizontalAlignment" Value="Center"/>
-                                <Setter Property="Foreground" Value="#333333"/>
+                                <Setter Property="Foreground" Value="#000000"/>
                                 <Setter Property="FontSize" Value="13"/>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
@@ -154,7 +155,7 @@
                             <Style TargetType="DataGridColumnHeader">
                                 <Setter Property="HorizontalContentAlignment" Value="Center"/>
                                 <Setter Property="VerticalContentAlignment" Value="Center"/>
-                                <Setter Property="Foreground" Value="#666666"/>
+                                <Setter Property="Foreground" Value="#000000"/>
                                 <Setter Property="FontWeight" Value="Bold"/>
                                 <Setter Property="BorderThickness" Value="0"/>
                                 <Setter Property="Padding" Value="5"/>
@@ -183,7 +184,7 @@
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="HorizontalAlignment" Value="Center"/>
-                                <Setter Property="Foreground" Value="#333333"/>
+                                <Setter Property="Foreground" Value="#000000"/>
                                 <Setter Property="FontSize" Value="13"/>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
@@ -193,7 +194,7 @@
                             <Style TargetType="DataGridColumnHeader">
                                 <Setter Property="HorizontalContentAlignment" Value="Center"/>
                                 <Setter Property="VerticalContentAlignment" Value="Center"/>
-                                <Setter Property="Foreground" Value="#666666"/>
+                                <Setter Property="Foreground" Value="#000000"/>
                                 <Setter Property="FontWeight" Value="Bold"/>
                                 <Setter Property="BorderThickness" Value="0"/>
                                 <Setter Property="Padding" Value="5"/>
@@ -222,7 +223,7 @@
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="HorizontalAlignment" Value="Center"/>
-                                <Setter Property="Foreground" Value="#333333"/>
+                                <Setter Property="Foreground" Value="#000000"/>
                                 <Setter Property="FontSize" Value="13"/>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
@@ -232,7 +233,7 @@
                             <Style TargetType="DataGridColumnHeader">
                                 <Setter Property="HorizontalContentAlignment" Value="Center"/>
                                 <Setter Property="VerticalContentAlignment" Value="Center"/>
-                                <Setter Property="Foreground" Value="#666666"/>
+                                <Setter Property="Foreground" Value="#000000"/>
                                 <Setter Property="FontWeight" Value="Bold"/>
                                 <Setter Property="BorderThickness" Value="0"/>
                                 <Setter Property="Padding" Value="5"/>
@@ -276,7 +277,7 @@
                             <Style TargetType="DataGridColumnHeader">
                                 <Setter Property="HorizontalContentAlignment" Value="Center"/>
                                 <Setter Property="VerticalContentAlignment" Value="Center"/>
-                                <Setter Property="Foreground" Value="#666666"/>
+                                <Setter Property="Foreground" Value="#000000"/>
                                 <Setter Property="FontWeight" Value="Bold"/>
                                 <Setter Property="BorderThickness" Value="0"/>
                                 <Setter Property="Padding" Value="5"/>
@@ -327,11 +328,11 @@
                         <Setter Property="HorizontalAlignment" Value="Center"/>
                         <Setter Property="VerticalAlignment" Value="Center"/>
                         <Setter Property="Background" Value="Transparent"/>
-                        <Setter Property="Foreground" Value="#333333"/>
+                        <Setter Property="Foreground" Value="#000000"/>
                         <Style.Triggers>
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter Property="Background" Value="Transparent"/>
-                                <Setter Property="Foreground" Value="#333333"/>
+                                <Setter Property="Foreground" Value="#000000"/>
                             </Trigger>
                         </Style.Triggers>
                     </Style>

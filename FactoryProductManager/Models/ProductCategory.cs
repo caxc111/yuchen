@@ -24,10 +24,10 @@ namespace FactoryProductManager.Models
             return new List<string>
             {
                 "柜体木饰面",
-                "柜体、家具五金",
+                "木地板",
+                "地毯",
                 "瓷砖",
                 "石材",
-                "人造石",
                 "厨卫陶瓷",
                 "厨卫五金",
                 "户内门",
@@ -53,19 +53,45 @@ namespace FactoryProductManager.Models
                         new ProductCategory { Name = "三聚氰胺饰面板" },
                         new ProductCategory { Name = "PET膜饰面板" },
                         new ProductCategory { Name = "混油饰面板" },
-                        new ProductCategory { Name = "其他饰面" }
+                        new ProductCategory { Name = "其他饰面" },
+                        new ProductCategory
+                        {
+                            Name = "柜体、家具五金",
+                            Children = new List<ProductCategory>
+                            {
+                                new ProductCategory { Name = "铰链" },
+                                new ProductCategory { Name = "轨道" },
+                                new ProductCategory { Name = "拉手" },
+                                new ProductCategory { Name = "成品抽屉" },
+                                new ProductCategory { Name = "铝合金柜门" }
+                            }
+                        }
                     }
                 },
                 new ProductCategory
                 {
-                    Name = "柜体、家具五金",
+                    Name = "木地板",
                     Children = new List<ProductCategory>
                     {
-                        new ProductCategory { Name = "铰链" },
-                        new ProductCategory { Name = "轨道" },
-                        new ProductCategory { Name = "拉手" },
-                        new ProductCategory { Name = "成品抽屉" },
-                        new ProductCategory { Name = "铝合金柜门" }
+                        new ProductCategory { Name = "实木地板" },
+                        new ProductCategory { Name = "实木复合地板" },
+                        new ProductCategory { Name = "强化复合地板" },
+                        new ProductCategory { Name = "SPC(石塑)" },
+                        new ProductCategory { Name = "LVT" },
+                        new ProductCategory { Name = "WPC（木塑）" },
+                        new ProductCategory { Name = "塑胶地板及其他" }
+                    }
+                },
+                new ProductCategory
+                {
+                    Name = "地毯",
+                    Children = new List<ProductCategory>
+                    {
+                        new ProductCategory { Name = "丙纶满铺毯" },
+                        new ProductCategory { Name = "晴纶满铺毯" },
+                        new ProductCategory { Name = "涤纶满铺毯" },
+                        new ProductCategory { Name = "羊毛/羊毛混纺满铺毯" },
+                        new ProductCategory { Name = "植物纤维（剑麻/黄麻）" }
                     }
                 },
                 new ProductCategory
@@ -89,18 +115,18 @@ namespace FactoryProductManager.Models
                         new ProductCategory { Name = "花岗岩" },
                         new ProductCategory { Name = "砂岩" },
                         new ProductCategory { Name = "板岩" },
-                        new ProductCategory { Name = "石灰石" }
-                    }
-                },
-                new ProductCategory
-                {
-                    Name = "人造石",
-                    Children = new List<ProductCategory>
-                    {
-                        new ProductCategory { Name = "树脂基石英石" },
-                        new ProductCategory { Name = "无机基石英石" },
-                        new ProductCategory { Name = "人造大理石（岗石）" },
-                        new ProductCategory { Name = "微晶石" }
+                        new ProductCategory { Name = "石灰石" },
+                        new ProductCategory
+                        {
+                            Name = "人造石",
+                            Children = new List<ProductCategory>
+                            {
+                                new ProductCategory { Name = "树脂基石英石" },
+                                new ProductCategory { Name = "无机基石英石" },
+                                new ProductCategory { Name = "人造大理石（岗石）" },
+                                new ProductCategory { Name = "微晶石" }
+                            }
+                        }
                     }
                 },
                 new ProductCategory
@@ -172,6 +198,17 @@ namespace FactoryProductManager.Models
                         new ProductCategory { Name = "厨房龙头" },
                         new ProductCategory { Name = "淋浴龙头" },
                         new ProductCategory { Name = "其他龙头" },
+                        new ProductCategory
+                        {
+                            Name = "淋浴屏风",
+                            Children = new List<ProductCategory>
+                            {
+                                new ProductCategory { Name = "浴屏玻璃" },
+                                new ProductCategory { Name = "浴屏五金" },
+                                new ProductCategory { Name = "屏风挡水" },
+                                new ProductCategory { Name = "淋浴房底座" }
+                            }
+                        },
                         new ProductCategory { Name = "毛巾架" },
                         new ProductCategory { Name = "置物架" },
                         new ProductCategory { Name = "地漏/角阀/软管等" }
@@ -193,17 +230,6 @@ namespace FactoryProductManager.Models
                                 new ProductCategory { Name = "合页" },
                                 new ProductCategory { Name = "拉手" },
                                 new ProductCategory { Name = "门碰" }
-                            }
-                        },
-                        new ProductCategory
-                        {
-                            Name = "淋浴屏风",
-                            Children = new List<ProductCategory>
-                            {
-                                new ProductCategory { Name = "浴屏玻璃" },
-                                new ProductCategory { Name = "浴屏五金" },
-                                new ProductCategory { Name = "屏风挡水" },
-                                new ProductCategory { Name = "淋浴房底座" }
                             }
                         }
                     }

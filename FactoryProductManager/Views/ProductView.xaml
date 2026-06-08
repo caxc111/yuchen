@@ -14,8 +14,9 @@
         </Grid.RowDefinitions>
 
         <!-- 标题区域 -->
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,25">
-            <TextBlock Text="物料管理" FontSize="32" FontWeight="Bold" Foreground="#333333"/>
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
+            <Image Source="pack://application:,,,/Resources/Icons/icon_product.png" Width="32" Height="32" Margin="0,0,10,0"/>
+            <TextBlock Text="物料管理" FontSize="24" FontWeight="Bold" Foreground="#000000"/>
         </StackPanel>
 
         <!-- 搜索和添加区域 -->
