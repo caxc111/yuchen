@@ -2,6 +2,8 @@ using FactoryProductManager.Models;
 using FactoryProductManager.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Media;
 
 namespace FactoryProductManager.Views
 {
@@ -18,8 +20,9 @@ namespace FactoryProductManager.Views
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new FactoryDialog();
-            if (dialog.ShowDialog() == true && dialog.IsSaved)
+            var dialog = new FactoryDialogWindow();
+            dialog.ShowDialog();
+            if (dialog.IsSaved)
             {
                 _viewModel.AddFactory(dialog.Factory);
             }
@@ -31,7 +34,7 @@ namespace FactoryProductManager.Views
             var factory = button?.Tag as Factory;
             if (factory != null)
             {
-                var dialog = new FactoryDialog(factory);
+                var dialog = new FactoryDialogWindow(factory);
                 if (dialog.ShowDialog() == true && dialog.IsSaved)
                 {
                     _viewModel.UpdateFactory(dialog.Factory);
@@ -55,7 +58,34 @@ namespace FactoryProductManager.Views
 
         private void SearchButton_Click(object sender, RoutedEventArgs e)
         {
-            _viewModel.Refresh();
+            var searchText = SearchTextBox?.Text;
+            _viewModel.Search(searchText);
+        }
+
+        private void DetailsButton_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            var factory = button?.Tag as Factory;
+            if (factory != null)
+            {
+                var detailsWindow = new FactoryDetailsWindow(factory);
+                detailsWindow.Owner = Window.GetWindow(this);
+                detailsWindow.ShowDialog();
+            }
+        }
+
+        private T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+                if (child is T t)
+                    return t;
+                var result = FindVisualChild<T>(child);
+                if (result != null)
+                    return result;
+            }
+            return null;
         }
     }
 }

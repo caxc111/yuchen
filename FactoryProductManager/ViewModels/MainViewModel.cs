@@ -13,6 +13,13 @@ namespace FactoryProductManager.ViewModels
             set => SetProperty(ref _currentView, value);
         }
 
+        private string _currentPage = "Factory";
+        public string CurrentPage
+        {
+            get => _currentPage;
+            set => SetProperty(ref _currentPage, value);
+        }
+
         public ICommand NavigateCommand { get; }
 
         public MainViewModel()
@@ -23,6 +30,7 @@ namespace FactoryProductManager.ViewModels
 
         private void Navigate(string viewName)
         {
+            CurrentPage = viewName;
             switch (viewName)
             {
                 case "Factory":

@@ -1,14 +1,15 @@
 using FactoryProductManager.Models;
-using System.Windows;
+using System.Windows.Controls;
 
 namespace FactoryProductManager.Views
 {
-    public partial class FactoryDialog : Window
+    public partial class FactoryDialogUserControl : UserControl
     {
         public Factory Factory { get; set; }
         public bool IsSaved { get; private set; }
+        public string Title { get; set; }
 
-        public FactoryDialog(Factory factory = null)
+        public FactoryDialogUserControl(Factory factory = null)
         {
             InitializeComponent();
             if (factory == null)
@@ -30,27 +31,29 @@ namespace FactoryProductManager.Views
             }
         }
 
-        private void OkButton_Click(object sender, RoutedEventArgs e)
+        public event System.EventHandler OkClicked;
+        public event System.EventHandler CancelClicked;
+
+        private void OkButton_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(Factory.FactoryCode))
             {
-                MessageBox.Show("请输入工厂编码");
+                System.Windows.MessageBox.Show("请输入工厂编码");
                 return;
             }
             if (string.IsNullOrEmpty(Factory.FactoryName))
             {
-                MessageBox.Show("请输入工厂名称");
+                System.Windows.MessageBox.Show("请输入工厂名称");
                 return;
             }
             IsSaved = true;
-            DialogResult = true;
-            Close();
+            OkClicked?.Invoke(this, e);
         }
 
-        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        private void CancelButton_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             IsSaved = false;
-            Close();
+            CancelClicked?.Invoke(this, e);
         }
     }
 }

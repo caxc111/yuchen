@@ -6,49 +6,366 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300">
-    <Grid Margin="20">
+    <Grid Margin="10,0,20,0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
-            <Image Source="pack://application:,,,/Resources/Icons/icon_factory.png" Width="32" Height="32" Margin="0,0,10,0"/>
-            <TextBlock Text="工厂管理" FontSize="24" FontWeight="Bold"/>
+        <!-- 标题区域 -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,25">
+            <TextBlock Text="工厂管理" FontSize="32" FontWeight="Bold" Foreground="#333333"/>
         </StackPanel>
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
-            <TextBox x:Name="SearchTextBox" Width="200" materialDesign:HintAssist.Hint="搜索工厂名称..."/>
-            <Button Style="{StaticResource MaterialDesignRaisedButton}" Content="搜索" Margin="10,0" Click="SearchButton_Click"/>
-            <Button Style="{StaticResource MaterialDesignFloatingActionButton}" Click="AddButton_Click">
-                <materialDesign:PackIcon Kind="Plus"/>
-            </Button>
-        </StackPanel>
+        <!-- 搜索和添加区域 -->
+        <Grid Grid.Row="1" Margin="0,0,0,15">
+            <!-- 背景层 -->
+            <Border BorderBrush="White" BorderThickness="1.2" CornerRadius="10" Padding="10">
+                <Border.Background>
+                    <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                </Border.Background>
+            </Border>
+            <!-- 内容层（清晰） -->
+            <Border Background="Transparent" BorderBrush="White" BorderThickness="1.2" CornerRadius="10" Padding="10">
+                <StackPanel Orientation="Horizontal">
+                    <Grid Width="400" Height="35">
+                        <Border BorderBrush="White" BorderThickness="1.2" CornerRadius="10">
+                            <Border.Background>
+                                <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                            </Border.Background>
+                        </Border>
+                        <TextBox x:Name="SearchTextBox"
+                                 Background="Transparent" BorderBrush="Transparent" BorderThickness="0" 
+                                 Foreground="#333333" Padding="10" FontSize="14"
+                                 ToolTip="搜索工厂名称..."/>
+                    </Grid>
+                    <Border Width="80" Height="35" Margin="20,0,0,0" Cursor="Hand" CornerRadius="10" BorderBrush="White" BorderThickness="1.2" Background="Transparent" ClipToBounds="False">
+                        <Border.InputBindings>
+                            <MouseBinding MouseAction="LeftClick" Command="{Binding SearchCommand}"/>
+                        </Border.InputBindings>
+                        <Grid Width="80" Height="35" ClipToBounds="False">
+                            <Border Width="80" Height="35" CornerRadius="10" ClipToBounds="False">
+                                <Border.Background>
+                                    <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                                </Border.Background>
+                                <Border.Effect>
+                                    <BlurEffect Radius="20"/>
+                                </Border.Effect>
+                            </Border>
+                            <Button Content="搜索" Margin="0" Click="SearchButton_Click"
+                                    Background="Transparent" Foreground="#2196F3" 
+                                    BorderBrush="Transparent" BorderThickness="0"
+                                    FontSize="14" Cursor="Hand"/>
+                        </Grid>
+                    </Border>
+                    <Border Width="100" Height="35" Margin="20,0,0,0" Cursor="Hand" CornerRadius="10" BorderBrush="White" BorderThickness="1.2" Background="Transparent" ClipToBounds="False">
+                        <Border.InputBindings>
+                            <MouseBinding MouseAction="LeftClick" Command="{Binding AddCommand}"/>
+                        </Border.InputBindings>
+                        <Grid Width="100" Height="35" ClipToBounds="False">
+                            <Border Width="100" Height="35" CornerRadius="10" ClipToBounds="False">
+                                <Border.Background>
+                                    <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                                </Border.Background>
+                                <Border.Effect>
+                                    <BlurEffect Radius="20"/>
+                                </Border.Effect>
+                            </Border>
+                            <Button Content="添加工厂" Margin="0" Click="AddButton_Click"
+                                    Background="Transparent" Foreground="#4CAF50" 
+                                    BorderBrush="Transparent" BorderThickness="0"
+                                    FontSize="14" Cursor="Hand"/>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </Grid>
 
-        <DataGrid Grid.Row="2" AutoGenerateColumns="False" ItemsSource="{Binding Factories}">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="工厂编码" Binding="{Binding FactoryCode}"/>
-                <DataGridTextColumn Header="工厂名称" Binding="{Binding FactoryName}"/>
-                <DataGridTextColumn Header="类型" Binding="{Binding FactoryType}"/>
-                <DataGridTextColumn Header="地址" Binding="{Binding Address}"/>
-                <DataGridTextColumn Header="联系人" Binding="{Binding ContactPerson}"/>
-                <DataGridTextColumn Header="联系信息" Binding="{Binding ContactInfo}"/>
-                <DataGridTemplateColumn Header="操作">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="编辑" Click="EditButton_Click" Tag="{Binding}">
-                                    <materialDesign:PackIcon Kind="Edit"/>
-                                </Button>
-                                <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="删除" Click="DeleteButton_Click" Tag="{Binding}">
-                                    <materialDesign:PackIcon Kind="Delete"/>
-                                </Button>
-                            </StackPanel>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-            </DataGrid.Columns>
-        </DataGrid>
+        <!-- 数据表格 -->
+        <Grid Grid.Row="2" Margin="0,0,0,0">
+            <!-- 边框层 -->
+            <Border BorderBrush="White" BorderThickness="1.2" CornerRadius="10" Padding="10">
+                <Border.Background>
+                    <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                </Border.Background>
+                <DataGrid ItemsSource="{Binding Factories}"
+                          AutoGenerateColumns="False"
+                          BorderBrush="Transparent"
+                          GridLinesVisibility="None"
+                          HorizontalGridLinesBrush="Transparent"
+                          VerticalGridLinesBrush="Transparent"
+                          ColumnHeaderHeight="35"
+                          RowHeight="36"
+                          HeadersVisibility="Column"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          SelectionMode="Single"
+                          Background="Transparent"
+                          RowBackground="Transparent"
+                          AlternatingRowBackground="Transparent"
+                          IsReadOnly="True"
+                          Margin="0"
+                          Padding="0"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="工厂编码" Binding="{Binding FactoryCode}" Width="120">
+                        <DataGridTextColumn.HeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                <Setter Property="Foreground" Value="#666666"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="Padding" Value="8"/>
+                                <Setter Property="Margin" Value="0,0,0,0"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="DataGridColumnHeader">
+                                            <Border CornerRadius="10" BorderBrush="White" BorderThickness="1.2" Background="Transparent" ClipToBounds="False">
+                                                <Grid ClipToBounds="False">
+                                                    <Border CornerRadius="10" ClipToBounds="False">
+                                                        <Border.Background>
+                                                            <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                                                        </Border.Background>
+                                                        <Border.Effect>
+                                                            <BlurEffect Radius="20"/>
+                                                        </Border.Effect>
+                                                    </Border>
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5"/>
+                                                </Grid>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </DataGridTextColumn.HeaderStyle>
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="HorizontalAlignment" Value="Center"/>
+                                <Setter Property="Foreground" Value="#333333"/>
+                                <Setter Property="FontSize" Value="13"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="工厂名称" Binding="{Binding FactoryName}" Width="*">
+                        <DataGridTextColumn.HeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                <Setter Property="Foreground" Value="#666666"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="Padding" Value="5"/>
+                                <Setter Property="Margin" Value="10,0,0,0"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="DataGridColumnHeader">
+                                            <Border CornerRadius="10" BorderBrush="White" BorderThickness="1.2" Background="Transparent" ClipToBounds="False">
+                                                <Grid ClipToBounds="False">
+                                                    <Border CornerRadius="10" ClipToBounds="False">
+                                                        <Border.Background>
+                                                            <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                                                        </Border.Background>
+                                                        <Border.Effect>
+                                                            <BlurEffect Radius="20"/>
+                                                        </Border.Effect>
+                                                    </Border>
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5"/>
+                                                </Grid>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </DataGridTextColumn.HeaderStyle>
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="HorizontalAlignment" Value="Center"/>
+                                <Setter Property="Foreground" Value="#333333"/>
+                                <Setter Property="FontSize" Value="13"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="类型" Binding="{Binding FactoryType}" Width="150">
+                        <DataGridTextColumn.HeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                <Setter Property="Foreground" Value="#666666"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="Padding" Value="5"/>
+                                <Setter Property="Margin" Value="10,0,0,0"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="DataGridColumnHeader">
+                                            <Border CornerRadius="10" BorderBrush="White" BorderThickness="1.2" Background="Transparent" ClipToBounds="False">
+                                                <Grid ClipToBounds="False">
+                                                    <Border CornerRadius="10" ClipToBounds="False">
+                                                        <Border.Background>
+                                                            <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                                                        </Border.Background>
+                                                        <Border.Effect>
+                                                            <BlurEffect Radius="20"/>
+                                                        </Border.Effect>
+                                                    </Border>
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5"/>
+                                                </Grid>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </DataGridTextColumn.HeaderStyle>
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="HorizontalAlignment" Value="Center"/>
+                                <Setter Property="Foreground" Value="#333333"/>
+                                <Setter Property="FontSize" Value="13"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTemplateColumn Header="详细信息" Width="90">
+                        <DataGridTemplateColumn.HeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                <Setter Property="Foreground" Value="#666666"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="Padding" Value="5"/>
+                                <Setter Property="Margin" Value="10,0,0,0"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="DataGridColumnHeader">
+                                            <Border CornerRadius="10" BorderBrush="White" BorderThickness="1.2" Background="Transparent" ClipToBounds="False">
+                                                <Grid ClipToBounds="False">
+                                                    <Border CornerRadius="10" ClipToBounds="False">
+                                                        <Border.Background>
+                                                            <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                                                        </Border.Background>
+                                                        <Border.Effect>
+                                                            <BlurEffect Radius="20"/>
+                                                        </Border.Effect>
+                                                    </Border>
+                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5"/>
+                                                </Grid>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </DataGridTemplateColumn.HeaderStyle>
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel HorizontalAlignment="Center">
+                                    <Button Width="28" Height="28" 
+                                            Background="#F5F5F5" BorderBrush="#E0E0E0" 
+                                            BorderThickness="1" Padding="0" Cursor="Hand"
+                                            Click="DetailsButton_Click" Tag="{Binding}">
+                                        <Image Source="/Resources/Icons/icon_expand.png" Width="14" Height="14" Stretch="Uniform"/>
+                                    </Button>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="操作" Width="130">
+                        <DataGridTemplateColumn.HeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                <Setter Property="Foreground" Value="#666666"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="Padding" Value="5"/>
+                                <Setter Property="Margin" Value="10,0,0,0"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="DataGridColumnHeader">
+                                            <Border CornerRadius="10" BorderBrush="White" BorderThickness="1.2" Background="Transparent" ClipToBounds="False">
+                                                <Grid ClipToBounds="False">
+                                                    <Border CornerRadius="10" ClipToBounds="False">
+                                                        <Border.Background>
+                                                            <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                                                        </Border.Background>
+                                                        <Border.Effect>
+                                                            <BlurEffect Radius="20"/>
+                                                        </Border.Effect>
+                                                    </Border>
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5"/>
+                                                </Grid>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </DataGridTemplateColumn.HeaderStyle>
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button ToolTip="编辑" Click="EditButton_Click" Tag="{Binding}" Margin="0,0,5,0"
+                                            Width="28" Height="28" Background="#F5F5F5" 
+                                            BorderBrush="#E0E0E0" BorderThickness="1" Padding="0" Cursor="Hand">
+                                        <Image Source="/Resources/Icons/icon_edit.png" Width="14" Height="14" Stretch="Uniform"/>
+                                    </Button>
+                                    <Button ToolTip="删除" Click="DeleteButton_Click" Tag="{Binding}"
+                                            Width="28" Height="28" Background="#F5F5F5" 
+                                            BorderBrush="#E0E0E0" BorderThickness="1" Padding="0" Cursor="Hand">
+                                        <Image Source="/Resources/Icons/icon_delete.png" Width="14" Height="14" Stretch="Uniform"/>
+                                    </Button>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+                <DataGrid.CellStyle>
+                    <Style TargetType="DataGridCell">
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="Padding" Value="8,5"/>
+                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                        <Setter Property="VerticalAlignment" Value="Center"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Foreground" Value="#333333"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="Foreground" Value="#333333"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.CellStyle>
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="DataGridRow">
+                                    <Border CornerRadius="10" BorderBrush="White" BorderThickness="1.2" Background="Transparent" ClipToBounds="False" Margin="2">
+                                        <Grid ClipToBounds="False">
+                                            <Border CornerRadius="10" ClipToBounds="False">
+                                                <Border.Background>
+                                                    <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                                                </Border.Background>
+                                                <Border.Effect>
+                                                    <BlurEffect Radius="20"/>
+                                                </Border.Effect>
+                                            </Border>
+                                            <DataGridCellsPresenter/>
+                                        </Grid>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="Transparent"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
+                </DataGrid>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>

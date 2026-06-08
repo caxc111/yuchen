@@ -20,5 +20,8 @@
   
   <ItemGroup>
     <Resource Include="Resources\Icons\*" />
+    <None Update="Resources\Icons\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

@@ -16,7 +16,7 @@ namespace ExcelImporter
             Console.WriteLine();
 
             string excelPath = @"d:\BaiduSyncdisk\宇程科技智能家居\编程\宇辰信息中心\工厂信息.xls";
-            string dbPath = @"d:\BaiduSyncdisk\宇程科技智能家居\编程\宇辰信息中心\FactoryProductManager\FactoryProductManager\FactoryProductDB.db";
+            string dbPath = @"d:\BaiduSyncdisk\宇程科技智能家居\编程\宇辰信息中心\FactoryProductManager\FactoryProductDB.db";
 
             Console.WriteLine($"Excel文件: {excelPath}");
             Console.WriteLine($"数据库文件: {dbPath}");

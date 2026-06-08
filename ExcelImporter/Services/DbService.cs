@@ -12,6 +12,40 @@ namespace ExcelImporter.Services
         public DbService(string databasePath = "FactoryProductDB.db")
         {
             _connectionString = $"Data Source={databasePath};Version=3;";
+            CreateTables();
+        }
+
+        private void CreateTables()
+        {
+            using (var conn = new SQLiteConnection(_connectionString))
+            {
+                conn.Open();
+                
+                string createTableSql = @"
+                    CREATE TABLE IF NOT EXISTS Factories (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        factory_code TEXT NOT NULL UNIQUE,
+                        factory_name TEXT NOT NULL,
+                        factory_type TEXT,
+                        address TEXT,
+                        certifications TEXT,
+                        description TEXT,
+                        scale TEXT,
+                        employee_count INTEGER,
+                        production_capacity TEXT,
+                        controlling_person TEXT,
+                        contact_person TEXT,
+                        contact_info TEXT,
+                        contact_method TEXT,
+                        created_at TEXT,
+                        updated_at TEXT
+                    )";
+                
+                using (var cmd = new SQLiteCommand(createTableSql, conn))
+                {
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
 
         private object ToDbValue(string value)
@@ -68,10 +102,10 @@ namespace ExcelImporter.Services
                 string sql = @"
                     INSERT INTO Factories (factory_code, factory_name, factory_type, address,
                         certifications, description, scale, employee_count, production_capacity,
-                        controlling_person, contact_person, contact_info, contact_method,
+                        controlling_person, contact_person, contact_info,
                         created_at, updated_at)
                     VALUES (@code, @name, @type, @address, @cert, @desc, @scale, @empCount,
-                        @capacity, @controller, @contact, @contactInfo, @contactMethod,
+                        @capacity, @controller, @contact, @contactInfo,
                         @createdAt, @updatedAt)";
                 using (var cmd = new SQLiteCommand(sql, conn))
                 {
@@ -87,7 +121,6 @@ namespace ExcelImporter.Services
                     cmd.Parameters.AddWithValue("@controller", ToDbValue(factory.ControllingPerson));
                     cmd.Parameters.AddWithValue("@contact", ToDbValue(factory.ContactPerson));
                     cmd.Parameters.AddWithValue("@contactInfo", ToDbValue(factory.ContactInfo));
-                    cmd.Parameters.AddWithValue("@contactMethod", ToDbValue(factory.ContactMethod));
                     cmd.Parameters.AddWithValue("@createdAt", factory.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
                     cmd.Parameters.AddWithValue("@updatedAt", factory.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
                     cmd.ExecuteNonQuery();

@@ -2,6 +2,7 @@ using FactoryProductManager.Models;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using System.IO;
 
 namespace FactoryProductManager.Services
 {
@@ -9,9 +10,74 @@ namespace FactoryProductManager.Services
     {
         private readonly string _connectionString;
 
-        public DbService(string databasePath = "FactoryProductDB.db")
+        public DbService(string databasePath = null)
         {
+            if (string.IsNullOrEmpty(databasePath))
+            {
+                string appDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                string projectDirectory = Path.GetFullPath(Path.Combine(appDirectory, "..", "..", "..", ".."));
+                databasePath = Path.Combine(projectDirectory, "FactoryProductManager", "FactoryProductDB.db");
+            }
             _connectionString = $"Data Source={databasePath};Version=3;";
+            CreateTables();
+        }
+
+        private void CreateTables()
+        {
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                
+                string createFactoriesTable = @"
+                    CREATE TABLE IF NOT EXISTS Factories (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        factory_code TEXT NOT NULL UNIQUE,
+                        factory_name TEXT NOT NULL,
+                        factory_type TEXT,
+                        address TEXT,
+                        certifications TEXT,
+                        description TEXT,
+                        scale TEXT,
+                        employee_count INTEGER,
+                        production_capacity TEXT,
+                        controlling_person TEXT,
+                        contact_person TEXT,
+                        contact_info TEXT,
+                        contact_method TEXT,
+                        created_at TEXT,
+                        updated_at TEXT
+                    )";
+                
+                using (var cmd = new SQLiteCommand(createFactoriesTable, conn))
+                {
+                    cmd.ExecuteNonQuery();
+                }
+                
+                string createProductsTable = @"
+                    CREATE TABLE IF NOT EXISTS FactoryProducts (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        factory_product_code TEXT NOT NULL,
+                        my_product_code TEXT,
+                        product_name TEXT NOT NULL,
+                        brand TEXT,
+                        specification TEXT,
+                        texture TEXT,
+                        process TEXT,
+                        usage_scenario TEXT,
+                        certifications TEXT,
+                        category TEXT,
+                        image_url TEXT,
+                        factory_id INTEGER,
+                        created_at TEXT,
+                        updated_at TEXT,
+                        FOREIGN KEY (factory_id) REFERENCES Factories(id)
+                    )";
+                
+                using (var cmd = new SQLiteCommand(createProductsTable, conn))
+                {
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
 
         public SQLiteConnection GetConnection()
@@ -31,35 +97,62 @@ namespace FactoryProductManager.Services
 
         public List<Factory> GetFactories()
         {
+            LogService.Info("开始查询工厂列表");
             var factories = new List<Factory>();
-            using (var conn = GetConnection())
+            try
             {
-                conn.Open();
-                var cmd = new SQLiteCommand("SELECT * FROM Factories ORDER BY factory_code", conn);
-                using (var reader = cmd.ExecuteReader())
+                using (var conn = GetConnection())
                 {
-                    while (reader.Read())
+                    LogService.Info($"数据库连接字符串: {_connectionString}");
+                    conn.Open();
+                    LogService.Info("数据库连接成功");
+                    
+                    var cmd = new SQLiteCommand("SELECT COUNT(*) FROM Factories", conn);
+                    var count = Convert.ToInt32(cmd.ExecuteScalar());
+                    LogService.Info($"Factories表记录数: {count}");
+                    
+                    cmd = new SQLiteCommand("SELECT * FROM Factories ORDER BY factory_code", conn);
+                    using (var reader = cmd.ExecuteReader())
                     {
-                        factories.Add(new Factory
+                        LogService.Info("开始读取数据...");
+                        while (reader.Read())
                         {
-                            Id = reader.GetInt32(0),
-                            FactoryCode = reader.GetString(1),
-                            FactoryName = reader.GetString(2),
-                            FactoryType = reader.IsDBNull(3) ? null : reader.GetString(3),
-                            Address = reader.IsDBNull(4) ? null : reader.GetString(4),
-                            Certifications = reader.IsDBNull(5) ? null : reader.GetString(5),
-                            Description = reader.IsDBNull(6) ? null : reader.GetString(6),
-                            Scale = reader.IsDBNull(7) ? null : reader.GetString(7),
-                            EmployeeCount = reader.IsDBNull(8) ? null : reader.GetInt32(8),
-                            ProductionCapacity = reader.IsDBNull(9) ? null : reader.GetString(9),
-                            ControllingPerson = reader.IsDBNull(10) ? null : reader.GetString(10),
-                            ContactPerson = reader.IsDBNull(11) ? null : reader.GetString(11),
-                            ContactInfo = reader.IsDBNull(12) ? null : reader.GetString(12),
-                            CreatedAt = reader.GetDateTime(13),
-                            UpdatedAt = reader.GetDateTime(14)
-                        });
+                            try
+                            {
+                                factories.Add(new Factory
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("id")),
+                                    FactoryCode = reader.GetString(reader.GetOrdinal("factory_code")),
+                                    FactoryName = reader.GetString(reader.GetOrdinal("factory_name")),
+                                    FactoryType = reader.IsDBNull(reader.GetOrdinal("factory_type")) ? null : reader.GetString(reader.GetOrdinal("factory_type")),
+                                    Address = reader.IsDBNull(reader.GetOrdinal("address")) ? null : reader.GetString(reader.GetOrdinal("address")),
+                                    Certifications = reader.IsDBNull(reader.GetOrdinal("certifications")) ? null : reader.GetString(reader.GetOrdinal("certifications")),
+                                    Description = reader.IsDBNull(reader.GetOrdinal("description")) ? null : reader.GetString(reader.GetOrdinal("description")),
+                                    Scale = reader.IsDBNull(reader.GetOrdinal("scale")) ? null : reader.GetString(reader.GetOrdinal("scale")),
+                                    EmployeeCount = reader.IsDBNull(reader.GetOrdinal("employee_count")) ? null : (int?)reader.GetInt32(reader.GetOrdinal("employee_count")),
+                                    ProductionCapacity = reader.IsDBNull(reader.GetOrdinal("production_capacity")) ? null : reader.GetString(reader.GetOrdinal("production_capacity")),
+                                    ControllingPerson = reader.IsDBNull(reader.GetOrdinal("controlling_person")) ? null : reader.GetString(reader.GetOrdinal("controlling_person")),
+                                    ContactPerson = reader.IsDBNull(reader.GetOrdinal("contact_person")) ? null : reader.GetString(reader.GetOrdinal("contact_person")),
+                                    ContactInfo = reader.IsDBNull(reader.GetOrdinal("contact_info")) ? null : reader.GetString(reader.GetOrdinal("contact_info")),
+                                    CreatedAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? DateTime.Now : DateTime.Parse(reader.GetString(reader.GetOrdinal("created_at"))),
+                                    UpdatedAt = reader.IsDBNull(reader.GetOrdinal("updated_at")) ? DateTime.Now : DateTime.Parse(reader.GetString(reader.GetOrdinal("updated_at")))
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                LogService.Error($"读取单条记录失败: {ex.Message}");
+                            }
+                        }
+                        LogService.Info($"数据读取完成，共读取 {factories.Count} 条记录");
                     }
                 }
+                LogService.Info($"查询工厂列表完成，共 {factories.Count} 条记录");
+            }
+            catch (Exception ex)
+            {
+                LogService.Error($"查询工厂列表失败: {ex.Message}");
+                LogService.Error($"异常堆栈: {ex.StackTrace}");
+                throw;
             }
             return factories;
         }
@@ -205,6 +298,56 @@ namespace FactoryProductManager.Services
             {
                 conn.Open();
                 var cmd = new SQLiteCommand("DELETE FROM Factories WHERE id = @id", conn);
+                cmd.Parameters.AddWithValue("@id", id);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public void UpdateFactoryProduct(FactoryProduct product)
+        {
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                var cmd = new SQLiteCommand(@"
+                    UPDATE FactoryProducts SET 
+                        factory_product_code = @factoryCode, 
+                        my_product_code = @myCode, 
+                        product_name = @name, 
+                        brand = @brand, 
+                        specification = @spec, 
+                        texture = @texture, 
+                        process = @process, 
+                        usage_scenario = @scenario, 
+                        certifications = @cert, 
+                        category = @category, 
+                        image_url = @image, 
+                        factory_id = @factoryId,
+                        updated_at = @updatedAt
+                    WHERE id = @id", conn);
+                cmd.Parameters.AddWithValue("@factoryCode", product.FactoryProductCode);
+                cmd.Parameters.AddWithValue("@myCode", ToDbValue(product.MyProductCode));
+                cmd.Parameters.AddWithValue("@name", product.ProductName);
+                cmd.Parameters.AddWithValue("@brand", ToDbValue(product.Brand));
+                cmd.Parameters.AddWithValue("@spec", ToDbValue(product.Specification));
+                cmd.Parameters.AddWithValue("@texture", ToDbValue(product.Texture));
+                cmd.Parameters.AddWithValue("@process", ToDbValue(product.Process));
+                cmd.Parameters.AddWithValue("@scenario", ToDbValue(product.UsageScenario));
+                cmd.Parameters.AddWithValue("@cert", ToDbValue(product.Certifications));
+                cmd.Parameters.AddWithValue("@category", ToDbValue(product.Category));
+                cmd.Parameters.AddWithValue("@image", ToDbValue(product.ImageUrl));
+                cmd.Parameters.AddWithValue("@factoryId", ToDbValue(product.FactoryId));
+                cmd.Parameters.AddWithValue("@updatedAt", product.UpdatedAt);
+                cmd.Parameters.AddWithValue("@id", product.Id);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public void DeleteFactoryProduct(int id)
+        {
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                var cmd = new SQLiteCommand("DELETE FROM FactoryProducts WHERE id = @id", conn);
                 cmd.Parameters.AddWithValue("@id", id);
                 cmd.ExecuteNonQuery();
             }

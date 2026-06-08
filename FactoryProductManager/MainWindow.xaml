@@ -5,91 +5,222 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:views="clr-namespace:FactoryProductManager.Views"
+        xmlns:converters="clr-namespace:FactoryProductManager.Converters"
         mc:Ignorable="d"
-        Title="宇辰产品管理系统" Height="800" Width="1200"
+        Title="宇辰产品管理系统" Height="800" Width="1400" MinWidth="1280"
         WindowStartupLocation="CenterScreen"
         Icon="Resources/Icons/yuchenlogo.png">
     
     <Window.Resources>
-        <Style x:Key="NavButtonStyle" TargetType="Button">
-            <Setter Property="Margin" Value="8"/>
-            <Setter Property="Padding" Value="16,8"/>
+        <!-- 导航项选中样式：当前页背景变白 -->
+        <Style x:Key="NavItemStyle" TargetType="Border">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="White"/>
+            <Setter Property="BorderThickness" Value="1.2"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Margin" Value="4,6,4,0"/>
             <Setter Property="Width" Value="180"/>
+            <Setter Property="Height" Value="52"/>
             <Setter Property="HorizontalAlignment" Value="Center"/>
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="ClipToBounds" Value="False"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding CurrentPage}" Value="Factory">
+                    <Setter Property="Background">
+                        <Setter.Value>
+                            <SolidColorBrush Color="White" Opacity="0.95"/>
+                        </Setter.Value>
+                    </Setter>
+                </DataTrigger>
+            </Style.Triggers>
         </Style>
     </Window.Resources>
 
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+        <!-- 背景图（覆盖整个窗口） -->
+        <Image Source="Resources/Icons/factory_bg.jpeg" Stretch="Fill"/>
+        
+        <!-- 内容层 -->
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-        <!-- 左侧菜单 -->
-        <Border Background="{DynamicResource MaterialDesignPaper}" Grid.Column="0">
-            <StackPanel>
-                <!-- Logo区域 -->
-                    <Border Height="80" Background="{DynamicResource PrimaryHueMidBrush}" Margin="0,0,0,10">
-                        <TextBlock Text="宇辰产品管理系统" Foreground="White" FontSize="16" 
-                                   VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                    </Border>
-                
-                <!-- 导航按钮 -->
-                <Button Style="{StaticResource NavButtonStyle}" 
-                        Command="{Binding NavigateCommand}" CommandParameter="Factory">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Image Source="Resources/Icons/icon_factory.png" Width="32" Height="32" Margin="0,0,8,0"/>
-                        <TextBlock Text="工厂管理" VerticalAlignment="Center"/>
+            <!-- 左侧菜单 -->
+            <Grid Grid.Column="0" ClipToBounds="False">
+                <!-- 内容层（清晰） -->
+                <Border Margin="0,20,0,20" Padding="5" Background="Transparent" ClipToBounds="False">
+                    <StackPanel ClipToBounds="False">
+                        <!-- Logo区域 -->
+                        <Border Height="100" Margin="0,10,0,20" HorizontalAlignment="Center">
+                            <StackPanel Orientation="Vertical">
+                                <Image Source="Resources/Icons/yuchenlogo.png" Width="64" Height="64" Margin="0,10,0,5"/>
+                                <TextBlock Text="宇辰产品管理系统" FontSize="14" HorizontalAlignment="Center" Foreground="#333333"/>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- 导航按钮 -->
+                        <Border Tag="Factory" Margin="4,6,4,0" Width="180" Height="52" HorizontalAlignment="Center"
+                                Cursor="Hand" CornerRadius="10" BorderBrush="White" BorderThickness="1.2"
+                                ClipToBounds="False"
+                                Background="{Binding DataContext.CurrentPage, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource PageToBackgroundConverter}, ConverterParameter=Factory}">
+                            <Border.InputBindings>
+                                <MouseBinding MouseAction="LeftClick" Command="{Binding NavigateCommand}" CommandParameter="Factory"/>
+                            </Border.InputBindings>
+                            <Grid Width="180" Height="52" ClipToBounds="False">
+                                <!-- 毛玻璃背景层（仅背景模糊） -->
+                                <Border Width="180" Height="52" CornerRadius="10" ClipToBounds="False">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="LightGray" Opacity="0.85"/>
+                                    </Border.Background>
+                                    <Border.Effect>
+                                        <BlurEffect Radius="20"/>
+                                    </Border.Effect>
+                                </Border>
+                                <!-- 内容层（清晰，不应用模糊） -->
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0">
+                                    <Image Source="Resources/Icons/icon_factory.png" Width="36" Height="36" Margin="0,0,14,0"/>
+                                    <TextBlock Text="工厂管理" VerticalAlignment="Center" FontSize="16" Foreground="#333333"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        
+                        <Border Tag="Product" Margin="4,6,4,0" Width="180" Height="52" HorizontalAlignment="Center"
+                                Cursor="Hand" CornerRadius="10" BorderBrush="White" BorderThickness="1.2"
+                                ClipToBounds="False"
+                                Background="{Binding DataContext.CurrentPage, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource PageToBackgroundConverter}, ConverterParameter=Product}">
+                            <Border.InputBindings>
+                                <MouseBinding MouseAction="LeftClick" Command="{Binding NavigateCommand}" CommandParameter="Product"/>
+                            </Border.InputBindings>
+                            <Grid Width="180" Height="52" ClipToBounds="False">
+                                <!-- 毛玻璃背景层（仅背景模糊） -->
+                                <Border Width="180" Height="52" CornerRadius="10" ClipToBounds="False">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="LightGray" Opacity="0.85"/>
+                                    </Border.Background>
+                                    <Border.Effect>
+                                        <BlurEffect Radius="20"/>
+                                    </Border.Effect>
+                                </Border>
+                                <!-- 内容层（清晰，不应用模糊） -->
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0">
+                                    <Image Source="Resources/Icons/icon_product.png" Width="36" Height="36" Margin="0,0,14,0"/>
+                                    <TextBlock Text="物料管理" VerticalAlignment="Center" FontSize="16" Foreground="#333333"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        
+                        <Border Tag="BOM" Margin="4,6,4,0" Width="180" Height="52" HorizontalAlignment="Center"
+                                Cursor="Hand" CornerRadius="10" BorderBrush="White" BorderThickness="1.2"
+                                ClipToBounds="False"
+                                Background="{Binding DataContext.CurrentPage, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource PageToBackgroundConverter}, ConverterParameter=BOM}">
+                            <Border.InputBindings>
+                                <MouseBinding MouseAction="LeftClick" Command="{Binding NavigateCommand}" CommandParameter="BOM"/>
+                            </Border.InputBindings>
+                            <Grid Width="180" Height="52" ClipToBounds="False">
+                                <!-- 毛玻璃背景层（仅背景模糊） -->
+                                <Border Width="180" Height="52" CornerRadius="10" ClipToBounds="False">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="LightGray" Opacity="0.85"/>
+                                    </Border.Background>
+                                    <Border.Effect>
+                                        <BlurEffect Radius="20"/>
+                                    </Border.Effect>
+                                </Border>
+                                <!-- 内容层（清晰，不应用模糊） -->
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0">
+                                    <Image Source="Resources/Icons/icon_bom.png" Width="36" Height="36" Margin="0,0,14,0"/>
+                                    <TextBlock Text="BOM管理" VerticalAlignment="Center" FontSize="16" Foreground="#333333"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        
+                        <Border Tag="Purchase" Margin="4,6,4,0" Width="180" Height="52" HorizontalAlignment="Center"
+                                Cursor="Hand" CornerRadius="10" BorderBrush="White" BorderThickness="1.2"
+                                ClipToBounds="False"
+                                Background="{Binding DataContext.CurrentPage, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource PageToBackgroundConverter}, ConverterParameter=Purchase}">
+                            <Border.InputBindings>
+                                <MouseBinding MouseAction="LeftClick" Command="{Binding NavigateCommand}" CommandParameter="Purchase"/>
+                            </Border.InputBindings>
+                            <Grid Width="180" Height="52" ClipToBounds="False">
+                                <!-- 毛玻璃背景层（仅背景模糊） -->
+                                <Border Width="180" Height="52" CornerRadius="10" ClipToBounds="False">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="LightGray" Opacity="0.85"/>
+                                    </Border.Background>
+                                    <Border.Effect>
+                                        <BlurEffect Radius="20"/>
+                                    </Border.Effect>
+                                </Border>
+                                <!-- 内容层（清晰，不应用模糊） -->
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0">
+                                    <Image Source="Resources/Icons/icon_purchase.png" Width="36" Height="36" Margin="0,0,14,0"/>
+                                    <TextBlock Text="采购管理" VerticalAlignment="Center" FontSize="16" Foreground="#333333"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        
+                        <Border Tag="Contract" Margin="4,6,4,0" Width="180" Height="52" HorizontalAlignment="Center"
+                                Cursor="Hand" CornerRadius="10" BorderBrush="White" BorderThickness="1.2"
+                                ClipToBounds="False"
+                                Background="{Binding DataContext.CurrentPage, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource PageToBackgroundConverter}, ConverterParameter=Contract}">
+                            <Border.InputBindings>
+                                <MouseBinding MouseAction="LeftClick" Command="{Binding NavigateCommand}" CommandParameter="Contract"/>
+                            </Border.InputBindings>
+                            <Grid Width="180" Height="52" ClipToBounds="False">
+                                <!-- 毛玻璃背景层（仅背景模糊） -->
+                                <Border Width="180" Height="52" CornerRadius="10" ClipToBounds="False">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="LightGray" Opacity="0.85"/>
+                                    </Border.Background>
+                                    <Border.Effect>
+                                        <BlurEffect Radius="20"/>
+                                    </Border.Effect>
+                                </Border>
+                                <!-- 内容层（清晰，不应用模糊） -->
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0">
+                                    <Image Source="Resources/Icons/icon_contract.png" Width="36" Height="36" Margin="0,0,14,0"/>
+                                    <TextBlock Text="合同管理" VerticalAlignment="Center" FontSize="16" Foreground="#333333"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        
+                        <Border Tag="Report" Margin="4,6,4,0" Width="180" Height="52" HorizontalAlignment="Center"
+                                Cursor="Hand" CornerRadius="10" BorderBrush="White" BorderThickness="1.2"
+                                ClipToBounds="False"
+                                Background="{Binding DataContext.CurrentPage, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource PageToBackgroundConverter}, ConverterParameter=Report}">
+                            <Border.InputBindings>
+                                <MouseBinding MouseAction="LeftClick" Command="{Binding NavigateCommand}" CommandParameter="Report"/>
+                            </Border.InputBindings>
+                            <Grid Width="180" Height="52" ClipToBounds="False">
+                                <!-- 毛玻璃背景层（仅背景模糊） -->
+                                <Border Width="180" Height="52" CornerRadius="10" ClipToBounds="False">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="LightGray" Opacity="0.85"/>
+                                    </Border.Background>
+                                    <Border.Effect>
+                                        <BlurEffect Radius="20"/>
+                                    </Border.Effect>
+                                </Border>
+                                <!-- 内容层（清晰，不应用模糊） -->
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0">
+                                    <Image Source="Resources/Icons/icon_report.png" Width="36" Height="36" Margin="0,0,14,0"/>
+                                    <TextBlock Text="报表统计" VerticalAlignment="Center" FontSize="16" Foreground="#333333"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
                     </StackPanel>
-                </Button>
-                
-                <Button Style="{StaticResource NavButtonStyle}" 
-                        Command="{Binding NavigateCommand}" CommandParameter="Product">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Image Source="Resources/Icons/icon_product.png" Width="32" Height="32" Margin="0,0,8,0"/>
-                        <TextBlock Text="产品管理" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
-                
-                <Button Style="{StaticResource NavButtonStyle}" 
-                        Command="{Binding NavigateCommand}" CommandParameter="BOM">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Image Source="Resources/Icons/icon_bom.png" Width="32" Height="32" Margin="0,0,8,0"/>
-                        <TextBlock Text="BOM管理" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
-                
-                <Button Style="{StaticResource NavButtonStyle}" 
-                        Command="{Binding NavigateCommand}" CommandParameter="Purchase">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Image Source="Resources/Icons/icon_purchase.png" Width="32" Height="32" Margin="0,0,8,0"/>
-                        <TextBlock Text="采购管理" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
-                
-                <Button Style="{StaticResource NavButtonStyle}" 
-                        Command="{Binding NavigateCommand}" CommandParameter="Contract">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Image Source="Resources/Icons/icon_contract.png" Width="32" Height="32" Margin="0,0,8,0"/>
-                        <TextBlock Text="合同管理" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
-                
-                <Button Style="{StaticResource NavButtonStyle}" 
-                        Command="{Binding NavigateCommand}" CommandParameter="Report">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Image Source="Resources/Icons/icon_report.png" Width="32" Height="32" Margin="0,0,8,0"/>
-                        <TextBlock Text="报表统计" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
-            </StackPanel>
-        </Border>
+                </Border>
+            </Grid>
 
-        <!-- 右侧内容区域 -->
-        <Border Grid.Column="1" Background="White">
-            <ContentControl Content="{Binding CurrentView}"/>
-        </Border>
+            <!-- 右侧内容区域 -->
+            <Grid Grid.Column="1">
+                <!-- 内容层 -->
+                <Border Margin="20" CornerRadius="15" Background="Transparent">
+                    <ContentControl Content="{Binding CurrentView}"/>
+                </Border>
+            </Grid>
+        </Grid>
     </Grid>
 </Window>

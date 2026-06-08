@@ -1,0 +1,440 @@
+<UserControl x:Class="FactoryProductManager.Views.FactoryDialogUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d">
+    <Grid>
+        <!-- 内容层 -->
+        <Grid Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+
+        <Border Grid.Row="0" Grid.RowSpan="3" BorderBrush="White" BorderThickness="1.2" CornerRadius="10" Padding="15">
+            <Border.Effect>
+                <DropShadowEffect ShadowDepth="0" BlurRadius="15" Opacity="0.25" Color="Black"/>
+            </Border.Effect>
+            <Border.Background>
+                <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+            </Border.Background>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="{Binding Title}" FontSize="18" FontWeight="Bold" Foreground="#333333"/>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,10,0,0">
+                    <StackPanel>
+                        <!-- 工厂编码 -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid Grid.Column="0" Margin="0,10,0,0">
+                                <Border Width="110" Height="35" HorizontalAlignment="Center" CornerRadius="4" BorderBrush="White" BorderThickness="1.2" Background="Transparent">
+                                    <Grid Width="110" Height="35">
+                                        <!-- 毛玻璃背景层（仅背景模糊） -->
+                                        <Border Width="110" Height="35" CornerRadius="4">
+                                            <Border.Background>
+                                                <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                                            </Border.Background>
+                                            <Border.Effect>
+                                                <BlurEffect Radius="20"/>
+                                            </Border.Effect>
+                                        </Border>
+                                        <!-- 内容层（清晰，不应用模糊） -->
+                                        <TextBlock Text="工厂编码" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Foreground="#333333"/>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                            <Grid Grid.Column="1" Margin="10,10,0,0" Width="380" Height="35">
+                                <Border BorderThickness="1.2" BorderBrush="#CCCCCC" CornerRadius="4">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="White" Opacity="0.9"/>
+                                    </Border.Background>
+                                </Border>
+                                <TextBox Text="{Binding Factory.FactoryCode}" 
+                                         Background="Transparent" BorderBrush="Transparent" BorderThickness="0" 
+                                         Padding="8" FontSize="13" Foreground="#333333"/>
+                            </Grid>
+                        </Grid>
+
+                        <!-- 工厂名称 -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid Grid.Column="0" Margin="0,10,0,0">
+                                <Border Width="110" Height="35" HorizontalAlignment="Center" CornerRadius="4" BorderBrush="White" BorderThickness="1.2" Background="Transparent">
+                                    <Grid Width="110" Height="35">
+                                        <!-- 毛玻璃背景层（仅背景模糊） -->
+                                        <Border Width="110" Height="35" CornerRadius="4">
+                                            <Border.Background>
+                                                <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                                            </Border.Background>
+                                            <Border.Effect>
+                                                <BlurEffect Radius="20"/>
+                                            </Border.Effect>
+                                        </Border>
+                                        <!-- 内容层（清晰，不应用模糊） -->
+                                        <TextBlock Text="工厂名称" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Foreground="#333333"/>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                            <Grid Grid.Column="1" Margin="10,10,0,0" Width="380" Height="35">
+                                <Border BorderThickness="1.2" BorderBrush="#CCCCCC" CornerRadius="4">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="White" Opacity="0.9"/>
+                                    </Border.Background>
+                                </Border>
+                                <TextBox Text="{Binding Factory.FactoryName}" 
+                                         Background="Transparent" BorderBrush="Transparent" BorderThickness="0" 
+                                         Padding="8" FontSize="13" Foreground="#333333"/>
+                            </Grid>
+                        </Grid>
+
+                        <!-- 工厂类型（下拉框） -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid Grid.Column="0" Margin="0,10,0,0">
+                                <Border Width="110" Height="35" HorizontalAlignment="Center" CornerRadius="4" BorderBrush="White" BorderThickness="1.2" Background="Transparent">
+                                    <Grid Width="110" Height="35">
+                                        <!-- 毛玻璃背景层（仅背景模糊） -->
+                                        <Border Width="110" Height="35" CornerRadius="4">
+                                            <Border.Background>
+                                                <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                                            </Border.Background>
+                                            <Border.Effect>
+                                                <BlurEffect Radius="20"/>
+                                            </Border.Effect>
+                                        </Border>
+                                        <!-- 内容层（清晰，不应用模糊） -->
+                                        <TextBlock Text="工厂类型" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Foreground="#333333"/>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                            <Grid Grid.Column="1" Margin="10,10,0,0" Width="380" Height="35">
+                                <Border BorderThickness="1.2" BorderBrush="#CCCCCC" CornerRadius="4">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="White" Opacity="0.9"/>
+                                    </Border.Background>
+                                </Border>
+                                <ComboBox SelectedItem="{Binding Factory.FactoryType}" Name="FactoryTypeComboBox"
+                                          Background="Transparent" BorderBrush="Transparent" BorderThickness="0" 
+                                          Padding="8,0,30,0" FontSize="13" Foreground="#333333"/>
+                                <!-- 下拉倒三角图标 -->
+                                <Path Width="10" Height="6" Fill="#666666" Stretch="Fill" Margin="0,0,12,0" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                      Data="M0,0 L10,0 L5,6 Z"/>
+                            </Grid>
+                        </Grid>
+
+                        <!-- 地址 -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid Grid.Column="0" Margin="0,10,0,0">
+                                <Border Width="110" Height="35" HorizontalAlignment="Center" CornerRadius="4" BorderBrush="White" BorderThickness="1.2" Background="Transparent">
+                                    <Grid Width="110" Height="35">
+                                        <!-- 毛玻璃背景层（仅背景模糊） -->
+                                        <Border Width="110" Height="35" CornerRadius="4">
+                                            <Border.Background>
+                                                <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                                            </Border.Background>
+                                            <Border.Effect>
+                                                <BlurEffect Radius="20"/>
+                                            </Border.Effect>
+                                        </Border>
+                                        <!-- 内容层（清晰，不应用模糊） -->
+                                        <TextBlock Text="地址" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Foreground="#333333"/>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                            <Grid Grid.Column="1" Margin="10,10,0,0" Width="380" Height="35">
+                                <Border BorderThickness="1.2" BorderBrush="#CCCCCC" CornerRadius="4">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="White" Opacity="0.9"/>
+                                    </Border.Background>
+                                </Border>
+                                <TextBox Text="{Binding Factory.Address}" 
+                                         Background="Transparent" BorderBrush="Transparent" BorderThickness="0" 
+                                         Padding="8" FontSize="13" Foreground="#333333"/>
+                            </Grid>
+                        </Grid>
+
+                        <!-- 联系人 -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid Grid.Column="0" Margin="0,10,0,0">
+                                <Border Width="110" Height="35" HorizontalAlignment="Center" CornerRadius="4" BorderBrush="White" BorderThickness="1.2" Background="Transparent">
+                                    <Grid Width="110" Height="35">
+                                        <!-- 毛玻璃背景层（仅背景模糊） -->
+                                        <Border Width="110" Height="35" CornerRadius="4">
+                                            <Border.Background>
+                                                <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                                            </Border.Background>
+                                            <Border.Effect>
+                                                <BlurEffect Radius="20"/>
+                                            </Border.Effect>
+                                        </Border>
+                                        <!-- 内容层（清晰，不应用模糊） -->
+                                        <TextBlock Text="联系人" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Foreground="#333333"/>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                            <Grid Grid.Column="1" Margin="10,10,0,0" Width="380" Height="35">
+                                <Border BorderThickness="1.2" BorderBrush="#CCCCCC" CornerRadius="4">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="White" Opacity="0.9"/>
+                                    </Border.Background>
+                                </Border>
+                                <TextBox Text="{Binding Factory.ContactPerson}" 
+                                         Background="Transparent" BorderBrush="Transparent" BorderThickness="0" 
+                                         Padding="8" FontSize="13" Foreground="#333333"/>
+                            </Grid>
+                        </Grid>
+
+                        <!-- 联系信息 -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid Grid.Column="0" Margin="0,10,0,0">
+                                <Border Width="110" Height="35" HorizontalAlignment="Center" CornerRadius="4" BorderBrush="White" BorderThickness="1.2" Background="Transparent">
+                                    <Grid Width="110" Height="35">
+                                        <!-- 毛玻璃背景层（仅背景模糊） -->
+                                        <Border Width="110" Height="35" CornerRadius="4">
+                                            <Border.Background>
+                                                <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                                            </Border.Background>
+                                            <Border.Effect>
+                                                <BlurEffect Radius="20"/>
+                                            </Border.Effect>
+                                        </Border>
+                                        <!-- 内容层（清晰，不应用模糊） -->
+                                        <TextBlock Text="联系信息" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Foreground="#333333"/>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                            <Grid Grid.Column="1" Margin="10,10,0,0" Width="380" Height="35">
+                                <Border BorderThickness="1.2" BorderBrush="#CCCCCC" CornerRadius="4">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="White" Opacity="0.9"/>
+                                    </Border.Background>
+                                </Border>
+                                <TextBox Text="{Binding Factory.ContactInfo}" 
+                                         Background="Transparent" BorderBrush="Transparent" BorderThickness="0" 
+                                         Padding="8" FontSize="13" Foreground="#333333"/>
+                            </Grid>
+                        </Grid>
+
+                        <!-- 认证情况 -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid Grid.Column="0" Margin="0,10,0,0">
+                                <Border Width="110" Height="35" HorizontalAlignment="Center" CornerRadius="4" BorderBrush="White" BorderThickness="1.2" Background="Transparent">
+                                    <Grid Width="110" Height="35">
+                                        <!-- 毛玻璃背景层（仅背景模糊） -->
+                                        <Border Width="110" Height="35" CornerRadius="4">
+                                            <Border.Background>
+                                                <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                                            </Border.Background>
+                                            <Border.Effect>
+                                                <BlurEffect Radius="20"/>
+                                            </Border.Effect>
+                                        </Border>
+                                        <!-- 内容层（清晰，不应用模糊） -->
+                                        <TextBlock Text="认证情况" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Foreground="#333333"/>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                            <Grid Grid.Column="1" Margin="10,10,0,0" Width="380" Height="35">
+                                <Border BorderThickness="1.2" BorderBrush="#CCCCCC" CornerRadius="4">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="White" Opacity="0.9"/>
+                                    </Border.Background>
+                                </Border>
+                                <TextBox Text="{Binding Factory.Certifications}" 
+                                         Background="Transparent" BorderBrush="Transparent" BorderThickness="0" 
+                                         Padding="8" FontSize="13" Foreground="#333333"/>
+                            </Grid>
+                        </Grid>
+
+                        <!-- 工厂规模 -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid Grid.Column="0" Margin="0,10,0,0">
+                                <Border Width="110" Height="35" HorizontalAlignment="Center" CornerRadius="4" BorderBrush="White" BorderThickness="1.2" Background="Transparent">
+                                    <Grid Width="110" Height="35">
+                                        <!-- 毛玻璃背景层（仅背景模糊） -->
+                                        <Border Width="110" Height="35" CornerRadius="4">
+                                            <Border.Background>
+                                                <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                                            </Border.Background>
+                                            <Border.Effect>
+                                                <BlurEffect Radius="20"/>
+                                            </Border.Effect>
+                                        </Border>
+                                        <!-- 内容层（清晰，不应用模糊） -->
+                                        <TextBlock Text="工厂规模" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Foreground="#333333"/>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                            <Grid Grid.Column="1" Margin="10,10,0,0" Width="380" Height="35">
+                                <Border BorderThickness="1.2" BorderBrush="#CCCCCC" CornerRadius="4">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="White" Opacity="0.9"/>
+                                    </Border.Background>
+                                </Border>
+                                <TextBox Text="{Binding Factory.Scale}" 
+                                         Background="Transparent" BorderBrush="Transparent" BorderThickness="0" 
+                                         Padding="8" FontSize="13" Foreground="#333333"/>
+                            </Grid>
+                        </Grid>
+
+                        <!-- 员工人数 -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid Grid.Column="0" Margin="0,10,0,0">
+                                <Border Width="110" Height="35" HorizontalAlignment="Center" CornerRadius="4" BorderBrush="White" BorderThickness="1.2" Background="Transparent">
+                                    <Grid Width="110" Height="35">
+                                        <!-- 毛玻璃背景层（仅背景模糊） -->
+                                        <Border Width="110" Height="35" CornerRadius="4">
+                                            <Border.Background>
+                                                <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                                            </Border.Background>
+                                            <Border.Effect>
+                                                <BlurEffect Radius="20"/>
+                                            </Border.Effect>
+                                        </Border>
+                                        <!-- 内容层（清晰，不应用模糊） -->
+                                        <TextBlock Text="员工人数" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Foreground="#333333"/>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                            <Grid Grid.Column="1" Margin="10,10,0,0" Width="380" Height="35">
+                                <Border BorderThickness="1.2" BorderBrush="#CCCCCC" CornerRadius="4">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="White" Opacity="0.9"/>
+                                    </Border.Background>
+                                </Border>
+                                <TextBox Text="{Binding Factory.EmployeeCount, TargetNullValue='', UpdateSourceTrigger=LostFocus}" 
+                                         Background="Transparent" BorderBrush="Transparent" BorderThickness="0" 
+                                         Padding="8" FontSize="13" Foreground="#333333"/>
+                            </Grid>
+                        </Grid>
+
+                        <!-- 生产能力 -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid Grid.Column="0" Margin="0,10,0,0">
+                                <Border Width="110" Height="35" HorizontalAlignment="Center" CornerRadius="4" BorderBrush="White" BorderThickness="1.2" Background="Transparent">
+                                    <Grid Width="110" Height="35">
+                                        <!-- 毛玻璃背景层（仅背景模糊） -->
+                                        <Border Width="110" Height="35" CornerRadius="4">
+                                            <Border.Background>
+                                                <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                                            </Border.Background>
+                                            <Border.Effect>
+                                                <BlurEffect Radius="20"/>
+                                            </Border.Effect>
+                                        </Border>
+                                        <!-- 内容层（清晰，不应用模糊） -->
+                                        <TextBlock Text="生产能力" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Foreground="#333333"/>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                            <Grid Grid.Column="1" Margin="10,10,0,0" Width="380" Height="35">
+                                <Border BorderThickness="1.2" BorderBrush="#CCCCCC" CornerRadius="4">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="White" Opacity="0.9"/>
+                                    </Border.Background>
+                                </Border>
+                                <TextBox Text="{Binding Factory.ProductionCapacity}" 
+                                         Background="Transparent" BorderBrush="Transparent" BorderThickness="0" 
+                                         Padding="8" FontSize="13" Foreground="#333333"/>
+                            </Grid>
+                        </Grid>
+                        
+                        <!-- 备注 -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid Grid.Column="0" Margin="0,10,0,0">
+                                <Border Width="110" Height="35" HorizontalAlignment="Center" CornerRadius="4" BorderBrush="White" BorderThickness="1.2" Background="Transparent">
+                                    <Grid Width="110" Height="35">
+                                        <!-- 毛玻璃背景层（仅背景模糊） -->
+                                        <Border Width="110" Height="35" CornerRadius="4">
+                                            <Border.Background>
+                                                <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                                            </Border.Background>
+                                            <Border.Effect>
+                                                <BlurEffect Radius="20"/>
+                                            </Border.Effect>
+                                        </Border>
+                                        <!-- 内容层（清晰，不应用模糊） -->
+                                        <TextBlock Text="备注" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Foreground="#333333"/>
+                                    </Grid>
+                                </Border>
+                            </Grid>
+                            <Grid Grid.Column="1" Margin="10,10,0,0" Width="380" Height="80">
+                                <Border BorderThickness="1.2" BorderBrush="#CCCCCC" CornerRadius="4">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="White" Opacity="0.9"/>
+                                    </Border.Background>
+                                </Border>
+                                <TextBox Text="{Binding Factory.Description}" 
+                                         Background="Transparent" BorderBrush="Transparent" BorderThickness="0" 
+                                         Padding="8" FontSize="13" TextWrapping="Wrap" AcceptsReturn="True" Foreground="#333333"/>
+                            </Grid>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                    <Button Content="确定" Margin="0,0,15,0" Width="90" Height="35" Click="OkButton_Click"
+                            Background="#2196F3" Foreground="White" 
+                            BorderBrush="#1976D2" BorderThickness="1"
+                            Padding="5" FontSize="14"/>
+                    <Button Content="取消" Width="90" Height="35" Click="CancelButton_Click"
+                            Background="#F5F5F5" Foreground="#333333" 
+                            BorderBrush="#E0E0E0" BorderThickness="1"
+                            Padding="5" FontSize="14"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+        </Grid>
+    </Grid>
+</UserControl>
