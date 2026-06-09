@@ -74,6 +74,11 @@ namespace FactoryProductManager.Views
             }
         }
 
+        private void ExportButton_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.ExportToExcel();
+        }
+
         private T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
         {
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)

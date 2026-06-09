@@ -1,7 +1,9 @@
 using FactoryProductManager.Models;
 using FactoryProductManager.Services;
+using OfficeOpenXml;
 using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Windows;
 
@@ -168,6 +170,122 @@ namespace FactoryProductManager.ViewModels
             {
                 LogService.Error("刷新工厂数据失败", ex);
                 throw;
+            }
+        }
+
+        public void ExportToExcel()
+        {
+            try
+            {
+                LogService.Info("开始导出工厂数据到Excel...");
+
+                if (Factories == null || Factories.Count == 0)
+                {
+                    LogService.Warning("没有可导出的工厂数据");
+                    MessageBox.Show("没有可导出的工厂数据！", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+                var saveDialog = new Microsoft.Win32.SaveFileDialog
+                {
+                    Filter = "Excel文件 (*.xlsx)|*.xlsx",
+                    FileName = $"工厂数据_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx",
+                    Title = "导出工厂数据",
+                    InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+                };
+
+                if (saveDialog.ShowDialog() == true)
+                {
+                    using (var package = new ExcelPackage())
+                    {
+                        var worksheet = package.Workbook.Worksheets.Add("工厂数据");
+
+                        string[] headers = new string[]
+                        {
+                            "工厂编码", "工厂名称", "类型", "地址", "认证资质",
+                            "描述", "规模", "员工数量", "生产能力", "控制人",
+                            "联系人", "联系方式", "创建时间", "更新时间"
+                        };
+
+                        for (int i = 0; i < headers.Length; i++)
+                        {
+                            worksheet.Cells[1, i + 1].Value = headers[i];
+                            worksheet.Cells[1, i + 1].Style.Font.Bold = true;
+                            worksheet.Cells[1, i + 1].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                            worksheet.Cells[1, i + 1].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                            worksheet.Cells[1, i + 1].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+                        }
+
+                        int row = 2;
+                        foreach (var factory in Factories)
+                        {
+                            worksheet.Cells[row, 1].Value = factory.FactoryCode;
+                            worksheet.Cells[row, 2].Value = factory.FactoryName;
+                            worksheet.Cells[row, 3].Value = factory.FactoryType;
+                            worksheet.Cells[row, 4].Value = factory.Address;
+                            worksheet.Cells[row, 5].Value = factory.Certifications;
+                            worksheet.Cells[row, 6].Value = factory.Description;
+                            worksheet.Cells[row, 7].Value = factory.Scale;
+                            worksheet.Cells[row, 8].Value = factory.EmployeeCount;
+                            worksheet.Cells[row, 9].Value = factory.ProductionCapacity;
+                            worksheet.Cells[row, 10].Value = factory.ControllingPerson;
+                            worksheet.Cells[row, 11].Value = factory.ContactPerson;
+                            worksheet.Cells[row, 12].Value = factory.ContactInfo;
+                            worksheet.Cells[row, 13].Value = factory.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss");
+                            worksheet.Cells[row, 14].Value = factory.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss");
+                            row++;
+                        }
+
+                        for (int col = 1; col <= headers.Length; col++)
+                        {
+                            worksheet.Cells[2, col, row - 1, col].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+                            worksheet.Cells[2, col, row - 1, col].Style.VerticalAlignment = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+                        }
+
+                        worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+                        worksheet.Cells[worksheet.Dimension.Address].Style.Border.BorderAround(OfficeOpenXml.Style.ExcelBorderStyle.Thin);
+
+                        string finalPath = saveDialog.FileName;
+                        bool saveSuccess = false;
+
+                        try
+                        {
+                            var fileInfo = new FileInfo(finalPath);
+                            package.SaveAs(fileInfo);
+                            saveSuccess = true;
+                        }
+                        catch (UnauthorizedAccessException)
+                        {
+                            LogService.Warning($"无法保存到 {finalPath}，尝试保存到文档文件夹");
+                            
+                            var docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                            var fileName = Path.GetFileName(finalPath);
+                            finalPath = Path.Combine(docPath, fileName);
+
+                            var fileInfo = new FileInfo(finalPath);
+                            package.SaveAs(fileInfo);
+                            saveSuccess = true;
+
+                            MessageBox.Show($"无法保存到原位置，已自动保存到文档文件夹：\n{finalPath}", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+
+                        if (saveSuccess)
+                        {
+                            LogService.Info($"工厂数据导出成功，共导出 {Factories.Count} 条记录，文件: {finalPath}");
+                            if (!saveDialog.FileName.Equals(finalPath))
+                            {
+                                MessageBox.Show($"成功导出 {Factories.Count} 条工厂数据！\n文件位置：{finalPath}", "导出成功", MessageBoxButton.OK, MessageBoxImage.Information);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogService.Error("导出工厂数据到Excel失败", ex);
+                MessageBox.Show($"导出失败：{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

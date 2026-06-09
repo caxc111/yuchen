@@ -79,6 +79,22 @@
                                     FontSize="14" Cursor="Hand"/>
                         </Grid>
                     </Border>
+                    <Border Width="100" Height="35" Margin="20,0,0,0" Cursor="Hand" CornerRadius="10" BorderBrush="White" BorderThickness="1.2" Background="Transparent" ClipToBounds="False">
+                        <Grid Width="100" Height="35" ClipToBounds="False">
+                            <Border Width="100" Height="35" CornerRadius="10" ClipToBounds="False">
+                                <Border.Background>
+                                    <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                                </Border.Background>
+                                <Border.Effect>
+                                    <BlurEffect Radius="20"/>
+                                </Border.Effect>
+                            </Border>
+                            <Button Content="批量导出" Margin="0" Click="ExportButton_Click"
+                                    Background="Transparent" Foreground="#FF9800" 
+                                    BorderBrush="Transparent" BorderThickness="0"
+                                    FontSize="14" Cursor="Hand"/>
+                        </Grid>
+                    </Border>
                 </StackPanel>
             </Border>
         </Grid>

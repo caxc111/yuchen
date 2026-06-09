@@ -59,5 +59,10 @@ namespace FactoryProductManager.Views
         {
             _viewModel.Refresh();
         }
+
+        private void ExportButton_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.ExportToExcel();
+        }
     }
 }

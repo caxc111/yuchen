@@ -188,8 +188,8 @@ namespace FactoryProductManager.Services
                             ImageUrl = reader.IsDBNull(11) ? null : reader.GetString(11),
                             FactoryId = reader.IsDBNull(12) ? null : reader.GetInt32(12),
                             FactoryName = reader.IsDBNull(13) ? null : reader.GetString(13),
-                            CreatedAt = reader.GetDateTime(14),
-                            UpdatedAt = reader.GetDateTime(15)
+                            CreatedAt = reader.IsDBNull(14) ? DateTime.Now : DateTime.Parse(reader.GetString(14)),
+                            UpdatedAt = reader.IsDBNull(15) ? DateTime.Now : DateTime.Parse(reader.GetString(15))
                         });
                     }
                 }
