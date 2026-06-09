@@ -1,0 +1,160 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using FactoryProductManager.Models;
+
+namespace FactoryProductManager.Services
+{
+    public static class MaterialCodeGenerator
+    {
+        private static readonly Dictionary<string, string> Level1Codes = new(StringComparer.Ordinal)
+        {
+            ["柜体木饰面"] = "SM",
+            ["木地板"] = "MD",
+            ["地毯"] = "DT",
+            ["瓷砖"] = "CZ",
+            ["石材"] = "SC",
+            ["厨卫陶瓷"] = "CW",
+            ["厨卫五金"] = "WJ",
+            ["户内门"] = "HM",
+            ["灯具开关"] = "DJ",
+            ["电器"] = "DQ"
+        };
+
+        private static readonly Dictionary<string, string> Level2Codes = new(StringComparer.Ordinal)
+        {
+            ["实木皮饰面板"] = "SP",
+            ["科技木皮饰面板"] = "KJ",
+            ["三聚氰胺饰面板"] = "SJ",
+            ["PET膜饰面板"] = "PT",
+            ["混油饰面板"] = "HY",
+            ["其他饰面"] = "QT",
+            ["实木地板"] = "SM",
+            ["实木复合地板"] = "SF",
+            ["强化复合地板"] = "QH",
+            ["SPC(石塑)"] = "SP",
+            ["LVT"] = "LT",
+            ["WPC（木塑）"] = "WP",
+            ["塑胶地板及其他"] = "QT",
+            ["丙纶满铺毯"] = "BL",
+            ["晴纶满铺毯"] = "QL",
+            ["涤纶满铺毯"] = "DL",
+            ["羊毛/羊毛混纺满铺毯"] = "YM",
+            ["植物纤维（剑麻/黄麻）"] = "ZQ",
+            ["亮面砖"] = "LM",
+            ["哑光砖"] = "YG",
+            ["肌理砖/手工砖/仿古砖"] = "JL",
+            ["马赛克/小砖"] = "MK",
+            ["岩板/大规格瓷砖"] = "YB",
+            ["大理石"] = "DL",
+            ["花岗岩"] = "HY",
+            ["砂岩"] = "SY",
+            ["板岩"] = "BY",
+            ["石灰石"] = "SH"
+        };
+
+        private static readonly Dictionary<string, string> Level3Codes = new(StringComparer.Ordinal)
+        {
+            ["铰链"] = "JL",
+            ["轨道"] = "GD",
+            ["拉手"] = "LS",
+            ["成品抽屉"] = "CT",
+            ["铝合金柜门"] = "LM",
+            ["树脂基石英石"] = "SZ",
+            ["无机基石英石"] = "WJ",
+            ["人造大理石（岗石）"] = "GS",
+            ["微晶石"] = "WJ"
+        };
+
+        public static bool TryGenerate(
+            DbService dbService,
+            FactoryMaterial material,
+            Factory factory,
+            ProductCategory? level1,
+            ProductCategory? level2,
+            ProductCategory? level3,
+            out string code,
+            out string errorMessage)
+        {
+            code = string.Empty;
+            errorMessage = string.Empty;
+
+            if (dbService == null)
+            {
+                errorMessage = "编码服务未初始化。";
+                return false;
+            }
+
+            if (material == null)
+            {
+                errorMessage = "当前物料数据无效。";
+                return false;
+            }
+
+            if (factory == null || string.IsNullOrWhiteSpace(factory.FactoryCode))
+            {
+                errorMessage = "请先选择有效的工厂编码。";
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(material.FactoryMaterialCode))
+            {
+                errorMessage = "请先填写工厂物料编码。";
+                return false;
+            }
+
+            if (level1 == null)
+            {
+                errorMessage = "请先选择一级分类。";
+                return false;
+            }
+
+            if (!Level1Codes.TryGetValue(level1.Name, out string? level1Code) || string.IsNullOrWhiteSpace(level1Code))
+            {
+                errorMessage = $"未找到一级分类“{level1.Name}”对应的编码。";
+                return false;
+            }
+
+            string tailCode = string.Empty;
+            if (level3 != null)
+            {
+                if (!Level3Codes.TryGetValue(level3.Name, out string? resolvedLevel3Code) || string.IsNullOrWhiteSpace(resolvedLevel3Code))
+                {
+                    errorMessage = $"未找到三级分类“{level3.Name}”对应的编码。";
+                    return false;
+                }
+
+                tailCode = resolvedLevel3Code;
+            }
+            else
+            {
+                if (level2 == null)
+                {
+                    errorMessage = "请先选择二级分类。";
+                    return false;
+                }
+
+                if (!Level2Codes.TryGetValue(level2.Name, out string? resolvedLevel2Code) || string.IsNullOrWhiteSpace(resolvedLevel2Code))
+                {
+                    errorMessage = $"未找到二级分类“{level2.Name}”对应的编码。";
+                    return false;
+                }
+
+                tailCode = resolvedLevel2Code;
+            }
+
+            string? existingCode = dbService.GetMyMaterialCodeByFactoryMaterialCode(material.FactoryMaterialCode, material.Id > 0 ? material.Id : null);
+            if (!string.IsNullOrWhiteSpace(existingCode))
+            {
+                code = existingCode;
+                return true;
+            }
+
+            string prefix = string.Join("-", new[] { factory.FactoryCode.Trim(), level1Code, tailCode }.Where(part => !string.IsNullOrWhiteSpace(part)));
+            int nextSequence = dbService.GetNextMyMaterialCodeSequence(prefix, material.Id > 0 ? material.Id : null);
+            code = $"{prefix}-{nextSequence.ToString("000", CultureInfo.InvariantCulture)}";
+            return true;
+        }
+    }
+}

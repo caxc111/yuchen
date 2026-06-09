@@ -5,38 +5,38 @@ using System.Windows.Controls;
 
 namespace FactoryProductManager.Views
 {
-    public partial class ProductView : UserControl
+    public partial class MaterialView : UserControl
     {
-        private ProductViewModel _viewModel;
+        private readonly MaterialViewModel _viewModel;
 
-        public ProductView()
+        public MaterialView()
         {
             InitializeComponent();
-            _viewModel = new ProductViewModel();
+            _viewModel = new MaterialViewModel();
             DataContext = _viewModel;
         }
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new ProductDialog();
+            var dialog = new MaterialDialogWindow();
             dialog.ShowDialog();
             if (dialog.IsSaved)
             {
-                _viewModel.AddProduct(dialog.Product);
+                _viewModel.AddMaterial(dialog.Material);
             }
         }
 
         private void EditButton_Click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
-            var product = button?.Tag as FactoryProduct;
-            if (product != null)
+            var material = button?.Tag as FactoryMaterial;
+            if (material != null)
             {
-                var dialog = new ProductDialog(product);
+                var dialog = new MaterialDialogWindow(material);
                 dialog.ShowDialog();
                 if (dialog.IsSaved)
                 {
-                    _viewModel.UpdateProduct(dialog.Product);
+                    _viewModel.UpdateMaterial(dialog.Material);
                 }
             }
         }
@@ -44,13 +44,13 @@ namespace FactoryProductManager.Views
         private void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
-            var product = button?.Tag as FactoryProduct;
-            if (product != null)
+            var material = button?.Tag as FactoryMaterial;
+            if (material != null)
             {
-                if (MessageBox.Show($"确定要删除产品 \"{product.ProductName}\" 吗？", "确认删除", 
+                if (MessageBox.Show($"确定要删除物料 \"{material.MaterialName}\" 吗？", "确认删除",
                     MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                 {
-                    _viewModel.DeleteProduct(product.Id);
+                    _viewModel.DeleteMaterial(material.Id);
                 }
             }
         }
@@ -63,6 +63,18 @@ namespace FactoryProductManager.Views
         private void ExportButton_Click(object sender, RoutedEventArgs e)
         {
             _viewModel.ExportToExcel();
+        }
+
+        private void DetailsButton_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            var material = button?.Tag as FactoryMaterial;
+            if (material != null)
+            {
+                var detailsWindow = new MaterialDetailsWindow(material);
+                detailsWindow.Owner = Window.GetWindow(this);
+                detailsWindow.ShowDialog();
+            }
         }
     }
 }

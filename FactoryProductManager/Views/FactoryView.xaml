@@ -136,7 +136,7 @@
                                 <Setter Property="FontWeight" Value="Bold"/>
                                 <Setter Property="BorderThickness" Value="0"/>
                                 <Setter Property="Padding" Value="8"/>
-                                <Setter Property="Margin" Value="0,0,0,0"/>
+                                <Setter Property="Margin" Value="3,0,0,0"/>
                                 <Setter Property="Template">
                                     <Setter.Value>
                                         <ControlTemplate TargetType="DataGridColumnHeader">
@@ -166,7 +166,7 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn Header="工厂名称" Binding="{Binding FactoryName}" Width="*">
+                    <DataGridTextColumn Header="工厂名称" Binding="{Binding FactoryName}" Width="2*">
                         <DataGridTextColumn.HeaderStyle>
                             <Style TargetType="DataGridColumnHeader">
                                 <Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -205,7 +205,46 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn Header="类型" Binding="{Binding FactoryType}" Width="150">
+                    <DataGridTextColumn Header="品牌" Binding="{Binding Brand}" Width="180">
+                        <DataGridTextColumn.HeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                <Setter Property="Foreground" Value="#000000"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="Padding" Value="5"/>
+                                <Setter Property="Margin" Value="10,0,0,0"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="DataGridColumnHeader">
+                                            <Border CornerRadius="10" BorderBrush="White" BorderThickness="1.2" Background="Transparent" ClipToBounds="False">
+                                                <Grid ClipToBounds="False">
+                                                    <Border CornerRadius="10" ClipToBounds="False">
+                                                        <Border.Background>
+                                                            <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                                                        </Border.Background>
+                                                        <Border.Effect>
+                                                            <BlurEffect Radius="20"/>
+                                                        </Border.Effect>
+                                                    </Border>
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5"/>
+                                                </Grid>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </DataGridTextColumn.HeaderStyle>
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="HorizontalAlignment" Value="Center"/>
+                                <Setter Property="Foreground" Value="#000000"/>
+                                <Setter Property="FontSize" Value="13"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="类型" Binding="{Binding FactoryType}" Width="120">
                         <DataGridTextColumn.HeaderStyle>
                             <Style TargetType="DataGridColumnHeader">
                                 <Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -288,7 +327,7 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="操作" Width="130">
+                    <DataGridTemplateColumn Header="操作" Width="110">
                         <DataGridTemplateColumn.HeaderStyle>
                             <Style TargetType="DataGridColumnHeader">
                                 <Setter Property="HorizontalContentAlignment" Value="Center"/>

@@ -1,0 +1,223 @@
+<UserControl x:Class="FactoryProductManager.Views.ProductManagementView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <Grid Margin="10,0,20,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
+            <Image Source="pack://application:,,,/Resources/Icons/icon_product_management.png" Width="32" Height="32" Margin="0,0,10,0"/>
+            <TextBlock Text="产品管理" FontSize="24" FontWeight="Bold" Foreground="#000000"/>
+        </StackPanel>
+
+        <Grid Grid.Row="1" Margin="0,0,0,15">
+            <Border BorderBrush="White" BorderThickness="1.2" CornerRadius="10" Padding="10">
+                <Border.Background>
+                    <SolidColorBrush Color="#FFF5E6D3" Opacity="0.7"/>
+                </Border.Background>
+            </Border>
+            <Border Background="Transparent" BorderBrush="White" BorderThickness="1.2" CornerRadius="10" Padding="10">
+                <StackPanel Orientation="Horizontal">
+                    <Grid Width="400" Height="35">
+                        <Border BorderBrush="White" BorderThickness="1.2" CornerRadius="10">
+                            <Border.Background>
+                                <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                            </Border.Background>
+                        </Border>
+                        <TextBox x:Name="SearchTextBox"
+                                 Text="{Binding SearchKeyword, UpdateSourceTrigger=PropertyChanged}"
+                                 Background="Transparent" BorderBrush="Transparent" BorderThickness="0"
+                                 Foreground="#000000" Padding="10" FontSize="14"
+                                 ToolTip="搜索产品..."/>
+                    </Grid>
+                    <Border Width="80" Height="35" Margin="20,0,0,0" Cursor="Hand" CornerRadius="10" BorderBrush="White" BorderThickness="1.2" Background="Transparent" ClipToBounds="False">
+                        <Grid Width="80" Height="35" ClipToBounds="False">
+                            <Border Width="80" Height="35" CornerRadius="10" ClipToBounds="False">
+                                <Border.Background>
+                                    <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                                </Border.Background>
+                                <Border.Effect>
+                                    <BlurEffect Radius="20"/>
+                                </Border.Effect>
+                            </Border>
+                            <Button Content="搜索" Margin="0" Click="SearchButton_Click"
+                                    Background="Transparent" Foreground="#2196F3"
+                                    BorderBrush="Transparent" BorderThickness="0"
+                                    FontSize="14" Cursor="Hand"/>
+                        </Grid>
+                    </Border>
+                    <Border Width="100" Height="35" Margin="20,0,0,0" Cursor="Hand" CornerRadius="10" BorderBrush="White" BorderThickness="1.2" Background="Transparent" ClipToBounds="False">
+                        <Grid Width="100" Height="35" ClipToBounds="False">
+                            <Border Width="100" Height="35" CornerRadius="10" ClipToBounds="False">
+                                <Border.Background>
+                                    <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                                </Border.Background>
+                                <Border.Effect>
+                                    <BlurEffect Radius="20"/>
+                                </Border.Effect>
+                            </Border>
+                            <Button Content="添加产品" Margin="0" Click="AddButton_Click"
+                                    Background="Transparent" Foreground="#4CAF50"
+                                    BorderBrush="Transparent" BorderThickness="0"
+                                    FontSize="14" Cursor="Hand"/>
+                        </Grid>
+                    </Border>
+                    <Border Width="100" Height="35" Margin="20,0,0,0" Cursor="Hand" CornerRadius="10" BorderBrush="White" BorderThickness="1.2" Background="Transparent" ClipToBounds="False">
+                        <Grid Width="100" Height="35" ClipToBounds="False">
+                            <Border Width="100" Height="35" CornerRadius="10" ClipToBounds="False">
+                                <Border.Background>
+                                    <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                                </Border.Background>
+                                <Border.Effect>
+                                    <BlurEffect Radius="20"/>
+                                </Border.Effect>
+                            </Border>
+                            <Button Content="批量导出" Margin="0" Click="ExportButton_Click"
+                                    Background="Transparent" Foreground="#FF9800"
+                                    BorderBrush="Transparent" BorderThickness="0"
+                                    FontSize="14" Cursor="Hand"/>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <Border BorderBrush="White" BorderThickness="1.2" CornerRadius="10" Padding="10">
+                <Border.Background>
+                    <SolidColorBrush Color="#FFF5E6D3" Opacity="0.7"/>
+                </Border.Background>
+                <DataGrid ItemsSource="{Binding Products}"
+                          AutoGenerateColumns="False"
+                          BorderBrush="Transparent"
+                          GridLinesVisibility="None"
+                          HorizontalGridLinesBrush="Transparent"
+                          VerticalGridLinesBrush="Transparent"
+                          ColumnHeaderHeight="35"
+                          RowHeight="36"
+                          HeadersVisibility="Column"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          SelectionMode="Single"
+                          Background="Transparent"
+                          RowBackground="Transparent"
+                          AlternatingRowBackground="Transparent"
+                          IsReadOnly="True"
+                          Margin="0"
+                          Padding="0"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                    <DataGrid.Resources>
+                        <Style x:Key="CommonHeaderStyle" TargetType="DataGridColumnHeader">
+                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                            <Setter Property="VerticalContentAlignment" Value="Center"/>
+                            <Setter Property="Foreground" Value="#000000"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Padding" Value="5"/>
+                            <Setter Property="Margin" Value="10,0,0,0"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="DataGridColumnHeader">
+                                        <Border CornerRadius="10" BorderBrush="White" BorderThickness="1.2" Background="Transparent" ClipToBounds="False">
+                                            <Grid ClipToBounds="False">
+                                                <Border CornerRadius="10" ClipToBounds="False">
+                                                    <Border.Background>
+                                                        <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                                                    </Border.Background>
+                                                    <Border.Effect>
+                                                        <BlurEffect Radius="20"/>
+                                                    </Border.Effect>
+                                                </Border>
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5"/>
+                                            </Grid>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                        <Style x:Key="FirstHeaderStyle" TargetType="DataGridColumnHeader" BasedOn="{StaticResource CommonHeaderStyle}">
+                            <Setter Property="Margin" Value="3,0,0,0"/>
+                        </Style>
+                        <Style x:Key="TextStyle" TargetType="TextBlock">
+                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                            <Setter Property="Foreground" Value="#000000"/>
+                            <Setter Property="FontSize" Value="13"/>
+                        </Style>
+                    </DataGrid.Resources>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="产品编码" Binding="{Binding ProductCode}" Width="160" HeaderStyle="{StaticResource FirstHeaderStyle}" ElementStyle="{StaticResource TextStyle}"/>
+                        <DataGridTextColumn Header="产品名称" Binding="{Binding ProductName}" Width="*" HeaderStyle="{StaticResource CommonHeaderStyle}" ElementStyle="{StaticResource TextStyle}"/>
+                        <DataGridTextColumn Header="规格" Binding="{Binding Specification}" Width="180" HeaderStyle="{StaticResource CommonHeaderStyle}" ElementStyle="{StaticResource TextStyle}"/>
+                        <DataGridTextColumn Header="单位" Binding="{Binding Unit}" Width="90" HeaderStyle="{StaticResource CommonHeaderStyle}" ElementStyle="{StaticResource TextStyle}"/>
+                        <DataGridTextColumn Header="总成本" Binding="{Binding TotalCost, StringFormat=F2}" Width="120" HeaderStyle="{StaticResource CommonHeaderStyle}" ElementStyle="{StaticResource TextStyle}"/>
+                        <DataGridTextColumn Header="销售价" Binding="{Binding SellingPrice, StringFormat=F2}" Width="120" HeaderStyle="{StaticResource CommonHeaderStyle}" ElementStyle="{StaticResource TextStyle}"/>
+                        <DataGridTextColumn Header="状态" Binding="{Binding IsActive}" Width="90" HeaderStyle="{StaticResource CommonHeaderStyle}" ElementStyle="{StaticResource TextStyle}"/>
+                        <DataGridTemplateColumn Header="操作" Width="90">
+                            <DataGridTemplateColumn.HeaderStyle>
+                                <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource CommonHeaderStyle}"/>
+                            </DataGridTemplateColumn.HeaderStyle>
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <Button ToolTip="编辑" Click="EditButton_Click" Tag="{Binding}" Margin="0,0,5,0"
+                                                Width="28" Height="28" Background="#F5F5F5"
+                                                BorderBrush="#E0E0E0" BorderThickness="1" Padding="0" Cursor="Hand">
+                                            <Image Source="/Resources/Icons/icon_edit.png" Width="14" Height="14" Stretch="Uniform"/>
+                                        </Button>
+                                        <Button ToolTip="删除" Click="DeleteButton_Click" Tag="{Binding}"
+                                                Width="28" Height="28" Background="#F5F5F5"
+                                                BorderBrush="#E0E0E0" BorderThickness="1" Padding="0" Cursor="Hand">
+                                            <Image Source="/Resources/Icons/icon_delete.png" Width="14" Height="14" Stretch="Uniform"/>
+                                        </Button>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                    <DataGrid.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Padding" Value="8,5"/>
+                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Foreground" Value="#000000"/>
+                        </Style>
+                    </DataGrid.CellStyle>
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="DataGridRow">
+                                        <Border CornerRadius="10" BorderBrush="White" BorderThickness="1.2" Background="Transparent" ClipToBounds="False" Margin="2">
+                                            <Grid ClipToBounds="False">
+                                                <Border CornerRadius="10" ClipToBounds="False">
+                                                    <Border.Background>
+                                                        <SolidColorBrush Color="LightGray" Opacity="0.9"/>
+                                                    </Border.Background>
+                                                    <Border.Effect>
+                                                        <BlurEffect Radius="20"/>
+                                                    </Border.Effect>
+                                                </Border>
+                                                <DataGridCellsPresenter/>
+                                            </Grid>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </DataGrid.RowStyle>
+                </DataGrid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -79,7 +79,7 @@ namespace FactoryProductManager.Views
             _viewModel.ExportToExcel();
         }
 
-        private T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
+        private T? FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
         {
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
             {

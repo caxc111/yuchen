@@ -1,30 +1,30 @@
-using FactoryProductManager.Models;
 using System.Windows;
 using System.Windows.Input;
+using FactoryProductManager.Models;
 
 namespace FactoryProductManager.Views
 {
-    public partial class FactoryDialogWindow : Window
+    public partial class MaterialDialogWindow : Window
     {
-        private FactoryDialogUserControl _userControl;
-        
-        public Factory Factory { get { return _userControl.Factory; } }
-        public bool IsSaved { get { return _userControl.IsSaved; } }
+        private readonly MaterialDialogUserControl _userControl;
 
-        public FactoryDialogWindow(Factory? factory = null)
+        public FactoryMaterial Material => _userControl.Material;
+        public bool IsSaved => _userControl.IsSaved;
+
+        public MaterialDialogWindow(FactoryMaterial? material = null)
         {
             InitializeComponent();
-            _userControl = new FactoryDialogUserControl(factory);
+            _userControl = new MaterialDialogUserControl(material);
             DialogContent.Content = _userControl;
             Title = _userControl.Title;
-            
-            _userControl.OkClicked += (s, e) => 
+
+            _userControl.OkClicked += (_, _) =>
             {
                 DialogResult = true;
                 Close();
             };
-            
-            _userControl.CancelClicked += (s, e) => 
+
+            _userControl.CancelClicked += (_, _) =>
             {
                 DialogResult = false;
                 Close();

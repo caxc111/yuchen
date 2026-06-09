@@ -8,7 +8,7 @@ namespace FactoryProductManager.Views
         public Factory Factory { get; set; }
         public bool IsSaved { get; private set; }
 
-        public FactoryDialog(Factory factory = null)
+        public FactoryDialog(Factory? factory = null)
         {
             InitializeComponent();
             if (factory == null)

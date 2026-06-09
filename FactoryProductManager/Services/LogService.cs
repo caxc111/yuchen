@@ -142,7 +142,7 @@ namespace FactoryProductManager.Services
 
         public static void LogDatabaseConnection(string connectionString)
         {
-            WriteLog("INFO", $"数据库连接字符串: {connectionString}");
+            WriteLog("INFO", $"数据库连接已初始化: {SanitizeConnectionString(connectionString)}");
         }
 
         public static void LogDatabaseQuery(string queryName, int rowCount, long executionTimeMs)
@@ -278,6 +278,32 @@ namespace FactoryProductManager.Services
                    $"Message: {ex.Message}{Environment.NewLine}" +
                    $"Stack Trace: {stackTrace}{Environment.NewLine}" +
                    $"Source: {source}";
+        }
+
+        private static string SanitizeConnectionString(string connectionString)
+        {
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                return "<empty>";
+            }
+
+            const string dataSourceKey = "Data Source=";
+            int startIndex = connectionString.IndexOf(dataSourceKey, StringComparison.OrdinalIgnoreCase);
+            if (startIndex < 0)
+            {
+                return "<redacted>";
+            }
+
+            int valueStart = startIndex + dataSourceKey.Length;
+            int valueEnd = connectionString.IndexOf(';', valueStart);
+            if (valueEnd < 0)
+            {
+                valueEnd = connectionString.Length;
+            }
+
+            string dataSource = connectionString.Substring(valueStart, valueEnd - valueStart).Trim();
+            string fileName = string.IsNullOrWhiteSpace(dataSource) ? "<empty>" : Path.GetFileName(dataSource);
+            return $"Data Source=<redacted:{fileName}>";
         }
 
         private static void WriteLog(string level, string message)

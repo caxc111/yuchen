@@ -7,7 +7,7 @@ namespace FactoryProductManager.ViewModels
 {
     public class MainViewModel : ViewModelBase
     {
-        private object _currentView;
+        private object _currentView = null!;
         public object CurrentView
         {
             get => _currentView;
@@ -29,16 +29,24 @@ namespace FactoryProductManager.ViewModels
             CurrentView = new FactoryView();
         }
 
-        private void Navigate(string viewName)
+        private void Navigate(string? viewName)
         {
+            if (string.IsNullOrWhiteSpace(viewName))
+            {
+                return;
+            }
+
             CurrentPage = viewName;
             switch (viewName)
             {
                 case "Factory":
                     CurrentView = new FactoryView();
                     break;
-                case "Product":
-                    CurrentView = new ProductView();
+                case "Material":
+                    CurrentView = new MaterialView();
+                    break;
+                case "ProductManagement":
+                    CurrentView = new ProductManagementView();
                     break;
                 case "BOM":
                     CurrentView = new BOMView();

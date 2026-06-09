@@ -9,7 +9,7 @@ namespace FactoryProductManager.Views
         public bool IsSaved { get; private set; }
         public string Title { get; set; }
 
-        public FactoryDialogUserControl(Factory factory = null)
+        public FactoryDialogUserControl(Factory? factory = null)
         {
             InitializeComponent();
             if (factory == null)
@@ -31,8 +31,8 @@ namespace FactoryProductManager.Views
             }
         }
 
-        public event System.EventHandler OkClicked;
-        public event System.EventHandler CancelClicked;
+        public event System.EventHandler? OkClicked;
+        public event System.EventHandler? CancelClicked;
 
         private void OkButton_Click(object sender, System.Windows.RoutedEventArgs e)
         {

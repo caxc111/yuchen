@@ -7,7 +7,7 @@ namespace FactoryProductManager.Models
     /// </summary>
     public class ProductCategory
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         public List<ProductCategory> Children { get; set; } = new List<ProductCategory>();
     }
 

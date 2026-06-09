@@ -12,7 +12,7 @@ namespace FactoryProductManager.ViewModels
     public class FactoryViewModel : ViewModelBase
     {
         private readonly DbService _dbService;
-        private string _currentSearchKeyword;
+        private string _currentSearchKeyword = string.Empty;
 
         public ObservableCollection<Factory> Factories { get; set; }
 
@@ -35,7 +35,7 @@ namespace FactoryProductManager.ViewModels
             }
         }
 
-        private void LoadFactories(string searchKeyword = null)
+        private void LoadFactories(string? searchKeyword = null)
         {
             try
             {
@@ -77,10 +77,10 @@ namespace FactoryProductManager.ViewModels
             }
         }
         
-        public void Search(string keyword)
+        public void Search(string? keyword)
         {
             LogService.Info($"执行搜索: {keyword}");
-            _currentSearchKeyword = keyword;
+            _currentSearchKeyword = keyword ?? string.Empty;
             LoadFactories(keyword);
         }
 
@@ -204,7 +204,7 @@ namespace FactoryProductManager.ViewModels
 
                         string[] headers = new string[]
                         {
-                            "工厂编码", "工厂名称", "类型", "地址", "认证资质",
+                            "工厂编码", "工厂名称", "品牌", "类型", "地址", "认证资质",
                             "描述", "规模", "员工数量", "生产能力", "控制人",
                             "联系人", "联系方式", "创建时间", "更新时间"
                         };
@@ -223,18 +223,19 @@ namespace FactoryProductManager.ViewModels
                         {
                             worksheet.Cells[row, 1].Value = factory.FactoryCode;
                             worksheet.Cells[row, 2].Value = factory.FactoryName;
-                            worksheet.Cells[row, 3].Value = factory.FactoryType;
-                            worksheet.Cells[row, 4].Value = factory.Address;
-                            worksheet.Cells[row, 5].Value = factory.Certifications;
-                            worksheet.Cells[row, 6].Value = factory.Description;
-                            worksheet.Cells[row, 7].Value = factory.Scale;
-                            worksheet.Cells[row, 8].Value = factory.EmployeeCount;
-                            worksheet.Cells[row, 9].Value = factory.ProductionCapacity;
-                            worksheet.Cells[row, 10].Value = factory.ControllingPerson;
-                            worksheet.Cells[row, 11].Value = factory.ContactPerson;
-                            worksheet.Cells[row, 12].Value = factory.ContactInfo;
-                            worksheet.Cells[row, 13].Value = factory.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss");
-                            worksheet.Cells[row, 14].Value = factory.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss");
+                            worksheet.Cells[row, 3].Value = factory.Brand;
+                            worksheet.Cells[row, 4].Value = factory.FactoryType;
+                            worksheet.Cells[row, 5].Value = factory.Address;
+                            worksheet.Cells[row, 6].Value = factory.Certifications;
+                            worksheet.Cells[row, 7].Value = factory.Description;
+                            worksheet.Cells[row, 8].Value = factory.Scale;
+                            worksheet.Cells[row, 9].Value = factory.EmployeeCount;
+                            worksheet.Cells[row, 10].Value = factory.ProductionCapacity;
+                            worksheet.Cells[row, 11].Value = factory.ControllingPerson;
+                            worksheet.Cells[row, 12].Value = factory.ContactPerson;
+                            worksheet.Cells[row, 13].Value = factory.ContactInfo;
+                            worksheet.Cells[row, 14].Value = factory.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss");
+                            worksheet.Cells[row, 15].Value = factory.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss");
                             row++;
                         }
 
