@@ -17,12 +17,12 @@ namespace MaterialImportTool.Views
 
         private void BackButton_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            (_viewModel as ProductViewModel).BackToHomeCommand.Execute(null);
+            _viewModel.BackToHomeCommand.Execute(null);
         }
 
         private void Category_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            (_viewModel as ProductViewModel).CategoryChangedCommand.Execute(null);
+            _viewModel.CategoryChangedCommand.Execute(null);
         }
     }
 }

@@ -22,6 +22,7 @@ packages/
 *.suo
 *.user
 *.csproj.user
+*_wpftmp.csproj
 
 # Rider/Resharper settings
 .idea/

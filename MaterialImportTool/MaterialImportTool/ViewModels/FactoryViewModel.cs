@@ -2,11 +2,11 @@ using MaterialImportTool.Models;
 using MaterialImportTool.Services;
 using Microsoft.Toolkit.Mvvm.ComponentModel;
 using Microsoft.Toolkit.Mvvm.Input;
-using System.Collections.ObjectModel;
-using System.Windows;
-using System;
-using System.IO;
 using OfficeOpenXml;
+using System;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Windows;
 
 namespace MaterialImportTool.ViewModels
 {
@@ -15,28 +15,28 @@ namespace MaterialImportTool.ViewModels
         private readonly DbService _dbService;
         private readonly MainViewModel _mainViewModel;
 
-        private ObservableCollection<Factory> _factories;
+        private ObservableCollection<Factory> _factories = new();
         public ObservableCollection<Factory> Factories
         {
             get => _factories;
             set => SetProperty(ref _factories, value);
         }
 
-        private Factory _selectedFactory;
-        public Factory SelectedFactory
+        private Factory? _selectedFactory;
+        public Factory? SelectedFactory
         {
             get => _selectedFactory;
             set => SetProperty(ref _selectedFactory, value);
         }
 
-        private Factory _editingFactory;
-        public Factory EditingFactory
+        private Factory? _editingFactory;
+        public Factory? EditingFactory
         {
             get => _editingFactory;
             set => SetProperty(ref _editingFactory, value);
         }
 
-        private string _searchText;
+        private string _searchText = string.Empty;
         public string SearchText
         {
             get => _searchText;
@@ -66,7 +66,6 @@ namespace MaterialImportTool.ViewModels
         {
             _dbService = dbService;
             _mainViewModel = mainViewModel;
-            Factories = new ObservableCollection<Factory>();
 
             AddFactoryCommand = new RelayCommand(AddFactory);
             EditFactoryCommand = new RelayCommand(EditFactory);
@@ -93,17 +92,16 @@ namespace MaterialImportTool.ViewModels
             if (string.IsNullOrWhiteSpace(SearchText))
             {
                 LoadFactories();
+                return;
             }
-            else
+
+            Factories.Clear();
+            foreach (var factory in _dbService.GetFactories())
             {
-                Factories.Clear();
-                foreach (var factory in _dbService.GetFactories())
+                if (factory.FactoryName.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                    factory.FactoryCode.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (factory.FactoryName.Contains(SearchText) || 
-                        factory.FactoryCode.Contains(SearchText))
-                    {
-                        Factories.Add(factory);
-                    }
+                    Factories.Add(factory);
                 }
             }
         }
@@ -127,50 +125,60 @@ namespace MaterialImportTool.ViewModels
 
         private void EditFactory()
         {
-            if (SelectedFactory != null)
+            if (SelectedFactory == null)
             {
-                EditingFactory = new Factory
-                {
-                    Id = SelectedFactory.Id,
-                    FactoryCode = SelectedFactory.FactoryCode,
-                    FactoryName = SelectedFactory.FactoryName,
-                    FactoryType = SelectedFactory.FactoryType,
-                    Address = SelectedFactory.Address,
-                    Certifications = SelectedFactory.Certifications,
-                    Description = SelectedFactory.Description,
-                    Scale = SelectedFactory.Scale,
-                    EmployeeCount = SelectedFactory.EmployeeCount,
-                    ProductionCapacity = SelectedFactory.ProductionCapacity,
-                    ControllingPerson = SelectedFactory.ControllingPerson,
-                    ContactPerson = SelectedFactory.ContactPerson,
-                    ContactInfo = SelectedFactory.ContactInfo,
-                    ContactMethod = SelectedFactory.ContactMethod
-                };
-                IsDialogOpen = true;
+                return;
             }
+
+            EditingFactory = new Factory
+            {
+                Id = SelectedFactory.Id,
+                FactoryCode = SelectedFactory.FactoryCode,
+                FactoryName = SelectedFactory.FactoryName,
+                FactoryType = SelectedFactory.FactoryType,
+                Address = SelectedFactory.Address,
+                Certifications = SelectedFactory.Certifications,
+                Description = SelectedFactory.Description,
+                Scale = SelectedFactory.Scale,
+                EmployeeCount = SelectedFactory.EmployeeCount,
+                ProductionCapacity = SelectedFactory.ProductionCapacity,
+                ControllingPerson = SelectedFactory.ControllingPerson,
+                ContactPerson = SelectedFactory.ContactPerson,
+                ContactInfo = SelectedFactory.ContactInfo,
+                ContactMethod = SelectedFactory.ContactMethod
+            };
+            IsDialogOpen = true;
         }
 
         private void DeleteFactory()
         {
-            if (SelectedFactory != null)
+            if (SelectedFactory == null)
             {
-                if (MessageBox.Show($"确定要删除工厂 {SelectedFactory.FactoryName} 吗？", "确认删除", 
-                    MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
-                {
-                    _dbService.DeleteFactory(SelectedFactory.Id);
-                    LoadFactories();
-                    MessageBox.Show("删除成功！", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
+                return;
+            }
+
+            if (MessageBox.Show($"确定要删除工厂 {SelectedFactory.FactoryName} 吗？", "确认删除",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+            {
+                _dbService.DeleteFactory(SelectedFactory.Id);
+                LoadFactories();
+                MessageBox.Show("删除成功！", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
         private void SaveFactory()
         {
+            if (EditingFactory == null)
+            {
+                return;
+            }
+
             if (string.IsNullOrWhiteSpace(EditingFactory.FactoryCode))
             {
                 MessageBox.Show("请输入工厂编码！", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
+
             if (string.IsNullOrWhiteSpace(EditingFactory.FactoryName))
             {
                 MessageBox.Show("请输入工厂名称！", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -192,16 +200,18 @@ namespace MaterialImportTool.ViewModels
         private void ExportFactories()
         {
             LogService.LogMethodEntry("ExportFactories", "FactoryViewModel");
-            var dialog = new Microsoft.Win32.SaveFileDialog();
-            dialog.Filter = "Excel文件 (*.xlsx)|*.xlsx|CSV文件 (*.csv)|*.csv";
-            dialog.FileName = "工厂数据_" + DateTime.Now.ToString("yyyyMMdd") + ".xlsx";
+            var dialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "Excel文件 (*.xlsx)|*.xlsx|CSV文件 (*.csv)|*.csv",
+                FileName = "工厂数据_" + DateTime.Now.ToString("yyyyMMdd") + ".xlsx"
+            };
 
             if (dialog.ShowDialog() == true)
             {
                 try
                 {
                     LogService.Info($"开始导出工厂数据到: {dialog.FileName}", "FactoryViewModel");
-                    if (dialog.FileName.EndsWith(".xlsx"))
+                    if (dialog.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
                     {
                         ExportToExcel(dialog.FileName);
                     }
@@ -209,6 +219,7 @@ namespace MaterialImportTool.ViewModels
                     {
                         ExportToCsv(dialog.FileName);
                     }
+
                     LogService.LogExportOperation("工厂数据", dialog.FileName, Factories.Count, "FactoryViewModel");
                     MessageBox.Show("导出成功！", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
@@ -218,62 +229,59 @@ namespace MaterialImportTool.ViewModels
                     MessageBox.Show($"导出失败：{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
+
             LogService.LogMethodExit("ExportFactories", "FactoryViewModel");
         }
 
         private void ExportToExcel(string filePath)
         {
-            using (var package = new OfficeOpenXml.ExcelPackage())
+            using var package = new ExcelPackage();
+            var worksheet = package.Workbook.Worksheets.Add("工厂数据");
+
+            worksheet.Cells["A1"].Value = "工厂编码";
+            worksheet.Cells["B1"].Value = "工厂名称";
+            worksheet.Cells["C1"].Value = "工厂类型";
+            worksheet.Cells["D1"].Value = "地址";
+            worksheet.Cells["E1"].Value = "认证情况";
+            worksheet.Cells["F1"].Value = "描述";
+            worksheet.Cells["G1"].Value = "规模";
+            worksheet.Cells["H1"].Value = "员工数";
+            worksheet.Cells["I1"].Value = "产能";
+            worksheet.Cells["J1"].Value = "控股人";
+            worksheet.Cells["K1"].Value = "联系人";
+            worksheet.Cells["L1"].Value = "联系方式";
+            worksheet.Cells["M1"].Value = "联系方法";
+
+            int row = 2;
+            foreach (var factory in Factories)
             {
-                var worksheet = package.Workbook.Worksheets.Add("工厂数据");
-                
-                worksheet.Cells["A1"].Value = "工厂编码";
-                worksheet.Cells["B1"].Value = "工厂名称";
-                worksheet.Cells["C1"].Value = "工厂类型";
-                worksheet.Cells["D1"].Value = "地址";
-                worksheet.Cells["E1"].Value = "认证情况";
-                worksheet.Cells["F1"].Value = "备注";
-                worksheet.Cells["G1"].Value = "工厂规模";
-                worksheet.Cells["H1"].Value = "员工人数";
-                worksheet.Cells["I1"].Value = "生产能力";
-                worksheet.Cells["J1"].Value = "负责人";
-                worksheet.Cells["K1"].Value = "联系人";
-                worksheet.Cells["L1"].Value = "联系信息";
-                worksheet.Cells["M1"].Value = "联系方式";
-
-                int row = 2;
-                foreach (var factory in Factories)
-                {
-                    worksheet.Cells[$"A{row}"].Value = factory.FactoryCode;
-                    worksheet.Cells[$"B{row}"].Value = factory.FactoryName;
-                    worksheet.Cells[$"C{row}"].Value = factory.FactoryType;
-                    worksheet.Cells[$"D{row}"].Value = factory.Address;
-                    worksheet.Cells[$"E{row}"].Value = factory.Certifications;
-                    worksheet.Cells[$"F{row}"].Value = factory.Description;
-                    worksheet.Cells[$"G{row}"].Value = factory.Scale;
-                    worksheet.Cells[$"H{row}"].Value = factory.EmployeeCount;
-                    worksheet.Cells[$"I{row}"].Value = factory.ProductionCapacity;
-                    worksheet.Cells[$"J{row}"].Value = factory.ControllingPerson;
-                    worksheet.Cells[$"K{row}"].Value = factory.ContactPerson;
-                    worksheet.Cells[$"L{row}"].Value = factory.ContactInfo;
-                    worksheet.Cells[$"M{row}"].Value = factory.ContactMethod;
-                    row++;
-                }
-
-                worksheet.Cells.AutoFitColumns();
-                package.SaveAs(new FileInfo(filePath));
+                worksheet.Cells[$"A{row}"].Value = factory.FactoryCode;
+                worksheet.Cells[$"B{row}"].Value = factory.FactoryName;
+                worksheet.Cells[$"C{row}"].Value = factory.FactoryType;
+                worksheet.Cells[$"D{row}"].Value = factory.Address;
+                worksheet.Cells[$"E{row}"].Value = factory.Certifications;
+                worksheet.Cells[$"F{row}"].Value = factory.Description;
+                worksheet.Cells[$"G{row}"].Value = factory.Scale;
+                worksheet.Cells[$"H{row}"].Value = factory.EmployeeCount;
+                worksheet.Cells[$"I{row}"].Value = factory.ProductionCapacity;
+                worksheet.Cells[$"J{row}"].Value = factory.ControllingPerson;
+                worksheet.Cells[$"K{row}"].Value = factory.ContactPerson;
+                worksheet.Cells[$"L{row}"].Value = factory.ContactInfo;
+                worksheet.Cells[$"M{row}"].Value = factory.ContactMethod;
+                row++;
             }
+
+            worksheet.Cells.AutoFitColumns();
+            package.SaveAs(new FileInfo(filePath));
         }
 
         private void ExportToCsv(string filePath)
         {
-            using (var writer = new StreamWriter(filePath, false, System.Text.Encoding.UTF8))
+            using var writer = new StreamWriter(filePath, false, System.Text.Encoding.UTF8);
+            writer.WriteLine("工厂编码,工厂名称,工厂类型,地址,认证情况,描述,规模,员工数,产能,控股人,联系人,联系方式,联系方法");
+            foreach (var factory in Factories)
             {
-                writer.WriteLine("工厂编码,工厂名称,工厂类型,地址,认证情况,备注,工厂规模,员工人数,生产能力,负责人,联系人,联系信息,联系方式");
-                foreach (var factory in Factories)
-                {
-                    writer.WriteLine($"{factory.FactoryCode},{factory.FactoryName},{factory.FactoryType},{factory.Address},{factory.Certifications},{factory.Description},{factory.Scale},{factory.EmployeeCount},{factory.ProductionCapacity},{factory.ControllingPerson},{factory.ContactPerson},{factory.ContactInfo},{factory.ContactMethod}");
-                }
+                writer.WriteLine($"{factory.FactoryCode},{factory.FactoryName},{factory.FactoryType},{factory.Address},{factory.Certifications},{factory.Description},{factory.Scale},{factory.EmployeeCount},{factory.ProductionCapacity},{factory.ControllingPerson},{factory.ContactPerson},{factory.ContactInfo},{factory.ContactMethod}");
             }
         }
     }

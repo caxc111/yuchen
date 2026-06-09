@@ -17,7 +17,7 @@ namespace MaterialImportTool.Views
 
         private void BackButton_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            (_viewModel as FactoryViewModel).BackToHomeCommand.Execute(null);
+            _viewModel.BackToHomeCommand.Execute(null);
         }
     }
 }

@@ -11,16 +11,16 @@ namespace MaterialImportTool.ViewModels
     {
         private readonly DbService _dbService;
         private readonly MainViewModel _mainViewModel;
-        private AppSettings _settings;
+        private AppSettings _settings = new();
 
-        private string _dbPath;
+        private string _dbPath = string.Empty;
         public string DbPath
         {
             get => _dbPath;
             set => SetProperty(ref _dbPath, value);
         }
 
-        private string _codePrefix;
+        private string _codePrefix = "S";
         public string CodePrefix
         {
             get => _codePrefix;
@@ -34,7 +34,7 @@ namespace MaterialImportTool.ViewModels
             set => SetProperty(ref _codeLength, value);
         }
 
-        private string _ocrLanguage;
+        private string _ocrLanguage = "chi_sim";
         public string OcrLanguage
         {
             get => _ocrLanguage;
@@ -61,13 +61,20 @@ namespace MaterialImportTool.ViewModels
 
         private void BrowseDbPath()
         {
-            var dialog = new Microsoft.Win32.SaveFileDialog();
-            dialog.Filter = "SQLite数据库 (*.db)|*.db|所有文件 (*.*)|*.*";
-            dialog.FileName = "FactoryProductDB.db";
-            
+            var dialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "SQLite数据库 (*.db)|*.db|所有文件 (*.*)|*.*",
+                FileName = "FactoryProductDB.db"
+            };
+
             if (!string.IsNullOrWhiteSpace(DbPath))
             {
-                dialog.InitialDirectory = Path.GetDirectoryName(DbPath);
+                var initialDirectory = Path.GetDirectoryName(DbPath);
+                if (!string.IsNullOrWhiteSpace(initialDirectory))
+                {
+                    dialog.InitialDirectory = initialDirectory;
+                }
+
                 dialog.FileName = Path.GetFileName(DbPath);
             }
 
@@ -80,10 +87,10 @@ namespace MaterialImportTool.ViewModels
         private void LoadSettings()
         {
             _settings = AppSettings.Load();
-            DbPath = _settings.DbPath ?? "";
-            CodePrefix = _settings.CodePrefix ?? "S";
+            DbPath = _settings.DbPath;
+            CodePrefix = _settings.CodePrefix;
             CodeLength = _settings.CodeLength;
-            OcrLanguage = _settings.OcrLanguage ?? "chi_sim";
+            OcrLanguage = _settings.OcrLanguage;
         }
 
         private void SaveSettings()
@@ -99,7 +106,7 @@ namespace MaterialImportTool.ViewModels
 
         private void ResetSettings()
         {
-            if (MessageBox.Show("确定要重置所有设置吗？", "确认重置", 
+            if (MessageBox.Show("确定要重置所有设置吗？", "确认重置",
                 MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
             {
                 _settings.Reset();

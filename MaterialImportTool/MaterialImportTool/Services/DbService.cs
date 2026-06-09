@@ -10,7 +10,7 @@ namespace MaterialImportTool.Services
     {
         private readonly string _dbPath;
 
-        public DbService(string dbPath = null)
+        public DbService(string? dbPath = null)
         {
             _dbPath = dbPath ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FactoryProductDB.db");
             LogService.Info($"数据库路径: {_dbPath}", "DbService");
@@ -91,7 +91,7 @@ namespace MaterialImportTool.Services
             }
         }
 
-        private object ToDbValue(object value)
+        private object ToDbValue(object? value)
         {
             return value ?? DBNull.Value;
         }
@@ -132,7 +132,7 @@ namespace MaterialImportTool.Services
             return factories;
         }
 
-        public Factory GetFactoryById(int id)
+        public Factory? GetFactoryById(int id)
         {
             using (var conn = new SQLiteConnection($"Data Source={_dbPath};Version=3;"))
             {
@@ -168,7 +168,7 @@ namespace MaterialImportTool.Services
             return null;
         }
 
-        public Factory GetFactoryByCode(string code)
+        public Factory? GetFactoryByCode(string code)
         {
             using (var conn = new SQLiteConnection($"Data Source={_dbPath};Version=3;"))
             {

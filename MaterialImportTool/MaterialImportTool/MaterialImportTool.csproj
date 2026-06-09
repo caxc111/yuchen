@@ -3,6 +3,8 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
     <AssemblyName>MaterialImportTool</AssemblyName>
     <RootNamespace>MaterialImportTool</RootNamespace>
   </PropertyGroup>
@@ -11,7 +13,7 @@
     <PackageReference Include="MaterialDesignThemes" Version="5.1.0" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.118" />
     <PackageReference Include="Microsoft.Toolkit.Mvvm" Version="7.1.2" />
-    <PackageReference Include="Tesseract" Version="5.1.1" />
+    <PackageReference Include="Tesseract" Version="5.2.0" />
     <PackageReference Include="EPPlus" Version="5.8.10" />
   </ItemGroup>
 

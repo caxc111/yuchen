@@ -10,14 +10,14 @@ namespace MaterialImportTool.ViewModels
 {
     public class MainViewModel : ViewModelBase
     {
-        private UserControl _currentView;
+        private UserControl _currentView = null!;
         public UserControl CurrentView
         {
             get => _currentView;
             set => SetProperty(ref _currentView, value);
         }
 
-        private DbService _dbService;
+        private DbService _dbService = null!;
         public DbService DbService => _dbService;
 
         public IRelayCommand ShowHomeCommand { get; }
@@ -28,7 +28,7 @@ namespace MaterialImportTool.ViewModels
         public MainViewModel()
         {
             InitializeDbService();
-            
+
             ShowHomeCommand = new RelayCommand(ShowHome);
             ShowFactoryCommand = new RelayCommand(ShowFactory);
             ShowProductCommand = new RelayCommand(ShowProduct);
@@ -41,12 +41,12 @@ namespace MaterialImportTool.ViewModels
         {
             var settings = AppSettings.Load();
             string dbPath = settings.DbPath;
-            
+
             if (string.IsNullOrWhiteSpace(dbPath))
             {
                 dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "FactoryProductDB.db");
             }
-            
+
             _dbService = new DbService(dbPath);
         }
 
