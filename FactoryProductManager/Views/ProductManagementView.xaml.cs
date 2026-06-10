@@ -53,6 +53,18 @@ namespace FactoryProductManager.Views
             }
         }
 
+        private void DetailsButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button button || button.Tag is not Product product)
+            {
+                return;
+            }
+
+            var detailsWindow = new ProductDetailsWindow(product);
+            detailsWindow.Owner = Window.GetWindow(this);
+            detailsWindow.ShowDialog();
+        }
+
         private void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not Button button || button.Tag is not Product product)
@@ -60,7 +72,7 @@ namespace FactoryProductManager.Views
                 return;
             }
 
-            if (MessageBox.Show($"确定要删除产品 \"{product.ProductName}\" 吗？", "确认删除",
+            if (MessageBox.Show($"确定要删除产品编码为 \"{product.ProductCode}\" 的产品吗？", "确认删除",
                     MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 _viewModel.DeleteProduct(product.Id);

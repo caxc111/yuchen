@@ -32,7 +32,37 @@ namespace MaterialImportTool.Services
             {
                 SQLiteConnection.CreateFile(_dbPath);
                 InitializeDatabase();
+                return;
             }
+
+            EnsureSchemaUpToDate();
+        }
+
+        private void EnsureSchemaUpToDate()
+        {
+            using var conn = new SQLiteConnection($"Data Source={_dbPath};Version=3;");
+            conn.Open();
+
+            if (!ColumnExists(conn, "Factories", "brand"))
+            {
+                using var cmd = new SQLiteCommand("ALTER TABLE Factories ADD COLUMN brand TEXT", conn);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        private static bool ColumnExists(SQLiteConnection conn, string tableName, string columnName)
+        {
+            using var cmd = new SQLiteCommand($"PRAGMA table_info({tableName})", conn);
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                if (string.Equals(reader[1]?.ToString(), columnName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void InitializeDatabase()
@@ -47,6 +77,7 @@ namespace MaterialImportTool.Services
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         factory_code TEXT NOT NULL UNIQUE,
                         factory_name TEXT NOT NULL,
+                        brand TEXT,
                         factory_type TEXT,
                         address TEXT,
                         certifications TEXT,
@@ -112,19 +143,20 @@ namespace MaterialImportTool.Services
                             Id = reader.GetInt32(0),
                             FactoryCode = reader.GetString(1),
                             FactoryName = reader.GetString(2),
-                            FactoryType = reader.IsDBNull(3) ? null : reader.GetString(3),
-                            Address = reader.IsDBNull(4) ? null : reader.GetString(4),
-                            Certifications = reader.IsDBNull(5) ? null : reader.GetString(5),
-                            Description = reader.IsDBNull(6) ? null : reader.GetString(6),
-                            Scale = reader.IsDBNull(7) ? null : reader.GetString(7),
-                            EmployeeCount = reader.IsDBNull(8) ? null : reader.GetInt32(8),
-                            ProductionCapacity = reader.IsDBNull(9) ? null : reader.GetString(9),
-                            ControllingPerson = reader.IsDBNull(10) ? null : reader.GetString(10),
-                            ContactPerson = reader.IsDBNull(11) ? null : reader.GetString(11),
-                            ContactInfo = reader.IsDBNull(12) ? null : reader.GetString(12),
-                            ContactMethod = reader.IsDBNull(13) ? null : reader.GetString(13),
-                            CreatedAt = reader.IsDBNull(14) ? null : DateTime.Parse(reader.GetString(14)),
-                            UpdatedAt = reader.IsDBNull(15) ? null : DateTime.Parse(reader.GetString(15))
+                            Brand = reader.IsDBNull(3) ? null : reader.GetString(3),
+                            FactoryType = reader.IsDBNull(4) ? null : reader.GetString(4),
+                            Address = reader.IsDBNull(5) ? null : reader.GetString(5),
+                            Certifications = reader.IsDBNull(6) ? null : reader.GetString(6),
+                            Description = reader.IsDBNull(7) ? null : reader.GetString(7),
+                            Scale = reader.IsDBNull(8) ? null : reader.GetString(8),
+                            EmployeeCount = reader.IsDBNull(9) ? null : reader.GetInt32(9),
+                            ProductionCapacity = reader.IsDBNull(10) ? null : reader.GetString(10),
+                            ControllingPerson = reader.IsDBNull(11) ? null : reader.GetString(11),
+                            ContactPerson = reader.IsDBNull(12) ? null : reader.GetString(12),
+                            ContactInfo = reader.IsDBNull(13) ? null : reader.GetString(13),
+                            ContactMethod = reader.IsDBNull(14) ? null : reader.GetString(14),
+                            CreatedAt = reader.IsDBNull(15) ? null : DateTime.Parse(reader.GetString(15)),
+                            UpdatedAt = reader.IsDBNull(16) ? null : DateTime.Parse(reader.GetString(16))
                         });
                     }
                 }
@@ -148,19 +180,20 @@ namespace MaterialImportTool.Services
                             Id = reader.GetInt32(0),
                             FactoryCode = reader.GetString(1),
                             FactoryName = reader.GetString(2),
-                            FactoryType = reader.IsDBNull(3) ? null : reader.GetString(3),
-                            Address = reader.IsDBNull(4) ? null : reader.GetString(4),
-                            Certifications = reader.IsDBNull(5) ? null : reader.GetString(5),
-                            Description = reader.IsDBNull(6) ? null : reader.GetString(6),
-                            Scale = reader.IsDBNull(7) ? null : reader.GetString(7),
-                            EmployeeCount = reader.IsDBNull(8) ? null : reader.GetInt32(8),
-                            ProductionCapacity = reader.IsDBNull(9) ? null : reader.GetString(9),
-                            ControllingPerson = reader.IsDBNull(10) ? null : reader.GetString(10),
-                            ContactPerson = reader.IsDBNull(11) ? null : reader.GetString(11),
-                            ContactInfo = reader.IsDBNull(12) ? null : reader.GetString(12),
-                            ContactMethod = reader.IsDBNull(13) ? null : reader.GetString(13),
-                            CreatedAt = reader.IsDBNull(14) ? null : DateTime.Parse(reader.GetString(14)),
-                            UpdatedAt = reader.IsDBNull(15) ? null : DateTime.Parse(reader.GetString(15))
+                            Brand = reader.IsDBNull(3) ? null : reader.GetString(3),
+                            FactoryType = reader.IsDBNull(4) ? null : reader.GetString(4),
+                            Address = reader.IsDBNull(5) ? null : reader.GetString(5),
+                            Certifications = reader.IsDBNull(6) ? null : reader.GetString(6),
+                            Description = reader.IsDBNull(7) ? null : reader.GetString(7),
+                            Scale = reader.IsDBNull(8) ? null : reader.GetString(8),
+                            EmployeeCount = reader.IsDBNull(9) ? null : reader.GetInt32(9),
+                            ProductionCapacity = reader.IsDBNull(10) ? null : reader.GetString(10),
+                            ControllingPerson = reader.IsDBNull(11) ? null : reader.GetString(11),
+                            ContactPerson = reader.IsDBNull(12) ? null : reader.GetString(12),
+                            ContactInfo = reader.IsDBNull(13) ? null : reader.GetString(13),
+                            ContactMethod = reader.IsDBNull(14) ? null : reader.GetString(14),
+                            CreatedAt = reader.IsDBNull(15) ? null : DateTime.Parse(reader.GetString(15)),
+                            UpdatedAt = reader.IsDBNull(16) ? null : DateTime.Parse(reader.GetString(16))
                         };
                     }
                 }
@@ -184,19 +217,20 @@ namespace MaterialImportTool.Services
                             Id = reader.GetInt32(0),
                             FactoryCode = reader.GetString(1),
                             FactoryName = reader.GetString(2),
-                            FactoryType = reader.IsDBNull(3) ? null : reader.GetString(3),
-                            Address = reader.IsDBNull(4) ? null : reader.GetString(4),
-                            Certifications = reader.IsDBNull(5) ? null : reader.GetString(5),
-                            Description = reader.IsDBNull(6) ? null : reader.GetString(6),
-                            Scale = reader.IsDBNull(7) ? null : reader.GetString(7),
-                            EmployeeCount = reader.IsDBNull(8) ? null : reader.GetInt32(8),
-                            ProductionCapacity = reader.IsDBNull(9) ? null : reader.GetString(9),
-                            ControllingPerson = reader.IsDBNull(10) ? null : reader.GetString(10),
-                            ContactPerson = reader.IsDBNull(11) ? null : reader.GetString(11),
-                            ContactInfo = reader.IsDBNull(12) ? null : reader.GetString(12),
-                            ContactMethod = reader.IsDBNull(13) ? null : reader.GetString(13),
-                            CreatedAt = reader.IsDBNull(14) ? null : DateTime.Parse(reader.GetString(14)),
-                            UpdatedAt = reader.IsDBNull(15) ? null : DateTime.Parse(reader.GetString(15))
+                            Brand = reader.IsDBNull(3) ? null : reader.GetString(3),
+                            FactoryType = reader.IsDBNull(4) ? null : reader.GetString(4),
+                            Address = reader.IsDBNull(5) ? null : reader.GetString(5),
+                            Certifications = reader.IsDBNull(6) ? null : reader.GetString(6),
+                            Description = reader.IsDBNull(7) ? null : reader.GetString(7),
+                            Scale = reader.IsDBNull(8) ? null : reader.GetString(8),
+                            EmployeeCount = reader.IsDBNull(9) ? null : reader.GetInt32(9),
+                            ProductionCapacity = reader.IsDBNull(10) ? null : reader.GetString(10),
+                            ControllingPerson = reader.IsDBNull(11) ? null : reader.GetString(11),
+                            ContactPerson = reader.IsDBNull(12) ? null : reader.GetString(12),
+                            ContactInfo = reader.IsDBNull(13) ? null : reader.GetString(13),
+                            ContactMethod = reader.IsDBNull(14) ? null : reader.GetString(14),
+                            CreatedAt = reader.IsDBNull(15) ? null : DateTime.Parse(reader.GetString(15)),
+                            UpdatedAt = reader.IsDBNull(16) ? null : DateTime.Parse(reader.GetString(16))
                         };
                     }
                 }
@@ -219,15 +253,16 @@ namespace MaterialImportTool.Services
                     if (factory.Id == 0)
                     {
                         var cmd = new SQLiteCommand(@"
-                            INSERT INTO Factories (factory_code, factory_name, factory_type, address, certifications, 
+                            INSERT INTO Factories (factory_code, factory_name, brand, factory_type, address, certifications, 
                                 description, scale, employee_count, production_capacity, controlling_person, 
                                 contact_person, contact_info, contact_method, created_at, updated_at)
-                            VALUES (@code, @name, @type, @address, @certifications, @description, 
+                            VALUES (@code, @name, @brand, @type, @address, @certifications, @description, 
                                 @scale, @employeeCount, @productionCapacity, @controllingPerson, 
                                 @contactPerson, @contactInfo, @contactMethod, @createdAt, @updatedAt)
                         ", conn);
                         cmd.Parameters.AddWithValue("@code", ToDbValue(factory.FactoryCode));
                         cmd.Parameters.AddWithValue("@name", ToDbValue(factory.FactoryName));
+                        cmd.Parameters.AddWithValue("@brand", ToDbValue(factory.Brand));
                         cmd.Parameters.AddWithValue("@type", ToDbValue(factory.FactoryType));
                         cmd.Parameters.AddWithValue("@address", ToDbValue(factory.Address));
                         cmd.Parameters.AddWithValue("@certifications", ToDbValue(factory.Certifications));
@@ -247,7 +282,7 @@ namespace MaterialImportTool.Services
                     else
                     {
                         var cmd = new SQLiteCommand(@"
-                            UPDATE Factories SET factory_code = @code, factory_name = @name, factory_type = @type, 
+                            UPDATE Factories SET factory_code = @code, factory_name = @name, brand = @brand, factory_type = @type, 
                                 address = @address, certifications = @certifications, description = @description, 
                                 scale = @scale, employee_count = @employeeCount, production_capacity = @productionCapacity, 
                                 controlling_person = @controllingPerson, contact_person = @contactPerson, 
@@ -257,6 +292,7 @@ namespace MaterialImportTool.Services
                         cmd.Parameters.AddWithValue("@id", factory.Id);
                         cmd.Parameters.AddWithValue("@code", ToDbValue(factory.FactoryCode));
                         cmd.Parameters.AddWithValue("@name", ToDbValue(factory.FactoryName));
+                        cmd.Parameters.AddWithValue("@brand", ToDbValue(factory.Brand));
                         cmd.Parameters.AddWithValue("@type", ToDbValue(factory.FactoryType));
                         cmd.Parameters.AddWithValue("@address", ToDbValue(factory.Address));
                         cmd.Parameters.AddWithValue("@certifications", ToDbValue(factory.Certifications));

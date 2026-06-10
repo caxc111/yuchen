@@ -135,6 +135,7 @@ namespace MaterialImportTool.ViewModels
                 Id = SelectedFactory.Id,
                 FactoryCode = SelectedFactory.FactoryCode,
                 FactoryName = SelectedFactory.FactoryName,
+                Brand = SelectedFactory.Brand,
                 FactoryType = SelectedFactory.FactoryType,
                 Address = SelectedFactory.Address,
                 Certifications = SelectedFactory.Certifications,
@@ -240,34 +241,36 @@ namespace MaterialImportTool.ViewModels
 
             worksheet.Cells["A1"].Value = "工厂编码";
             worksheet.Cells["B1"].Value = "工厂名称";
-            worksheet.Cells["C1"].Value = "工厂类型";
-            worksheet.Cells["D1"].Value = "地址";
-            worksheet.Cells["E1"].Value = "认证情况";
-            worksheet.Cells["F1"].Value = "描述";
-            worksheet.Cells["G1"].Value = "规模";
-            worksheet.Cells["H1"].Value = "员工数";
-            worksheet.Cells["I1"].Value = "产能";
-            worksheet.Cells["J1"].Value = "控股人";
-            worksheet.Cells["K1"].Value = "联系人";
-            worksheet.Cells["L1"].Value = "联系方式";
-            worksheet.Cells["M1"].Value = "联系方法";
+            worksheet.Cells["C1"].Value = "品牌";
+            worksheet.Cells["D1"].Value = "工厂类型";
+            worksheet.Cells["E1"].Value = "地址";
+            worksheet.Cells["F1"].Value = "认证情况";
+            worksheet.Cells["G1"].Value = "描述";
+            worksheet.Cells["H1"].Value = "规模";
+            worksheet.Cells["I1"].Value = "员工数";
+            worksheet.Cells["J1"].Value = "产能";
+            worksheet.Cells["K1"].Value = "控股人";
+            worksheet.Cells["L1"].Value = "联系人";
+            worksheet.Cells["M1"].Value = "联系方式";
+            worksheet.Cells["N1"].Value = "联系方法";
 
             int row = 2;
             foreach (var factory in Factories)
             {
                 worksheet.Cells[$"A{row}"].Value = factory.FactoryCode;
                 worksheet.Cells[$"B{row}"].Value = factory.FactoryName;
-                worksheet.Cells[$"C{row}"].Value = factory.FactoryType;
-                worksheet.Cells[$"D{row}"].Value = factory.Address;
-                worksheet.Cells[$"E{row}"].Value = factory.Certifications;
-                worksheet.Cells[$"F{row}"].Value = factory.Description;
-                worksheet.Cells[$"G{row}"].Value = factory.Scale;
-                worksheet.Cells[$"H{row}"].Value = factory.EmployeeCount;
-                worksheet.Cells[$"I{row}"].Value = factory.ProductionCapacity;
-                worksheet.Cells[$"J{row}"].Value = factory.ControllingPerson;
-                worksheet.Cells[$"K{row}"].Value = factory.ContactPerson;
-                worksheet.Cells[$"L{row}"].Value = factory.ContactInfo;
-                worksheet.Cells[$"M{row}"].Value = factory.ContactMethod;
+                worksheet.Cells[$"C{row}"].Value = factory.Brand;
+                worksheet.Cells[$"D{row}"].Value = factory.FactoryType;
+                worksheet.Cells[$"E{row}"].Value = factory.Address;
+                worksheet.Cells[$"F{row}"].Value = factory.Certifications;
+                worksheet.Cells[$"G{row}"].Value = factory.Description;
+                worksheet.Cells[$"H{row}"].Value = factory.Scale;
+                worksheet.Cells[$"I{row}"].Value = factory.EmployeeCount;
+                worksheet.Cells[$"J{row}"].Value = factory.ProductionCapacity;
+                worksheet.Cells[$"K{row}"].Value = factory.ControllingPerson;
+                worksheet.Cells[$"L{row}"].Value = factory.ContactPerson;
+                worksheet.Cells[$"M{row}"].Value = factory.ContactInfo;
+                worksheet.Cells[$"N{row}"].Value = factory.ContactMethod;
                 row++;
             }
 
@@ -278,10 +281,10 @@ namespace MaterialImportTool.ViewModels
         private void ExportToCsv(string filePath)
         {
             using var writer = new StreamWriter(filePath, false, System.Text.Encoding.UTF8);
-            writer.WriteLine("工厂编码,工厂名称,工厂类型,地址,认证情况,描述,规模,员工数,产能,控股人,联系人,联系方式,联系方法");
+            writer.WriteLine("工厂编码,工厂名称,品牌,工厂类型,地址,认证情况,描述,规模,员工数,产能,控股人,联系人,联系方式,联系方法");
             foreach (var factory in Factories)
             {
-                writer.WriteLine($"{factory.FactoryCode},{factory.FactoryName},{factory.FactoryType},{factory.Address},{factory.Certifications},{factory.Description},{factory.Scale},{factory.EmployeeCount},{factory.ProductionCapacity},{factory.ControllingPerson},{factory.ContactPerson},{factory.ContactInfo},{factory.ContactMethod}");
+                writer.WriteLine($"{factory.FactoryCode},{factory.FactoryName},{factory.Brand},{factory.FactoryType},{factory.Address},{factory.Certifications},{factory.Description},{factory.Scale},{factory.EmployeeCount},{factory.ProductionCapacity},{factory.ControllingPerson},{factory.ContactPerson},{factory.ContactInfo},{factory.ContactMethod}");
             }
         }
     }

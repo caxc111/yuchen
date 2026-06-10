@@ -5,6 +5,344 @@
     <Application.Resources>
         <ResourceDictionary>
             <converters:PageToBackgroundConverter x:Key="PageToBackgroundConverter"/>
+
+            <SolidColorBrush x:Key="WarmPanelBrush" Color="#FFF2EEE8" Opacity="0.84"/>
+            <SolidColorBrush x:Key="WarmSurfaceBrush" Color="#FFF2EEE8" Opacity="0.9"/>
+            <SolidColorBrush x:Key="WarmButtonBrush" Color="#FFEAE3DA" Opacity="0.95"/>
+            <SolidColorBrush x:Key="WarmInputBrush" Color="#FFFFFBF7" Opacity="0.92"/>
+            <SolidColorBrush x:Key="WarmActionBrush" Color="#FFF3EEE7" Opacity="0.95"/>
+            <SolidColorBrush x:Key="PrimaryTextBrush" Color="#333333"/>
+            <SolidColorBrush x:Key="SubtleTextBrush" Color="#666666"/>
+            <SolidColorBrush x:Key="HintTextBrush" Color="#999999"/>
+            <SolidColorBrush x:Key="WhiteBorderBrush" Color="White"/>
+            <SolidColorBrush x:Key="InputBorderBrush" Color="#B5B5B5"/>
+            <SolidColorBrush x:Key="ActionBorderBrush" Color="#B5B5B5"/>
+            <Thickness x:Key="UnifiedBorderThickness">0.8</Thickness>
+            <CornerRadius x:Key="UnifiedSmallCornerRadius">4</CornerRadius>
+            <CornerRadius x:Key="UnifiedMediumCornerRadius">10</CornerRadius>
+            <SolidColorBrush x:Key="EditAccentBrush" Color="#2196F3"/>
+            <SolidColorBrush x:Key="SuccessAccentBrush" Color="#4CAF50"/>
+            <SolidColorBrush x:Key="WarningAccentBrush" Color="#FF9800"/>
+            <SolidColorBrush x:Key="DangerAccentBrush" Color="#E57373"/>
+            <SolidColorBrush x:Key="SelectedRowBrush" Color="#FFE6DDD2" Opacity="0.98"/>
+            <SolidColorBrush x:Key="HoverRowBrush" Color="#FFF4EEE7" Opacity="0.96"/>
+
+            <SolidColorBrush x:Key="WarmHeaderBrush" Color="#FFEAE3DA" Opacity="0.95"/>
+            <SolidColorBrush x:Key="WarmRowBrush" Color="#FFFFFBF7" Opacity="0.92"/>
+
+            <Style x:Key="WarmPanelBorderStyle" TargetType="Border">
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="CornerRadius" Value="10"/>
+                <Setter Property="Background" Value="{StaticResource WarmPanelBrush}"/>
+            </Style>
+
+            <Style x:Key="WarmTagBorderStyle" TargetType="Border">
+                <Setter Property="BorderThickness" Value="{StaticResource UnifiedBorderThickness}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource ActionBorderBrush}"/>
+                <Setter Property="CornerRadius" Value="{StaticResource UnifiedMediumCornerRadius}"/>
+                <Setter Property="Background" Value="{StaticResource WarmSurfaceBrush}"/>
+            </Style>
+
+            <Style x:Key="WarmFieldBorderStyle" TargetType="Border">
+                <Setter Property="BorderThickness" Value="{StaticResource UnifiedBorderThickness}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}"/>
+                <Setter Property="CornerRadius" Value="{StaticResource UnifiedMediumCornerRadius}"/>
+                <Setter Property="Background" Value="{StaticResource WarmInputBrush}"/>
+            </Style>
+
+            <Style x:Key="WarmActionBorderStyle" TargetType="Border">
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="BorderBrush" Value="Transparent"/>
+                <Setter Property="CornerRadius" Value="{StaticResource UnifiedMediumCornerRadius}"/>
+                <Setter Property="Background" Value="{StaticResource WarmActionBrush}"/>
+                <Setter Property="ClipToBounds" Value="False"/>
+            </Style>
+
+            <Style x:Key="WarmInputTextBoxStyle" TargetType="TextBox">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}"/>
+                <Setter Property="BorderThickness" Value="{StaticResource UnifiedBorderThickness}"/>
+                <Setter Property="Padding" Value="8"/>
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TextBox">
+                            <Border
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{StaticResource UnifiedMediumCornerRadius}"
+                                SnapsToDevicePixels="True">
+                                <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="WarmSearchTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource WarmInputTextBoxStyle}">
+                <Setter Property="Background" Value="{StaticResource WarmHeaderBrush}"/>
+            </Style>
+
+            <ControlTemplate x:Key="ComboBoxArrowToggleButtonTemplate" TargetType="ToggleButton">
+                <Border Background="Transparent" BorderThickness="0">
+                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+            </ControlTemplate>
+
+            <Style x:Key="WarmInputComboBoxStyle" TargetType="ComboBox">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}"/>
+                <Setter Property="BorderThickness" Value="{StaticResource UnifiedBorderThickness}"/>
+                <Setter Property="Padding" Value="8,0,30,0"/>
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ComboBox">
+                            <Grid>
+                                <Border
+                                    x:Name="Border"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="{StaticResource UnifiedMediumCornerRadius}"
+                                    SnapsToDevicePixels="True">
+                                    <Grid>
+                                        <ContentPresenter
+                                            Margin="{TemplateBinding Padding}"
+                                            VerticalAlignment="Center"
+                                            HorizontalAlignment="Left"
+                                            Content="{TemplateBinding SelectionBoxItem}"
+                                            ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                            ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"/>
+                                        <ToggleButton
+                                            Focusable="False"
+                                            IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                            ClickMode="Press"
+                                            HorizontalAlignment="Right"
+                                            Width="28"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Template="{StaticResource ComboBoxArrowToggleButtonTemplate}">
+                                            <Path
+                                                Width="10"
+                                                Height="6"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Data="M0,0 L10,0 L5,6 Z"
+                                                Fill="{StaticResource PrimaryTextBrush}"
+                                                Stretch="Fill"/>
+                                        </ToggleButton>
+                                    </Grid>
+                                </Border>
+                                <Popup
+                                    Name="Popup"
+                                    Placement="Bottom"
+                                    IsOpen="{TemplateBinding IsDropDownOpen}"
+                                    AllowsTransparency="True"
+                                    Focusable="False"
+                                    PopupAnimation="Slide">
+                                    <Border
+                                        Margin="0,4,0,0"
+                                        Background="{StaticResource WarmRowBrush}"
+                                        BorderBrush="{StaticResource InputBorderBrush}"
+                                        BorderThickness="{StaticResource UnifiedBorderThickness}"
+                                        CornerRadius="{StaticResource UnifiedMediumCornerRadius}">
+                                        <ScrollViewer SnapsToDevicePixels="True">
+                                            <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                        </ScrollViewer>
+                                    </Border>
+                                </Popup>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="WarmActionButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderBrush" Value="{StaticResource ActionBorderBrush}"/>
+                <Setter Property="BorderThickness" Value="{StaticResource UnifiedBorderThickness}"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Foreground" Value="{StaticResource EditAccentBrush}"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{StaticResource UnifiedMediumCornerRadius}"
+                                SnapsToDevicePixels="True">
+                                <ContentPresenter
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    Margin="{TemplateBinding Padding}"
+                                    RecognizesAccessKey="True"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="WarmIconButtonStyle" TargetType="Button">
+                <Setter Property="Width" Value="28"/>
+                <Setter Property="Height" Value="28"/>
+                <Setter Property="Background" Value="{StaticResource WarmButtonBrush}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource ActionBorderBrush}"/>
+                <Setter Property="BorderThickness" Value="{StaticResource UnifiedBorderThickness}"/>
+                <Setter Property="Padding" Value="0"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{StaticResource UnifiedMediumCornerRadius}"
+                                SnapsToDevicePixels="True">
+                                <ContentPresenter
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    RecognizesAccessKey="True"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="WarmHeaderBorderStyle" TargetType="Border">
+                <Setter Property="CornerRadius" Value="10"/>
+                <Setter Property="ClipToBounds" Value="False"/>
+                <Setter Property="Background" Value="{StaticResource WarmHeaderBrush}"/>
+            </Style>
+
+            <Style x:Key="WarmRowBorderStyle" TargetType="Border">
+                <Setter Property="CornerRadius" Value="10"/>
+                <Setter Property="ClipToBounds" Value="False"/>
+                <Setter Property="Background" Value="{StaticResource WarmRowBrush}"/>
+            </Style>
+
+            <Style x:Key="GlobalBaseDataGridStyle" TargetType="DataGrid">
+                <Setter Property="AutoGenerateColumns" Value="False"/>
+                <Setter Property="BorderBrush" Value="Transparent"/>
+                <Setter Property="GridLinesVisibility" Value="None"/>
+                <Setter Property="HorizontalGridLinesBrush" Value="Transparent"/>
+                <Setter Property="VerticalGridLinesBrush" Value="Transparent"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="RowBackground" Value="Transparent"/>
+                <Setter Property="AlternatingRowBackground" Value="Transparent"/>
+                <Setter Property="HeadersVisibility" Value="Column"/>
+                <Setter Property="CanUserAddRows" Value="False"/>
+                <Setter Property="CanUserDeleteRows" Value="False"/>
+                <Setter Property="SelectionMode" Value="Single"/>
+                <Setter Property="IsReadOnly" Value="True"/>
+                <Setter Property="Margin" Value="0"/>
+                <Setter Property="Padding" Value="0"/>
+                <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+                <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
+                <Setter Property="CellStyle">
+                    <Setter.Value>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Padding" Value="8,5"/>
+                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+                        </Style>
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="RowStyle">
+                    <Setter.Value>
+                        <Style TargetType="DataGridRow">
+                            <Setter Property="Margin" Value="0,2"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                        </Style>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="GlobalDataGridHeaderStyle" TargetType="DataGridColumnHeader">
+                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Padding" Value="5"/>
+                <Setter Property="Margin" Value="10,0,0,0"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="DataGridColumnHeader">
+                            <Border CornerRadius="{StaticResource UnifiedMediumCornerRadius}" BorderThickness="0" Background="Transparent" ClipToBounds="False">
+                                <Grid ClipToBounds="False">
+                                    <Border CornerRadius="{StaticResource UnifiedMediumCornerRadius}" ClipToBounds="False" Style="{StaticResource WarmTagBorderStyle}"/>
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5"/>
+                                </Grid>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style x:Key="GlobalFirstDataGridHeaderStyle" TargetType="DataGridColumnHeader" BasedOn="{StaticResource GlobalDataGridHeaderStyle}">
+                <Setter Property="Margin" Value="3,0,0,0"/>
+                <Setter Property="Padding" Value="8"/>
+            </Style>
+
+            <Style x:Key="GlobalDataGridTextElementStyle" TargetType="TextBlock">
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="TextAlignment" Value="Center"/>
+                <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+                <Setter Property="FontSize" Value="13"/>
+            </Style>
+
+            <Style x:Key="GlobalDataGridTextStyle" TargetType="TextBlock">
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+                <Setter Property="FontSize" Value="13"/>
+            </Style>
+
+            <Style x:Key="GlobalTransparentDataGridCellStyle" TargetType="DataGridCell">
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Padding" Value="8,5"/>
+                <Setter Property="HorizontalAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+                <Style.Triggers>
+                    <Trigger Property="IsSelected" Value="True">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="GlobalWarmCardDataGridRowStyle" TargetType="DataGridRow">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="DataGridRow">
+                            <Border CornerRadius="10" BorderThickness="0" Background="Transparent" ClipToBounds="False" Margin="2">
+                                <Grid ClipToBounds="False">
+                                    <Border CornerRadius="10" ClipToBounds="False" Style="{StaticResource WarmTagBorderStyle}"/>
+                                    <DataGridCellsPresenter/>
+                                </Grid>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsSelected" Value="True">
+                        <Setter Property="Background" Value="Transparent"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />

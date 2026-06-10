@@ -3,9 +3,40 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FactoryProductManager.Views"
+        xmlns:converters="clr-namespace:FactoryProductManager.Converters"
         mc:Ignorable="d"
-        Title="产品信息" Height="430" Width="620"
+        Title="产品信息" Height="560" Width="620"
         WindowStartupLocation="CenterOwner">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:BusinessTypeToVisibilityConverter x:Key="BusinessTypeToVisibilityConverter"/>
+        <Style x:Key="UnifiedDialogLabelTextStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+        </Style>
+        <Style x:Key="UnifiedDialogActionButtonStyle" TargetType="Button" BasedOn="{StaticResource WarmActionButtonStyle}">
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="{StaticResource ActionBorderBrush}"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource WarmActionBrush}"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="{StaticResource WarmButtonBrush}"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}"/>
+                </Trigger>
+                <Trigger Property="IsKeyboardFocused" Value="True">
+                    <Setter Property="Background" Value="{StaticResource WarmActionBrush}"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="UnifiedDialogCheckBoxStyle" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+        </Style>
+    </Window.Resources>
     <Grid>
         <Grid Margin="5">
             <Grid.RowDefinitions>
@@ -14,13 +45,10 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <Border Grid.Row="0" Grid.RowSpan="3" BorderBrush="White" BorderThickness="1.2" CornerRadius="10" Padding="15">
+            <Border Grid.Row="0" Grid.RowSpan="3" Style="{StaticResource WarmPanelBorderStyle}" Padding="15">
                 <Border.Effect>
                     <DropShadowEffect ShadowDepth="0" BlurRadius="15" Opacity="0.25" Color="Black"/>
                 </Border.Effect>
-                <Border.Background>
-                    <SolidColorBrush Color="#FFF5E6D3" Opacity="0.7"/>
-                </Border.Background>
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -28,7 +56,7 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" Text="{Binding Title}" FontSize="18" FontWeight="Bold" Foreground="#333333"/>
+                    <TextBlock Grid.Row="0" Text="{Binding Title}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PrimaryTextBrush}"/>
 
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,10,0,0">
                         <StackPanel>
@@ -38,27 +66,23 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid Grid.Column="0" Margin="0,10,0,0">
-                                    <Border Width="110" Height="35" HorizontalAlignment="Center" CornerRadius="4" BorderBrush="White" BorderThickness="1.2" Background="Transparent">
+                                    <Border Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
                                         <Grid Width="110" Height="35">
-                                            <Border Width="110" Height="35" CornerRadius="4">
-                                                <Border.Background>
-                                                    <SolidColorBrush Color="LightGray" Opacity="0.9"/>
-                                                </Border.Background>
+                                            <Border Width="110" Height="35" CornerRadius="10" Background="{StaticResource WarmSurfaceBrush}">
                                                 <Border.Effect>
                                                     <BlurEffect Radius="20"/>
                                                 </Border.Effect>
                                             </Border>
-                                            <TextBlock Text="产品编码" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Foreground="#333333"/>
+                                            <TextBlock Text="业态" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Style="{StaticResource UnifiedDialogLabelTextStyle}"/>
                                         </Grid>
                                     </Border>
                                 </Grid>
                                 <Grid Grid.Column="1" Margin="10,10,0,0" Width="380" Height="35">
-                                    <Border BorderThickness="1.2" BorderBrush="#CCCCCC" CornerRadius="4">
-                                        <Border.Background>
-                                            <SolidColorBrush Color="White" Opacity="0.9"/>
-                                        </Border.Background>
+                                            <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}">
                                     </Border>
-                                    <TextBox Text="{Binding Product.ProductCode}" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="8" FontSize="13" Foreground="#333333"/>
+                                    <ComboBox ItemsSource="{Binding BusinessTypeOptions}"
+                                              SelectedItem="{Binding BusinessType}"
+                                              Style="{StaticResource WarmInputComboBoxStyle}"/>
                                 </Grid>
                             </Grid>
 
@@ -68,27 +92,46 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid Grid.Column="0" Margin="0,10,0,0">
-                                    <Border Width="110" Height="35" HorizontalAlignment="Center" CornerRadius="4" BorderBrush="White" BorderThickness="1.2" Background="Transparent">
+                                    <Border Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
                                         <Grid Width="110" Height="35">
-                                            <Border Width="110" Height="35" CornerRadius="4">
-                                                <Border.Background>
-                                                    <SolidColorBrush Color="LightGray" Opacity="0.9"/>
-                                                </Border.Background>
+                                            <Border Width="110" Height="35" CornerRadius="10" Background="{StaticResource WarmSurfaceBrush}">
                                                 <Border.Effect>
                                                     <BlurEffect Radius="20"/>
                                                 </Border.Effect>
                                             </Border>
-                                            <TextBlock Text="产品名称" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Foreground="#333333"/>
+                                            <TextBlock Text="户型" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Style="{StaticResource UnifiedDialogLabelTextStyle}"/>
                                         </Grid>
                                     </Border>
                                 </Grid>
                                 <Grid Grid.Column="1" Margin="10,10,0,0" Width="380" Height="35">
-                                    <Border BorderThickness="1.2" BorderBrush="#CCCCCC" CornerRadius="4">
-                                        <Border.Background>
-                                            <SolidColorBrush Color="White" Opacity="0.9"/>
-                                        </Border.Background>
-                                    </Border>
-                                    <TextBox Text="{Binding Product.ProductName}" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="8" FontSize="13" Foreground="#333333"/>
+                                    <Grid>
+                                        <Grid Grid.Row="0"
+                                              Visibility="{Binding RequiresResidentialHouseType, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                            <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}">
+                                            </Border>
+                                            <Button Content="{Binding Product.HouseType, TargetNullValue=请选择户型, FallbackValue=请选择户型}"
+                                                    Click="HouseTypeButton_Click"
+                                                    Style="{StaticResource UnifiedDialogActionButtonStyle}"
+                                                    HorizontalContentAlignment="Left"
+                                                    Padding="12,0,12,0"/>
+                                        </Grid>
+
+                                        <Grid Grid.Row="0">
+                                            <Grid.Style>
+                                                <Style TargetType="Grid">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding RequiresResidentialHouseType}" Value="True">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Grid.Style>
+                                            <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}">
+                                            </Border>
+                                            <TextBox Text="{Binding Product.HouseType}" Style="{StaticResource WarmInputTextBoxStyle}"/>
+                                        </Grid>
+                                    </Grid>
                                 </Grid>
                             </Grid>
 
@@ -98,27 +141,42 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid Grid.Column="0" Margin="0,10,0,0">
-                                    <Border Width="110" Height="35" HorizontalAlignment="Center" CornerRadius="4" BorderBrush="White" BorderThickness="1.2" Background="Transparent">
+                                    <Border Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
                                         <Grid Width="110" Height="35">
-                                            <Border Width="110" Height="35" CornerRadius="4">
-                                                <Border.Background>
-                                                    <SolidColorBrush Color="LightGray" Opacity="0.9"/>
-                                                </Border.Background>
+                                            <Border Width="110" Height="35" CornerRadius="10" Background="{StaticResource WarmSurfaceBrush}">
                                                 <Border.Effect>
                                                     <BlurEffect Radius="20"/>
                                                 </Border.Effect>
                                             </Border>
-                                            <TextBlock Text="规格" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Foreground="#333333"/>
+                                            <TextBlock Text="产品编码" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Style="{StaticResource UnifiedDialogLabelTextStyle}"/>
                                         </Grid>
                                     </Border>
                                 </Grid>
                                 <Grid Grid.Column="1" Margin="10,10,0,0" Width="380" Height="35">
-                                    <Border BorderThickness="1.2" BorderBrush="#CCCCCC" CornerRadius="4">
-                                        <Border.Background>
-                                            <SolidColorBrush Color="White" Opacity="0.9"/>
-                                        </Border.Background>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="110"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid Grid.Column="0">
+                                        <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}">
+                                        </Border>
+                                        <TextBox Text="{Binding Product.ProductCode}" Style="{StaticResource WarmInputTextBoxStyle}"/>
+                                    </Grid>
+                                    <Border Grid.Column="1" Width="100" Height="35" Margin="10,0,0,0" Style="{StaticResource WarmActionBorderStyle}" Background="{StaticResource WarmSurfaceBrush}">
+                                        <Grid Width="100" Height="35" ClipToBounds="False">
+                                            <Border Width="100" Height="35" CornerRadius="10" ClipToBounds="False" Background="{StaticResource WarmSurfaceBrush}">
+                                                <Border.Effect>
+                                                    <BlurEffect Radius="20"/>
+                                                </Border.Effect>
+                                            </Border>
+                                            <Button Content="生成编码"
+                                                    Margin="0"
+                                                    Width="100"
+                                                    Height="35"
+                                                    Click="GenerateProductCodeButton_Click"
+                                                    Style="{StaticResource UnifiedDialogActionButtonStyle}"/>
+                                        </Grid>
                                     </Border>
-                                    <TextBox Text="{Binding Product.Specification}" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="8" FontSize="13" Foreground="#333333"/>
                                 </Grid>
                             </Grid>
 
@@ -128,27 +186,21 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid Grid.Column="0" Margin="0,10,0,0">
-                                    <Border Width="110" Height="35" HorizontalAlignment="Center" CornerRadius="4" BorderBrush="White" BorderThickness="1.2" Background="Transparent">
+                                    <Border Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
                                         <Grid Width="110" Height="35">
-                                            <Border Width="110" Height="35" CornerRadius="4">
-                                                <Border.Background>
-                                                    <SolidColorBrush Color="LightGray" Opacity="0.9"/>
-                                                </Border.Background>
+                                            <Border Width="110" Height="35" CornerRadius="10" Background="{StaticResource WarmSurfaceBrush}">
                                                 <Border.Effect>
                                                     <BlurEffect Radius="20"/>
                                                 </Border.Effect>
                                             </Border>
-                                            <TextBlock Text="单位" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Foreground="#333333"/>
+                                            <TextBlock Text="面积（㎡）" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Style="{StaticResource UnifiedDialogLabelTextStyle}"/>
                                         </Grid>
                                     </Border>
                                 </Grid>
                                 <Grid Grid.Column="1" Margin="10,10,0,0" Width="380" Height="35">
-                                    <Border BorderThickness="1.2" BorderBrush="#CCCCCC" CornerRadius="4">
-                                        <Border.Background>
-                                            <SolidColorBrush Color="White" Opacity="0.9"/>
-                                        </Border.Background>
+                                            <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}">
                                     </Border>
-                                    <TextBox Text="{Binding Product.Unit}" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="8" FontSize="13" Foreground="#333333"/>
+                                    <TextBox Text="{Binding Product.Area, UpdateSourceTrigger=LostFocus}" Style="{StaticResource WarmInputTextBoxStyle}"/>
                                 </Grid>
                             </Grid>
 
@@ -158,27 +210,21 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid Grid.Column="0" Margin="0,10,0,0">
-                                    <Border Width="110" Height="35" HorizontalAlignment="Center" CornerRadius="4" BorderBrush="White" BorderThickness="1.2" Background="Transparent">
+                                    <Border Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
                                         <Grid Width="110" Height="35">
-                                            <Border Width="110" Height="35" CornerRadius="4">
-                                                <Border.Background>
-                                                    <SolidColorBrush Color="LightGray" Opacity="0.9"/>
-                                                </Border.Background>
+                                            <Border Width="110" Height="35" CornerRadius="10" Background="{StaticResource WarmSurfaceBrush}">
                                                 <Border.Effect>
                                                     <BlurEffect Radius="20"/>
                                                 </Border.Effect>
                                             </Border>
-                                            <TextBlock Text="总成本" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Foreground="#333333"/>
+                                            <TextBlock Text="成本合价（元）" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Style="{StaticResource UnifiedDialogLabelTextStyle}"/>
                                         </Grid>
                                     </Border>
                                 </Grid>
                                 <Grid Grid.Column="1" Margin="10,10,0,0" Width="380" Height="35">
-                                    <Border BorderThickness="1.2" BorderBrush="#CCCCCC" CornerRadius="4">
-                                        <Border.Background>
-                                            <SolidColorBrush Color="White" Opacity="0.9"/>
-                                        </Border.Background>
+                                            <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}">
                                     </Border>
-                                    <TextBox Text="{Binding Product.TotalCost, UpdateSourceTrigger=LostFocus}" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="8" FontSize="13" Foreground="#333333"/>
+                                    <TextBox Text="{Binding Product.CostTotalPrice, UpdateSourceTrigger=LostFocus}" Style="{StaticResource WarmInputTextBoxStyle}"/>
                                 </Grid>
                             </Grid>
 
@@ -188,27 +234,21 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid Grid.Column="0" Margin="0,10,0,0">
-                                    <Border Width="110" Height="35" HorizontalAlignment="Center" CornerRadius="4" BorderBrush="White" BorderThickness="1.2" Background="Transparent">
+                                    <Border Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
                                         <Grid Width="110" Height="35">
-                                            <Border Width="110" Height="35" CornerRadius="4">
-                                                <Border.Background>
-                                                    <SolidColorBrush Color="LightGray" Opacity="0.9"/>
-                                                </Border.Background>
+                                            <Border Width="110" Height="35" CornerRadius="10" Background="{StaticResource WarmSurfaceBrush}">
                                                 <Border.Effect>
                                                     <BlurEffect Radius="20"/>
                                                 </Border.Effect>
                                             </Border>
-                                            <TextBlock Text="销售价" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Foreground="#333333"/>
+                                            <TextBlock Text="销售合价（元）" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Style="{StaticResource UnifiedDialogLabelTextStyle}"/>
                                         </Grid>
                                     </Border>
                                 </Grid>
                                 <Grid Grid.Column="1" Margin="10,10,0,0" Width="380" Height="35">
-                                    <Border BorderThickness="1.2" BorderBrush="#CCCCCC" CornerRadius="4">
-                                        <Border.Background>
-                                            <SolidColorBrush Color="White" Opacity="0.9"/>
-                                        </Border.Background>
+                                            <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}">
                                     </Border>
-                                    <TextBox Text="{Binding Product.SellingPrice, TargetNullValue='', UpdateSourceTrigger=LostFocus}" Background="Transparent" BorderBrush="Transparent" BorderThickness="0" Padding="8" FontSize="13" Foreground="#333333"/>
+                                    <TextBox Text="{Binding Product.SellingTotalPrice, TargetNullValue='', UpdateSourceTrigger=LostFocus}" Style="{StaticResource WarmInputTextBoxStyle}"/>
                                 </Grid>
                             </Grid>
 
@@ -218,56 +258,67 @@
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid Grid.Column="0" Margin="0,10,0,0">
-                                    <Border Width="110" Height="35" HorizontalAlignment="Center" CornerRadius="4" BorderBrush="White" BorderThickness="1.2" Background="Transparent">
+                                    <Border Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
                                         <Grid Width="110" Height="35">
-                                            <Border Width="110" Height="35" CornerRadius="4">
-                                                <Border.Background>
-                                                    <SolidColorBrush Color="LightGray" Opacity="0.9"/>
-                                                </Border.Background>
+                                            <Border Width="110" Height="35" CornerRadius="10" Background="{StaticResource WarmSurfaceBrush}">
                                                 <Border.Effect>
                                                     <BlurEffect Radius="20"/>
                                                 </Border.Effect>
                                             </Border>
-                                            <TextBlock Text="是否启用" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Foreground="#333333"/>
+                                            <TextBlock Text="平面图" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Style="{StaticResource UnifiedDialogLabelTextStyle}"/>
                                         </Grid>
                                     </Border>
                                 </Grid>
-                                <CheckBox Grid.Column="1" Margin="10,16,0,0" IsChecked="{Binding Product.IsActive}" VerticalAlignment="Center" Foreground="#333333" Content="启用"/>
+                                <Grid Grid.Column="1" Margin="10,10,0,0" Width="380" Height="35">
+                                            <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}">
+                                    </Border>
+                                    <TextBox Text="{Binding Product.FloorPlan}" Style="{StaticResource WarmInputTextBoxStyle}"/>
+                                </Grid>
+                            </Grid>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid Grid.Column="0" Margin="0,10,0,0">
+                                    <Border Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
+                                        <Grid Width="110" Height="35">
+                                            <Border Width="110" Height="35" CornerRadius="10" Background="{StaticResource WarmSurfaceBrush}">
+                                                <Border.Effect>
+                                                    <BlurEffect Radius="20"/>
+                                                </Border.Effect>
+                                            </Border>
+                                            <TextBlock Text="是否启用" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Style="{StaticResource UnifiedDialogLabelTextStyle}"/>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                                <CheckBox Grid.Column="1" Margin="10,16,0,0" IsChecked="{Binding Product.IsActive}" VerticalAlignment="Center" Style="{StaticResource UnifiedDialogCheckBoxStyle}" Content="启用"/>
                             </Grid>
                         </StackPanel>
                     </ScrollViewer>
 
                     <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-                        <Border Width="90" Height="35" Margin="0,0,15,0" Cursor="Hand" CornerRadius="10" BorderBrush="White" BorderThickness="1.2" Background="Transparent" ClipToBounds="False">
+                                <Border Width="90" Height="35" Margin="0,0,15,0" Style="{StaticResource WarmActionBorderStyle}" Background="{StaticResource WarmSurfaceBrush}">
                             <Grid Width="90" Height="35" ClipToBounds="False">
-                                <Border Width="90" Height="35" CornerRadius="10" ClipToBounds="False">
-                                    <Border.Background>
-                                        <SolidColorBrush Color="LightGray" Opacity="0.9"/>
-                                    </Border.Background>
+                                <Border Width="90" Height="35" CornerRadius="10" ClipToBounds="False" Background="{StaticResource WarmSurfaceBrush}">
                                     <Border.Effect>
                                         <BlurEffect Radius="20"/>
                                     </Border.Effect>
                                 </Border>
                                 <Button Content="确定" Margin="0" Width="90" Height="35" Click="OkButton_Click"
-                                        Background="Transparent" Foreground="#2196F3"
-                                        BorderBrush="Transparent" BorderThickness="0"
-                                        FontSize="14" Cursor="Hand"/>
+                                        Style="{StaticResource UnifiedDialogActionButtonStyle}"/>
                             </Grid>
                         </Border>
-                        <Border Width="90" Height="35" Cursor="Hand" CornerRadius="10" BorderBrush="White" BorderThickness="1.2" Background="Transparent" ClipToBounds="False">
+                        <Border Width="90" Height="35" Style="{StaticResource WarmActionBorderStyle}" Background="{StaticResource WarmSurfaceBrush}">
                             <Grid Width="90" Height="35" ClipToBounds="False">
-                                <Border Width="90" Height="35" CornerRadius="10" ClipToBounds="False">
-                                    <Border.Background>
-                                        <SolidColorBrush Color="LightGray" Opacity="0.9"/>
-                                    </Border.Background>
+                                <Border Width="90" Height="35" CornerRadius="10" ClipToBounds="False" Background="{StaticResource WarmSurfaceBrush}">
                                     <Border.Effect>
                                         <BlurEffect Radius="20"/>
                                     </Border.Effect>
                                 </Border>
-                                <Button Content="取消" Width="90" Height="35" Click="CancelButton_Click"
-                                        Background="Transparent" Foreground="#666666"
-                                        BorderBrush="Transparent" BorderThickness="0"
-                                        FontSize="14" Cursor="Hand"/>
+                                <Button Content="取消" Margin="0" Width="90" Height="35" Click="CancelButton_Click"
+                                        Style="{StaticResource UnifiedDialogActionButtonStyle}"/>
                             </Grid>
                         </Border>
                     </StackPanel>

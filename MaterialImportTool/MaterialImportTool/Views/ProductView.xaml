@@ -111,6 +111,8 @@
                             <Setter Property="Foreground" Value="#333333"/>
                             <Setter Property="FontWeight" Value="Bold"/>
                             <Setter Property="Padding" Value="10,5"/>
+                            <Setter Property="Margin" Value="2,0,0,0"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
                         </Style>
                     </DataGrid.ColumnHeaderStyle>
                     <DataGrid.Columns>
@@ -120,6 +122,20 @@
                         <DataGridTextColumn Header="品牌" Binding="{Binding Brand}" Width="100"/>
                         <DataGridTextColumn Header="分类" Binding="{Binding Category}" Width="120"/>
                         <DataGridTextColumn Header="工厂" Binding="{Binding FactoryName}" Width="120"/>
+                        <DataGridTemplateColumn Header="详细信息" Width="100">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <Button Width="28" Height="28"
+                                                Background="#F5F5F5" BorderBrush="#E0E0E0"
+                                                BorderThickness="1" Padding="0" Cursor="Hand"
+                                                Click="DetailsButton_Click" Tag="{Binding}">
+                                            <Image Source="/Resources/Icons/icon_expand.png" Width="14" Height="14" Stretch="Uniform"/>
+                                        </Button>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <DataGridTemplateColumn Header="操作" Width="120">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>

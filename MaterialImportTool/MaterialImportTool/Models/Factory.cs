@@ -7,6 +7,7 @@ namespace MaterialImportTool.Models
         public int Id { get; set; }
         public string FactoryCode { get; set; } = string.Empty;
         public string FactoryName { get; set; } = string.Empty;
+        public string? Brand { get; set; }
         public string? FactoryType { get; set; }
         public string? Address { get; set; }
         public string? Certifications { get; set; }

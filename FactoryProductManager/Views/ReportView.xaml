@@ -6,7 +6,7 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300">
-    <Grid Margin="20">
+    <Grid Margin="10,0,20,0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -15,25 +15,40 @@
 
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
             <Image Source="pack://application:,,,/Resources/Icons/icon_report.png" Width="32" Height="32" Margin="0,0,10,0"/>
-            <TextBlock Text="报表统计" FontSize="24" FontWeight="Bold"/>
+            <TextBlock Text="报表统计" FontSize="24" FontWeight="Bold" Foreground="{StaticResource PrimaryTextBrush}"/>
         </StackPanel>
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
-            <Button Style="{StaticResource MaterialDesignRaisedButton}" Content="库存报表" Margin="0,0,10,0"/>
-            <Button Style="{StaticResource MaterialDesignRaisedButton}" Content="采购报表" Margin="0,0,10,0"/>
-            <Button Style="{StaticResource MaterialDesignRaisedButton}" Content="销售报表" Margin="0,0,10,0"/>
-            <Button Style="{StaticResource MaterialDesignRaisedButton}" Content="导出Excel"/>
-        </StackPanel>
+        <Grid Grid.Row="1" Margin="0,0,0,15">
+            <Border Style="{StaticResource WarmPanelBorderStyle}" Padding="10"/>
+            <Border Background="Transparent" BorderThickness="0" CornerRadius="10" Padding="10">
+                <StackPanel Orientation="Horizontal">
+                    <Border Width="90" Height="35" Style="{StaticResource WarmActionBorderStyle}">
+                        <Button Content="库存报表" Style="{StaticResource WarmActionButtonStyle}" Foreground="{StaticResource EditAccentBrush}"/>
+                    </Border>
+                    <Border Width="90" Height="35" Margin="20,0,0,0" Style="{StaticResource WarmActionBorderStyle}">
+                        <Button Content="采购报表" Style="{StaticResource WarmActionButtonStyle}" Foreground="{StaticResource EditAccentBrush}"/>
+                    </Border>
+                    <Border Width="90" Height="35" Margin="20,0,0,0" Style="{StaticResource WarmActionBorderStyle}">
+                        <Button Content="销售报表" Style="{StaticResource WarmActionButtonStyle}" Foreground="{StaticResource EditAccentBrush}"/>
+                    </Border>
+                    <Border Width="100" Height="35" Margin="20,0,0,0" Style="{StaticResource WarmActionBorderStyle}">
+                        <Button Content="导出Excel" Style="{StaticResource WarmActionButtonStyle}" Foreground="{StaticResource SuccessAccentBrush}"/>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </Grid>
 
         <Grid Grid.Row="2">
-            <DataGrid AutoGenerateColumns="False">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="统计项" Binding="{Binding ItemName}"/>
-                    <DataGridTextColumn Header="数量" Binding="{Binding Quantity}"/>
-                    <DataGridTextColumn Header="金额" Binding="{Binding Amount}"/>
-                    <DataGridTextColumn Header="占比" Binding="{Binding Percentage}"/>
-                </DataGrid.Columns>
-            </DataGrid>
+            <Border Style="{StaticResource WarmPanelBorderStyle}" Padding="10">
+                <DataGrid Style="{StaticResource GlobalBaseDataGridStyle}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="统计项" Binding="{Binding ItemName}" Width="*" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
+                        <DataGridTextColumn Header="数量" Binding="{Binding Quantity}" Width="100" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
+                        <DataGridTextColumn Header="金额" Binding="{Binding Amount}" Width="140" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
+                        <DataGridTextColumn Header="占比" Binding="{Binding Percentage}" Width="100" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
         </Grid>
     </Grid>
 </UserControl>

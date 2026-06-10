@@ -90,7 +90,7 @@ namespace FactoryProductManager.ViewModels
 
             using var package = new ExcelPackage();
             var worksheet = package.Workbook.Worksheets.Add("产品数据");
-            string[] headers = { "产品编码", "产品名称", "规格", "单位", "总成本", "销售价", "状态", "创建时间", "更新时间" };
+            string[] headers = { "业态", "产品编码", "户型", "面积（㎡）", "成本合价（元）", "销售合价（元）", "平面图", "状态", "创建时间", "更新时间" };
 
             for (int i = 0; i < headers.Length; i++)
             {
@@ -104,15 +104,16 @@ namespace FactoryProductManager.ViewModels
             int row = 2;
             foreach (var product in Products)
             {
-                worksheet.Cells[row, 1].Value = product.ProductCode;
-                worksheet.Cells[row, 2].Value = product.ProductName;
-                worksheet.Cells[row, 3].Value = product.Specification;
-                worksheet.Cells[row, 4].Value = product.Unit;
-                worksheet.Cells[row, 5].Value = product.TotalCost;
-                worksheet.Cells[row, 6].Value = product.SellingPrice;
-                worksheet.Cells[row, 7].Value = product.IsActive ? "启用" : "停用";
-                worksheet.Cells[row, 8].Value = product.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss");
-                worksheet.Cells[row, 9].Value = product.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss");
+                worksheet.Cells[row, 1].Value = product.BusinessType;
+                worksheet.Cells[row, 2].Value = product.ProductCode;
+                worksheet.Cells[row, 3].Value = product.HouseType;
+                worksheet.Cells[row, 4].Value = product.Area;
+                worksheet.Cells[row, 5].Value = product.CostTotalPrice;
+                worksheet.Cells[row, 6].Value = product.SellingTotalPrice;
+                worksheet.Cells[row, 7].Value = product.FloorPlan;
+                worksheet.Cells[row, 8].Value = product.IsActive ? "启用" : "停用";
+                worksheet.Cells[row, 9].Value = product.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss");
+                worksheet.Cells[row, 10].Value = product.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss");
                 row++;
             }
 

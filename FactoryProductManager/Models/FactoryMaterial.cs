@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 namespace FactoryProductManager.Models
 {
@@ -12,6 +13,8 @@ namespace FactoryProductManager.Models
         public string Specification { get; set; } = string.Empty;
         public string Texture { get; set; } = string.Empty;
         public string Process { get; set; } = string.Empty;
+        public string Unit { get; set; } = string.Empty;
+        public decimal? CostPrice { get; set; }
         public string UsageScenario { get; set; } = string.Empty;
         public string Certifications { get; set; } = string.Empty;
         public string Category { get; set; } = string.Empty;
@@ -20,5 +23,9 @@ namespace FactoryProductManager.Models
         public string FactoryName { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+
+        public string CategoryDisplay => string.IsNullOrWhiteSpace(Category)
+            ? string.Empty
+            : Category.Split(new[] { " > " }, StringSplitOptions.None).LastOrDefault() ?? Category;
     }
 }

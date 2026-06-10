@@ -14,6 +14,7 @@ namespace FactoryProductManager.ViewModels
     public class MaterialViewModel : ViewModelBase
     {
         private readonly DbService _dbService;
+        private string _currentSearchKeyword = string.Empty;
 
         public ObservableCollection<FactoryMaterial> Materials { get; set; }
 
@@ -38,11 +39,36 @@ namespace FactoryProductManager.ViewModels
 
         private void LoadMaterials()
         {
+            LoadMaterials(null);
+        }
+
+        private void LoadMaterials(string? searchKeyword)
+        {
             try
             {
                 LogService.Debug("进入LoadMaterials方法");
                 Materials.Clear();
                 var materials = _dbService.GetFactoryMaterials();
+
+                if (!string.IsNullOrWhiteSpace(searchKeyword))
+                {
+                    var keyword = searchKeyword.ToLower().Trim();
+                    materials = materials.Where(m =>
+                        (m.FactoryMaterialCode?.ToLower().Contains(keyword) ?? false) ||
+                        (m.MyMaterialCode?.ToLower().Contains(keyword) ?? false) ||
+                        (m.MaterialName?.ToLower().Contains(keyword) ?? false) ||
+                        (m.Category?.ToLower().Contains(keyword) ?? false) ||
+                        (m.CategoryDisplay?.ToLower().Contains(keyword) ?? false) ||
+                        (m.FactoryName?.ToLower().Contains(keyword) ?? false) ||
+                        (m.Brand?.ToLower().Contains(keyword) ?? false) ||
+                        (m.Specification?.ToLower().Contains(keyword) ?? false) ||
+                        (m.Texture?.ToLower().Contains(keyword) ?? false) ||
+                        (m.Process?.ToLower().Contains(keyword) ?? false) ||
+                        (m.Unit?.ToLower().Contains(keyword) ?? false)
+                    ).ToList();
+                    LogService.Debug($"搜索关键词: {searchKeyword}，筛选出 {materials.Count} 条记录");
+                }
+
                 foreach (var material in materials)
                 {
                     Materials.Add(material);
@@ -56,6 +82,13 @@ namespace FactoryProductManager.ViewModels
             }
         }
 
+        public void Search(string? keyword)
+        {
+            LogService.Info($"执行物料搜索: {keyword}");
+            _currentSearchKeyword = keyword ?? string.Empty;
+            LoadMaterials(keyword);
+        }
+
         public void AddMaterial(FactoryMaterial material)
         {
             try
@@ -65,7 +98,7 @@ namespace FactoryProductManager.ViewModels
                 material.UpdatedAt = DateTime.Now;
                 var id = _dbService.AddFactoryMaterial(material);
                 material.Id = id;
-                Materials.Add(material);
+                LoadMaterials(_currentSearchKeyword);
                 LogService.Info("物料添加成功，ID: " + id);
             }
             catch (Exception ex)
@@ -121,7 +154,7 @@ namespace FactoryProductManager.ViewModels
             try
             {
                 LogService.Info("刷新物料数据...");
-                LoadMaterials();
+                LoadMaterials(_currentSearchKeyword);
                 LogService.Info("物料数据刷新完成");
             }
             catch (Exception ex)
@@ -182,7 +215,7 @@ namespace FactoryProductManager.ViewModels
                             worksheet.Cells[row, 1].Value = material.FactoryMaterialCode;
                             worksheet.Cells[row, 2].Value = material.MyMaterialCode;
                             worksheet.Cells[row, 3].Value = material.MaterialName;
-                            worksheet.Cells[row, 4].Value = material.Category;
+                            worksheet.Cells[row, 4].Value = material.CategoryDisplay;
                             worksheet.Cells[row, 5].Value = material.FactoryName;
                             worksheet.Cells[row, 6].Value = material.Brand;
                             worksheet.Cells[row, 7].Value = material.Specification;

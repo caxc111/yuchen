@@ -6,7 +6,7 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300">
-    <Grid Margin="20">
+    <Grid Margin="10,0,20,0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -15,43 +15,58 @@
 
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,20">
             <Image Source="pack://application:,,,/Resources/Icons/icon_purchase.png" Width="32" Height="32" Margin="0,0,10,0"/>
-            <TextBlock Text="采购管理" FontSize="24" FontWeight="Bold"/>
+            <TextBlock Text="采购管理" FontSize="24" FontWeight="Bold" Foreground="{StaticResource PrimaryTextBrush}"/>
         </StackPanel>
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
-            <TextBox Width="200" materialDesign:HintAssist.Hint="搜索采购单号..." Margin="0,0,10,0"/>
-            <Button Style="{StaticResource MaterialDesignRaisedButton}" Content="搜索"/>
-            <Button Style="{StaticResource MaterialDesignFloatingActionButton}" Margin="10,0,0,0">
-                <materialDesign:PackIcon Kind="Plus"/>
-            </Button>
-        </StackPanel>
+        <Grid Grid.Row="1" Margin="0,0,0,15">
+            <Border Style="{StaticResource WarmPanelBorderStyle}" Padding="10"/>
+            <Border Background="Transparent" BorderThickness="0" CornerRadius="10" Padding="10">
+                <StackPanel Orientation="Horizontal">
+                    <Grid Width="220" Height="35">
+                        <TextBox Width="220" Style="{StaticResource WarmSearchTextBoxStyle}"
+                                 Padding="10" FontSize="14" Foreground="{StaticResource PrimaryTextBrush}"
+                                 materialDesign:HintAssist.Hint="搜索采购单号..."/>
+                    </Grid>
+                    <Border Width="80" Height="35" Margin="20,0,0,0" Style="{StaticResource WarmActionBorderStyle}">
+                        <Button Content="搜索" Style="{StaticResource WarmActionButtonStyle}" Foreground="{StaticResource EditAccentBrush}"/>
+                    </Border>
+                    <Border Width="100" Height="35" Margin="20,0,0,0" Style="{StaticResource WarmActionBorderStyle}">
+                        <Button Content="新增采购" Style="{StaticResource WarmActionButtonStyle}" Foreground="{StaticResource SuccessAccentBrush}"/>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </Grid>
 
-        <DataGrid Grid.Row="2" AutoGenerateColumns="False">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="采购单号" Binding="{Binding PurchaseNo}"/>
-                <DataGridTextColumn Header="供应商" Binding="{Binding Supplier}"/>
-                <DataGridTextColumn Header="总金额" Binding="{Binding TotalAmount}"/>
-                <DataGridTextColumn Header="状态" Binding="{Binding Status}"/>
-                <DataGridTextColumn Header="采购日期" Binding="{Binding PurchaseDate}"/>
-                <DataGridTextColumn Header="采购员" Binding="{Binding PurchaserName}"/>
-                <DataGridTemplateColumn Header="操作">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="查看明细">
-                                    <materialDesign:PackIcon Kind="Eye"/>
-                                </Button>
-                                <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="编辑">
-                                    <materialDesign:PackIcon Kind="Edit"/>
-                                </Button>
-                                <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="删除">
-                                    <materialDesign:PackIcon Kind="Delete"/>
-                                </Button>
-                            </StackPanel>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-            </DataGrid.Columns>
-        </DataGrid>
+        <Grid Grid.Row="2">
+            <Border Style="{StaticResource WarmPanelBorderStyle}" Padding="10">
+                <DataGrid Style="{StaticResource GlobalBaseDataGridStyle}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="采购单号" Binding="{Binding PurchaseNo}" Width="160" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
+                        <DataGridTextColumn Header="供应商" Binding="{Binding Supplier}" Width="*" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
+                        <DataGridTextColumn Header="总金额" Binding="{Binding TotalAmount}" Width="140" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
+                        <DataGridTextColumn Header="状态" Binding="{Binding Status}" Width="100" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
+                        <DataGridTextColumn Header="采购日期" Binding="{Binding PurchaseDate}" Width="140" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
+                        <DataGridTextColumn Header="采购员" Binding="{Binding PurchaserName}" Width="100" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
+                        <DataGridTemplateColumn Header="操作" Width="130">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                        <Button ToolTip="查看明细" Margin="0,0,5,0" Style="{StaticResource WarmIconButtonStyle}">
+                                            <Image Source="/Resources/Icons/icon_expand.png" Width="14" Height="14" Stretch="Uniform"/>
+                                        </Button>
+                                        <Button ToolTip="编辑" Margin="0,0,5,0" Style="{StaticResource WarmIconButtonStyle}">
+                                            <Image Source="/Resources/Icons/icon_edit.png" Width="14" Height="14" Stretch="Uniform"/>
+                                        </Button>
+                                        <Button ToolTip="删除" Style="{StaticResource WarmIconButtonStyle}">
+                                            <Image Source="/Resources/Icons/icon_delete.png" Width="14" Height="14" Stretch="Uniform"/>
+                                        </Button>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>

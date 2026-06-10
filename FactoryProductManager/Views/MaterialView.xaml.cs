@@ -57,7 +57,8 @@ namespace FactoryProductManager.Views
 
         private void SearchButton_Click(object sender, RoutedEventArgs e)
         {
-            _viewModel.Refresh();
+            var searchText = SearchTextBox?.Text;
+            _viewModel.Search(searchText);
         }
 
         private void ExportButton_Click(object sender, RoutedEventArgs e)

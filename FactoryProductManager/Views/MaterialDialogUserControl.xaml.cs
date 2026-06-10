@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -19,6 +20,7 @@ namespace FactoryProductManager.Views
         private const string FactoryEmptyPlaceholder = "暂无匹配工厂";
         private const string BrandPlaceholder = "请选择品牌";
         private const string BrandEmptyPlaceholder = "暂无品牌";
+        private static readonly string[] PresetUnits = { "m", "㎡", "m³", "个", "张", "片", "樘", "套", "副" };
 
         private readonly DbService _dbService = new DbService();
         private readonly Brush _factoryDefaultBorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#CCCCCC"));
@@ -32,6 +34,7 @@ namespace FactoryProductManager.Views
         private ProductCategory? _selectedLevel3;
 
         public FactoryMaterial Material { get; }
+        public List<string> UnitOptions { get; } = PresetUnits.ToList();
         public bool IsSaved { get; private set; }
         public string Title { get; }
 
@@ -72,6 +75,13 @@ namespace FactoryProductManager.Views
             {
                 SetCurrentCategory(Material.Category);
             }
+
+            if (UnitComboBox != null)
+            {
+                UnitComboBox.SelectedItem = UnitOptions.Contains(Material.Unit) ? Material.Unit : null;
+            }
+
+            RefreshCostPriceDisplay();
         }
 
         private void InitializeFactories()
@@ -306,6 +316,19 @@ namespace FactoryProductManager.Views
             Material.Brand = selectedBrand;
         }
 
+        private void UnitComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (UnitComboBox.SelectedItem is not string selectedUnit)
+            {
+                Material.Unit = string.Empty;
+                RefreshCostPriceDisplay();
+                return;
+            }
+
+            Material.Unit = selectedUnit;
+            RefreshCostPriceDisplay();
+        }
+
         private void SetCurrentCategory(string categoryPath)
         {
             var parts = categoryPath.Split(new[] { " > " }, StringSplitOptions.None);
@@ -400,6 +423,66 @@ namespace FactoryProductManager.Views
             }
         }
 
+        private void RefreshCostPriceDisplay()
+        {
+            if (CostPriceTextBox == null)
+            {
+                return;
+            }
+
+            if (!Material.CostPrice.HasValue)
+            {
+                CostPriceTextBox.Text = string.Empty;
+                return;
+            }
+
+            string priceText = Material.CostPrice.Value.ToString("0.##", CultureInfo.InvariantCulture);
+            CostPriceTextBox.Text = string.IsNullOrWhiteSpace(Material.Unit)
+                ? priceText
+                : $"{priceText}/{Material.Unit}";
+        }
+
+        private bool TryParseCostPriceInput(out decimal? costPrice)
+        {
+            costPrice = null;
+            if (CostPriceTextBox == null)
+            {
+                return true;
+            }
+
+            string input = (CostPriceTextBox.Text ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return true;
+            }
+
+            string unitSuffix = string.IsNullOrWhiteSpace(Material.Unit) ? string.Empty : $"/{Material.Unit}";
+            if (!string.IsNullOrEmpty(unitSuffix) && input.EndsWith(unitSuffix, StringComparison.Ordinal))
+            {
+                input = input[..^unitSuffix.Length].Trim();
+            }
+
+            if (decimal.TryParse(input, NumberStyles.Number, CultureInfo.InvariantCulture, out decimal price) ||
+                decimal.TryParse(input, NumberStyles.Number, CultureInfo.CurrentCulture, out price))
+            {
+                costPrice = price;
+                return true;
+            }
+
+            return false;
+        }
+
+        private void CostPriceTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (!TryParseCostPriceInput(out decimal? costPrice))
+            {
+                return;
+            }
+
+            Material.CostPrice = costPrice;
+            RefreshCostPriceDisplay();
+        }
+
         private string GetFullCategoryPath()
         {
             var parts = new List<string>();
@@ -427,6 +510,14 @@ namespace FactoryProductManager.Views
                 return;
             }
 
+            if (!TryParseCostPriceInput(out decimal? costPrice))
+            {
+                MessageBox.Show("请输入有效的成本价格", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                CostPriceTextBox?.Focus();
+                return;
+            }
+
+            Material.CostPrice = costPrice;
             Material.Category = GetFullCategoryPath();
             IsSaved = true;
             OkClicked?.Invoke(this, EventArgs.Empty);

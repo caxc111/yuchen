@@ -5,6 +5,7 @@ using System.Data.SQLite;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace FactoryProductManager.Services
 {
@@ -68,6 +69,8 @@ namespace FactoryProductManager.Services
                         specification TEXT,
                         texture TEXT,
                         process TEXT,
+                        unit TEXT,
+                        cost_price REAL,
                         usage_scenario TEXT,
                         certifications TEXT,
                         category TEXT,
@@ -83,15 +86,18 @@ namespace FactoryProductManager.Services
                     cmd.ExecuteNonQuery();
                 }
 
+                EnsureFactoryProductsSchema(conn);
+
                 string createManagedProductsTable = @"
                     CREATE TABLE IF NOT EXISTS Products (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        business_type TEXT,
                         product_code TEXT NOT NULL UNIQUE,
-                        product_name TEXT NOT NULL,
-                        specification TEXT,
-                        unit TEXT,
-                        total_cost REAL DEFAULT 0,
-                        selling_price REAL,
+                        house_type TEXT,
+                        area REAL DEFAULT 0,
+                        cost_total_price REAL DEFAULT 0,
+                        selling_total_price REAL,
+                        floor_plan TEXT,
                         is_active INTEGER DEFAULT 1,
                         created_at TEXT,
                         updated_at TEXT
@@ -101,6 +107,8 @@ namespace FactoryProductManager.Services
                 {
                     cmd.ExecuteNonQuery();
                 }
+
+                EnsureProductsSchema(conn);
             }
         }
 
@@ -124,6 +132,60 @@ namespace FactoryProductManager.Services
             if (!ColumnExists(conn, "Factories", "brand"))
             {
                 using var cmd = new SQLiteCommand("ALTER TABLE Factories ADD COLUMN brand TEXT", conn);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        private void EnsureFactoryProductsSchema(SQLiteConnection conn)
+        {
+            if (!ColumnExists(conn, "FactoryProducts", "unit"))
+            {
+                using var cmd = new SQLiteCommand("ALTER TABLE FactoryProducts ADD COLUMN unit TEXT", conn);
+                cmd.ExecuteNonQuery();
+            }
+
+            if (!ColumnExists(conn, "FactoryProducts", "cost_price"))
+            {
+                using var cmd = new SQLiteCommand("ALTER TABLE FactoryProducts ADD COLUMN cost_price REAL", conn);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        private void EnsureProductsSchema(SQLiteConnection conn)
+        {
+            if (!ColumnExists(conn, "Products", "business_type"))
+            {
+                using var cmd = new SQLiteCommand("ALTER TABLE Products ADD COLUMN business_type TEXT", conn);
+                cmd.ExecuteNonQuery();
+            }
+
+            if (!ColumnExists(conn, "Products", "house_type"))
+            {
+                using var cmd = new SQLiteCommand("ALTER TABLE Products ADD COLUMN house_type TEXT", conn);
+                cmd.ExecuteNonQuery();
+            }
+
+            if (!ColumnExists(conn, "Products", "area"))
+            {
+                using var cmd = new SQLiteCommand("ALTER TABLE Products ADD COLUMN area REAL DEFAULT 0", conn);
+                cmd.ExecuteNonQuery();
+            }
+
+            if (!ColumnExists(conn, "Products", "cost_total_price"))
+            {
+                using var cmd = new SQLiteCommand("ALTER TABLE Products ADD COLUMN cost_total_price REAL DEFAULT 0", conn);
+                cmd.ExecuteNonQuery();
+            }
+
+            if (!ColumnExists(conn, "Products", "selling_total_price"))
+            {
+                using var cmd = new SQLiteCommand("ALTER TABLE Products ADD COLUMN selling_total_price REAL", conn);
+                cmd.ExecuteNonQuery();
+            }
+
+            if (!ColumnExists(conn, "Products", "floor_plan"))
+            {
+                using var cmd = new SQLiteCommand("ALTER TABLE Products ADD COLUMN floor_plan TEXT", conn);
                 cmd.ExecuteNonQuery();
             }
         }
@@ -226,6 +288,8 @@ namespace FactoryProductManager.Services
                                 Specification = reader.IsDBNull(reader.GetOrdinal("specification")) ? string.Empty : reader.GetString(reader.GetOrdinal("specification")),
                                 Texture = reader.IsDBNull(reader.GetOrdinal("texture")) ? string.Empty : reader.GetString(reader.GetOrdinal("texture")),
                                 Process = reader.IsDBNull(reader.GetOrdinal("process")) ? string.Empty : reader.GetString(reader.GetOrdinal("process")),
+                                Unit = reader.IsDBNull(reader.GetOrdinal("unit")) ? string.Empty : reader.GetString(reader.GetOrdinal("unit")),
+                                CostPrice = reader.IsDBNull(reader.GetOrdinal("cost_price")) ? null : Convert.ToDecimal(reader.GetValue(reader.GetOrdinal("cost_price"))),
                                 UsageScenario = reader.IsDBNull(reader.GetOrdinal("usage_scenario")) ? string.Empty : reader.GetString(reader.GetOrdinal("usage_scenario")),
                                 Certifications = reader.IsDBNull(reader.GetOrdinal("certifications")) ? string.Empty : reader.GetString(reader.GetOrdinal("certifications")),
                                 Category = reader.IsDBNull(reader.GetOrdinal("category")) ? string.Empty : reader.GetString(reader.GetOrdinal("category")),
@@ -258,13 +322,13 @@ namespace FactoryProductManager.Services
                 {
                     conn.Open();
                     string sql = @"
-                    SELECT id, product_code, product_name, specification, unit, total_cost, selling_price, is_active, created_at, updated_at
+                    SELECT id, business_type, product_code, house_type, area, cost_total_price, selling_total_price, floor_plan, is_active, created_at, updated_at
                     FROM Products";
 
                     bool hasKeyword = !string.IsNullOrWhiteSpace(keyword);
                     if (hasKeyword)
                     {
-                        sql += " WHERE product_code LIKE @keyword OR product_name LIKE @keyword OR specification LIKE @keyword OR unit LIKE @keyword";
+                        sql += " WHERE product_code LIKE @keyword OR business_type LIKE @keyword OR house_type LIKE @keyword";
                     }
 
                     sql += " ORDER BY product_code";
@@ -282,15 +346,16 @@ namespace FactoryProductManager.Services
                             products.Add(new Product
                             {
                                 Id = reader.GetInt32(0),
-                                ProductCode = reader.GetString(1),
-                                ProductName = reader.GetString(2),
-                                Specification = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
-                                Unit = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
-                                TotalCost = reader.IsDBNull(5) ? 0 : Convert.ToDecimal(reader.GetValue(5)),
-                                SellingPrice = reader.IsDBNull(6) ? null : Convert.ToDecimal(reader.GetValue(6)),
-                                IsActive = !reader.IsDBNull(7) && reader.GetInt32(7) == 1,
-                                CreatedAt = reader.IsDBNull(8) ? DateTime.Now : DateTime.Parse(reader.GetString(8)),
-                                UpdatedAt = reader.IsDBNull(9) ? DateTime.Now : DateTime.Parse(reader.GetString(9))
+                                BusinessType = reader.IsDBNull(1) ? string.Empty : reader.GetString(1),
+                                ProductCode = reader.GetString(2),
+                                HouseType = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
+                                Area = reader.IsDBNull(4) ? 0 : Convert.ToDecimal(reader.GetValue(4)),
+                                CostTotalPrice = reader.IsDBNull(5) ? 0 : Convert.ToDecimal(reader.GetValue(5)),
+                                SellingTotalPrice = reader.IsDBNull(6) ? null : Convert.ToDecimal(reader.GetValue(6)),
+                                FloorPlan = reader.IsDBNull(7) ? string.Empty : reader.GetString(7),
+                                IsActive = !reader.IsDBNull(8) && reader.GetInt32(8) == 1,
+                                CreatedAt = reader.IsDBNull(9) ? DateTime.Now : DateTime.Parse(reader.GetString(9)),
+                                UpdatedAt = reader.IsDBNull(10) ? DateTime.Now : DateTime.Parse(reader.GetString(10))
                             });
                         }
                     }
@@ -304,6 +369,58 @@ namespace FactoryProductManager.Services
                 LogService.Error($"查询产品列表失败: {ex.Message}", ex);
                 throw;
             }
+        }
+
+        public int GetNextProductCodeSequence(string codePrefix, int? excludeId = null)
+        {
+            if (string.IsNullOrWhiteSpace(codePrefix))
+            {
+                return 1;
+            }
+
+            int maxSequence = 0;
+            using var conn = GetConnection();
+            conn.Open();
+
+            string sql = @"
+                SELECT product_code
+                FROM Products
+                WHERE product_code LIKE @prefixPattern";
+
+            if (excludeId.HasValue)
+            {
+                sql += " AND id <> @excludeId";
+            }
+
+            using var cmd = new SQLiteCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@prefixPattern", codePrefix.Trim() + "-%");
+            if (excludeId.HasValue)
+            {
+                cmd.Parameters.AddWithValue("@excludeId", excludeId.Value);
+            }
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                if (reader.IsDBNull(0))
+                {
+                    continue;
+                }
+
+                string existingCode = reader.GetString(0);
+                if (string.IsNullOrWhiteSpace(existingCode) || !existingCode.StartsWith(codePrefix + "-", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                string[] parts = existingCode.Split('-');
+                if (parts.Length == 4 && int.TryParse(parts[3], NumberStyles.None, CultureInfo.InvariantCulture, out int sequence))
+                {
+                    maxSequence = Math.Max(maxSequence, sequence);
+                }
+            }
+
+            return maxSequence + 1;
         }
 
         public int AddFactory(Factory factory)
@@ -354,9 +471,9 @@ namespace FactoryProductManager.Services
                     conn.Open();
                     var cmd = new SQLiteCommand(@"
                     INSERT INTO FactoryProducts (factory_product_code, my_product_code, product_name, 
-                        brand, specification, texture, process, usage_scenario, certifications, 
+                        brand, specification, texture, process, unit, cost_price, usage_scenario, certifications, 
                         category, image_url, factory_id)
-                    VALUES (@factoryCode, @myCode, @name, @brand, @spec, @texture, @process, 
+                    VALUES (@factoryCode, @myCode, @name, @brand, @spec, @texture, @process, @unit, @costPrice,
                         @scenario, @cert, @category, @image, @factoryId);
                     SELECT last_insert_rowid();", conn);
                     cmd.Parameters.AddWithValue("@factoryCode", material.FactoryMaterialCode);
@@ -366,6 +483,8 @@ namespace FactoryProductManager.Services
                     cmd.Parameters.AddWithValue("@spec", ToDbValue(material.Specification));
                     cmd.Parameters.AddWithValue("@texture", ToDbValue(material.Texture));
                     cmd.Parameters.AddWithValue("@process", ToDbValue(material.Process));
+                    cmd.Parameters.AddWithValue("@unit", ToDbValue(material.Unit));
+                    cmd.Parameters.AddWithValue("@costPrice", material.CostPrice.HasValue ? (object)material.CostPrice.Value : DBNull.Value);
                     cmd.Parameters.AddWithValue("@scenario", ToDbValue(material.UsageScenario));
                     cmd.Parameters.AddWithValue("@cert", ToDbValue(material.Certifications));
                     cmd.Parameters.AddWithValue("@category", ToDbValue(material.Category));
@@ -391,15 +510,16 @@ namespace FactoryProductManager.Services
                 {
                     conn.Open();
                     var cmd = new SQLiteCommand(@"
-                    INSERT INTO Products (product_code, product_name, specification, unit, total_cost, selling_price, is_active, created_at, updated_at)
-                    VALUES (@code, @name, @specification, @unit, @totalCost, @sellingPrice, @isActive, @createdAt, @updatedAt);
+                    INSERT INTO Products (business_type, product_code, house_type, area, cost_total_price, selling_total_price, floor_plan, is_active, created_at, updated_at)
+                    VALUES (@businessType, @code, @houseType, @area, @costTotalPrice, @sellingTotalPrice, @floorPlan, @isActive, @createdAt, @updatedAt);
                     SELECT last_insert_rowid();", conn);
+                    cmd.Parameters.AddWithValue("@businessType", ToDbValue(product.BusinessType));
                     cmd.Parameters.AddWithValue("@code", product.ProductCode);
-                    cmd.Parameters.AddWithValue("@name", product.ProductName);
-                    cmd.Parameters.AddWithValue("@specification", ToDbValue(product.Specification));
-                    cmd.Parameters.AddWithValue("@unit", ToDbValue(product.Unit));
-                    cmd.Parameters.AddWithValue("@totalCost", product.TotalCost);
-                    cmd.Parameters.AddWithValue("@sellingPrice", product.SellingPrice.HasValue ? (object)product.SellingPrice.Value : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@houseType", ToDbValue(product.HouseType));
+                    cmd.Parameters.AddWithValue("@area", product.Area);
+                    cmd.Parameters.AddWithValue("@costTotalPrice", product.CostTotalPrice);
+                    cmd.Parameters.AddWithValue("@sellingTotalPrice", product.SellingTotalPrice.HasValue ? (object)product.SellingTotalPrice.Value : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@floorPlan", ToDbValue(product.FloorPlan));
                     cmd.Parameters.AddWithValue("@isActive", product.IsActive ? 1 : 0);
                     cmd.Parameters.AddWithValue("@createdAt", product.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
                     cmd.Parameters.AddWithValue("@updatedAt", product.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
@@ -588,6 +708,8 @@ namespace FactoryProductManager.Services
                         specification = @spec, 
                         texture = @texture, 
                         process = @process, 
+                        unit = @unit,
+                        cost_price = @costPrice,
                         usage_scenario = @scenario, 
                         certifications = @cert, 
                         category = @category, 
@@ -602,6 +724,8 @@ namespace FactoryProductManager.Services
                     cmd.Parameters.AddWithValue("@spec", ToDbValue(material.Specification));
                     cmd.Parameters.AddWithValue("@texture", ToDbValue(material.Texture));
                     cmd.Parameters.AddWithValue("@process", ToDbValue(material.Process));
+                    cmd.Parameters.AddWithValue("@unit", ToDbValue(material.Unit));
+                    cmd.Parameters.AddWithValue("@costPrice", material.CostPrice.HasValue ? (object)material.CostPrice.Value : DBNull.Value);
                     cmd.Parameters.AddWithValue("@scenario", ToDbValue(material.UsageScenario));
                     cmd.Parameters.AddWithValue("@cert", ToDbValue(material.Certifications));
                     cmd.Parameters.AddWithValue("@category", ToDbValue(material.Category));
@@ -630,21 +754,23 @@ namespace FactoryProductManager.Services
                     conn.Open();
                     var cmd = new SQLiteCommand(@"
                     UPDATE Products SET
+                        business_type = @businessType,
                         product_code = @code,
-                        product_name = @name,
-                        specification = @specification,
-                        unit = @unit,
-                        total_cost = @totalCost,
-                        selling_price = @sellingPrice,
+                        house_type = @houseType,
+                        area = @area,
+                        cost_total_price = @costTotalPrice,
+                        selling_total_price = @sellingTotalPrice,
+                        floor_plan = @floorPlan,
                         is_active = @isActive,
                         updated_at = @updatedAt
                     WHERE id = @id", conn);
+                    cmd.Parameters.AddWithValue("@businessType", ToDbValue(product.BusinessType));
                     cmd.Parameters.AddWithValue("@code", product.ProductCode);
-                    cmd.Parameters.AddWithValue("@name", product.ProductName);
-                    cmd.Parameters.AddWithValue("@specification", ToDbValue(product.Specification));
-                    cmd.Parameters.AddWithValue("@unit", ToDbValue(product.Unit));
-                    cmd.Parameters.AddWithValue("@totalCost", product.TotalCost);
-                    cmd.Parameters.AddWithValue("@sellingPrice", product.SellingPrice.HasValue ? (object)product.SellingPrice.Value : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@houseType", ToDbValue(product.HouseType));
+                    cmd.Parameters.AddWithValue("@area", product.Area);
+                    cmd.Parameters.AddWithValue("@costTotalPrice", product.CostTotalPrice);
+                    cmd.Parameters.AddWithValue("@sellingTotalPrice", product.SellingTotalPrice.HasValue ? (object)product.SellingTotalPrice.Value : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@floorPlan", ToDbValue(product.FloorPlan));
                     cmd.Parameters.AddWithValue("@isActive", product.IsActive ? 1 : 0);
                     cmd.Parameters.AddWithValue("@updatedAt", product.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
                     cmd.Parameters.AddWithValue("@id", product.Id);
