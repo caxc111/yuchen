@@ -7,6 +7,7 @@ namespace FactoryProductManager.Models
         public int Id { get; set; }
         public string BusinessType { get; set; } = string.Empty;
         public string ProductCode { get; set; } = string.Empty;
+        public string ProjectName { get; set; } = string.Empty;
         public string HouseType { get; set; } = string.Empty;
         public decimal Area { get; set; }
         public decimal CostTotalPrice { get; set; }

@@ -6,7 +6,9 @@
         xmlns:local="clr-namespace:FactoryProductManager.Views"
         xmlns:converters="clr-namespace:FactoryProductManager.Converters"
         mc:Ignorable="d"
-        Title="产品信息" Height="560" Width="620"
+        Title="产品信息" Width="620"
+        SizeToContent="Height"
+        MaxHeight="800"
         WindowStartupLocation="CenterOwner">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
@@ -77,12 +79,95 @@
                                         </Grid>
                                     </Border>
                                 </Grid>
-                                <Grid Grid.Column="1" Margin="10,10,0,0" Width="380" Height="35">
-                                            <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}">
+                                <Grid Grid.Column="1" Margin="0,10,0,0" Width="380">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="80"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="80"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="200"/>
+                                    </Grid.ColumnDefinitions>
+                                    <!-- 业态下拉框 -->
+                                    <Grid Grid.Column="0" Width="80">
+                                        <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}" Width="80">
+                                        </Border>
+                                        <ComboBox ItemsSource="{Binding BusinessTypeOptions}"
+                                                  SelectedItem="{Binding BusinessType}"
+                                                  Style="{StaticResource WarmInputComboBoxStyle}"
+                                                  Width="80"/>
+                                    </Grid>
+                                    <!-- 项目名称标签 -->
+                                    <Grid Grid.Column="2">
+                                        <Border Width="80" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
+                                            <Grid Width="80" Height="35">
+                                                <Border Width="80" Height="35" CornerRadius="10" Background="{StaticResource WarmSurfaceBrush}">
+                                                    <Border.Effect>
+                                                        <BlurEffect Radius="20"/>
+                                                    </Border.Effect>
+                                                </Border>
+                                                <TextBlock Text="项目代号" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Style="{StaticResource UnifiedDialogLabelTextStyle}"/>
+                                            </Grid>
+                                        </Border>
+                                    </Grid>
+                                    <!-- 项目名称输入框 -->
+                                    <Grid Grid.Column="4" Width="200">
+                                        <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}" Width="200">
+                                        </Border>
+                                        <TextBox Text="{Binding Product.ProjectName}" Style="{StaticResource WarmInputTextBoxStyle}" Width="200" VerticalContentAlignment="Center" Background="Transparent" BorderThickness="0"/>
+                                    </Grid>
+                                </Grid>
+                            </Grid>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid Grid.Column="0" Margin="0,10,0,0">
+                                    <Border Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
+                                        <Grid Width="110" Height="35">
+                                            <Border Width="110" Height="35" CornerRadius="10" Background="{StaticResource WarmSurfaceBrush}">
+                                                <Border.Effect>
+                                                    <BlurEffect Radius="20"/>
+                                                </Border.Effect>
+                                            </Border>
+                                            <TextBlock Text="部位" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Style="{StaticResource UnifiedDialogLabelTextStyle}"/>
+                                        </Grid>
                                     </Border>
-                                    <ComboBox ItemsSource="{Binding BusinessTypeOptions}"
-                                              SelectedItem="{Binding BusinessType}"
-                                              Style="{StaticResource WarmInputComboBoxStyle}"/>
+                                </Grid>
+                                <Grid Grid.Column="1" Margin="0,10,0,0" Width="380">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="260"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <!-- 部位摘要文本框 -->
+                                    <Border Grid.Column="0" Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}" VerticalAlignment="Top" Width="260" Padding="0" Height="35"/>
+                                    <TextBox Grid.Column="0" x:Name="PartsSummaryTextBox"
+                                             Style="{StaticResource WarmInputTextBoxStyle}"
+                                             IsReadOnly="True"
+                                             TextWrapping="Wrap"
+                                             VerticalAlignment="Top"
+                                             VerticalContentAlignment="Top"
+                                             MinHeight="0"
+                                             Height="35"
+                                             AcceptsReturn="True"/>
+                                    <!-- 编辑部位按钮 -->
+                                    <Border Grid.Column="2" Width="110" Height="35" Style="{StaticResource WarmActionBorderStyle}" Background="{StaticResource WarmSurfaceBrush}">
+                                        <Grid Width="110" Height="35" ClipToBounds="False">
+                                            <Border Width="110" Height="35" CornerRadius="10" ClipToBounds="False" Background="{StaticResource WarmSurfaceBrush}">
+                                                <Border.Effect>
+                                                    <BlurEffect Radius="20"/>
+                                                </Border.Effect>
+                                            </Border>
+                                            <Button Content="编辑部位"
+                                                    Margin="0"
+                                                    Width="110"
+                                                    Height="35"
+                                                    Click="EditPartsButton_Click"
+                                                    Style="{StaticResource UnifiedDialogActionButtonStyle}"/>
+                                        </Grid>
+                                    </Border>
                                 </Grid>
                             </Grid>
 
@@ -103,35 +188,12 @@
                                         </Grid>
                                     </Border>
                                 </Grid>
-                                <Grid Grid.Column="1" Margin="10,10,0,0" Width="380" Height="35">
-                                    <Grid>
-                                        <Grid Grid.Row="0"
-                                              Visibility="{Binding RequiresResidentialHouseType, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                            <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}">
-                                            </Border>
-                                            <Button Content="{Binding Product.HouseType, TargetNullValue=请选择户型, FallbackValue=请选择户型}"
-                                                    Click="HouseTypeButton_Click"
-                                                    Style="{StaticResource UnifiedDialogActionButtonStyle}"
-                                                    HorizontalContentAlignment="Left"
-                                                    Padding="12,0,12,0"/>
-                                        </Grid>
-
-                                        <Grid Grid.Row="0">
-                                            <Grid.Style>
-                                                <Style TargetType="Grid">
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding RequiresResidentialHouseType}" Value="True">
-                                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Grid.Style>
-                                            <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}">
-                                            </Border>
-                                            <TextBox Text="{Binding Product.HouseType}" Style="{StaticResource WarmInputTextBoxStyle}"/>
-                                        </Grid>
-                                    </Grid>
+                                <Grid Grid.Column="1" Margin="0,10,0,0" Width="380" Height="35">
+                                    <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}" Width="380">
+                                    </Border>
+                                    <TextBox Text="{Binding Product.HouseType, Mode=OneWay}"
+                                             Style="{StaticResource WarmInputTextBoxStyle}"
+                                             IsReadOnly="True"/>
                                 </Grid>
                             </Grid>
 
@@ -152,26 +214,27 @@
                                         </Grid>
                                     </Border>
                                 </Grid>
-                                <Grid Grid.Column="1" Margin="10,10,0,0" Width="380" Height="35">
+                                <Grid Grid.Column="1" Margin="0,10,0,0" Width="380" Height="35">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="250"/>
+                                        <ColumnDefinition Width="10"/>
                                         <ColumnDefinition Width="110"/>
                                     </Grid.ColumnDefinitions>
-                                    <Grid Grid.Column="0">
-                                        <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}">
+                                    <Grid Grid.Column="0" Width="250">
+                                        <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}" Width="250">
                                         </Border>
                                         <TextBox Text="{Binding Product.ProductCode}" Style="{StaticResource WarmInputTextBoxStyle}"/>
                                     </Grid>
-                                    <Border Grid.Column="1" Width="100" Height="35" Margin="10,0,0,0" Style="{StaticResource WarmActionBorderStyle}" Background="{StaticResource WarmSurfaceBrush}">
-                                        <Grid Width="100" Height="35" ClipToBounds="False">
-                                            <Border Width="100" Height="35" CornerRadius="10" ClipToBounds="False" Background="{StaticResource WarmSurfaceBrush}">
+                                    <Border Grid.Column="2" Width="110" Height="35" Style="{StaticResource WarmActionBorderStyle}" Background="{StaticResource WarmSurfaceBrush}">
+                                        <Grid Width="110" Height="35" ClipToBounds="False">
+                                            <Border Width="110" Height="35" CornerRadius="10" ClipToBounds="False" Background="{StaticResource WarmSurfaceBrush}">
                                                 <Border.Effect>
                                                     <BlurEffect Radius="20"/>
                                                 </Border.Effect>
                                             </Border>
                                             <Button Content="生成编码"
                                                     Margin="0"
-                                                    Width="100"
+                                                    Width="110"
                                                     Height="35"
                                                     Click="GenerateProductCodeButton_Click"
                                                     Style="{StaticResource UnifiedDialogActionButtonStyle}"/>
@@ -197,8 +260,8 @@
                                         </Grid>
                                     </Border>
                                 </Grid>
-                                <Grid Grid.Column="1" Margin="10,10,0,0" Width="380" Height="35">
-                                            <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}">
+                                <Grid Grid.Column="1" Margin="0,10,0,0" Width="380" Height="35">
+                                    <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}" Width="380">
                                     </Border>
                                     <TextBox Text="{Binding Product.Area, UpdateSourceTrigger=LostFocus}" Style="{StaticResource WarmInputTextBoxStyle}"/>
                                 </Grid>
@@ -221,8 +284,8 @@
                                         </Grid>
                                     </Border>
                                 </Grid>
-                                <Grid Grid.Column="1" Margin="10,10,0,0" Width="380" Height="35">
-                                            <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}">
+                                <Grid Grid.Column="1" Margin="0,10,0,0" Width="380" Height="35">
+                                    <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}" Width="380">
                                     </Border>
                                     <TextBox Text="{Binding Product.CostTotalPrice, UpdateSourceTrigger=LostFocus}" Style="{StaticResource WarmInputTextBoxStyle}"/>
                                 </Grid>
@@ -245,8 +308,8 @@
                                         </Grid>
                                     </Border>
                                 </Grid>
-                                <Grid Grid.Column="1" Margin="10,10,0,0" Width="380" Height="35">
-                                            <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}">
+                                <Grid Grid.Column="1" Margin="0,10,0,0" Width="380" Height="35">
+                                    <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}" Width="380">
                                     </Border>
                                     <TextBox Text="{Binding Product.SellingTotalPrice, TargetNullValue='', UpdateSourceTrigger=LostFocus}" Style="{StaticResource WarmInputTextBoxStyle}"/>
                                 </Grid>
@@ -269,8 +332,8 @@
                                         </Grid>
                                     </Border>
                                 </Grid>
-                                <Grid Grid.Column="1" Margin="10,10,0,0" Width="380" Height="35">
-                                            <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}">
+                                <Grid Grid.Column="1" Margin="0,10,0,0" Width="380" Height="35">
+                                    <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}" Width="380">
                                     </Border>
                                     <TextBox Text="{Binding Product.FloorPlan}" Style="{StaticResource WarmInputTextBoxStyle}"/>
                                 </Grid>
