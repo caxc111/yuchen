@@ -185,9 +185,9 @@ namespace FactoryProductManager.Views
                 throw new InvalidOperationException("请先选择或输入户型");
             }
 
-            // 新编码格式: {项目代号}-{业态码}{户型码}-{流水号}
-            // 例如: XN62-A1R1B-001
-            string codePrefix = $"{projectCodeValue}-{businessTypeCode}{houseTypeCode}";
+            // 新编码格式: {项目代号}-{业态码}-{户型码}-{流水号}
+            // 例如: XN62-A-1R1B-001
+            string codePrefix = $"{projectCodeValue}-{businessTypeCode}-{houseTypeCode}";
             int nextSequence = _dbService.GetNextProductCodeSequence(codePrefix, Product.Id > 0 ? Product.Id : null);
             return $"{codePrefix}-{nextSequence:D3}";
         }
