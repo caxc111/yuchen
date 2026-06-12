@@ -1,0 +1,118 @@
+<Window x:Class="FactoryProductManager.Views.PartManagementDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FactoryProductManager.Views"
+        mc:Ignorable="d"
+        Title="编辑部位" Height="620" Width="500"
+        WindowStartupLocation="CenterOwner"
+        Background="Transparent"
+        AllowsTransparency="True"
+        WindowStyle="None"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize">
+    <Window.Resources>
+        <Style x:Key="PartPanelBorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource WarmSurfaceBrush}"/>
+            <Setter Property="CornerRadius" Value="15"/>
+            <Setter Property="BorderBrush" Value="{StaticResource ActionBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style x:Key="UnifiedDialogActionButtonStyle" TargetType="Button" BasedOn="{StaticResource WarmActionButtonStyle}">
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="{StaticResource ActionBorderBrush}"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource WarmActionBrush}"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="{StaticResource WarmButtonBrush}"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="PartOptionComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Width" Value="70"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="5,0"/>
+            <Setter Property="Background" Value="{StaticResource WarmInputBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+        </Style>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+    </Window.Resources>
+    <Grid>
+        <Border Style="{StaticResource PartPanelBorderStyle}" Margin="10">
+            <Border.Effect>
+                <DropShadowEffect ShadowDepth="0" BlurRadius="20" Opacity="0.3" Color="Black"/>
+            </Border.Effect>
+            <Grid Margin="15">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Header -->
+                <TextBlock Grid.Row="0" Text="选择部位" FontSize="18" FontWeight="Bold"
+                           Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,10"/>
+
+                <!-- Standard Parts Selection -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel x:Name="PartNamePanel">
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- Custom Parts Section -->
+                <StackPanel Grid.Row="2" Margin="0,15,0,0">
+                    <TextBlock Text="自定义部位" FontSize="14" FontWeight="Bold"
+                               Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,8"/>
+                    <ItemsControl x:Name="CustomPartsPanel">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding PartName}" FontSize="14"
+                                               VerticalAlignment="Center" Foreground="{StaticResource PrimaryTextBrush}"/>
+                                    <ComboBox Grid.Column="1" Style="{StaticResource PartOptionComboBoxStyle}"
+                                              ItemsSource="{Binding Source={x:Static local:PartManagementDialog.QuantityOptions}}"
+                                              SelectedItem="{Binding Quantity, Mode=TwoWay}"
+                                              Margin="10,0"/>
+                                    <Button Grid.Column="2" Content="删除" Click="DeleteCustomPart_Click"
+                                            Style="{StaticResource UnifiedDialogActionButtonStyle}"
+                                            Width="60" Height="26" FontSize="11"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock x:Name="NoCustomPartsText" Text="暂无自定义部位" FontSize="12"
+                               Foreground="Gray" Margin="0,5,0,0"
+                               Visibility="{Binding CustomPartsEmpty, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                </StackPanel>
+
+                <!-- Action Buttons -->
+                <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                    <Button Content="添加自定义部位" Click="AddCustomPartButton_Click"
+                            Style="{StaticResource UnifiedDialogActionButtonStyle}"
+                            Width="120" Height="32" Margin="0,0,10,0"/>
+                    <Button Content="确定" Click="OkButton_Click"
+                            Style="{StaticResource UnifiedDialogActionButtonStyle}"
+                            Width="80" Height="32" Margin="0,0,10,0"/>
+                    <Button Content="取消" Click="CancelButton_Click"
+                            Style="{StaticResource UnifiedDialogActionButtonStyle}"
+                            Width="80" Height="32"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

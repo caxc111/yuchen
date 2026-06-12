@@ -205,6 +205,17 @@ namespace FactoryProductManager.Views
             }
         }
 
+        private void AddMaterialButton_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new MaterialDialogWindow();
+            dialog.Owner = this;
+            if (dialog.ShowDialog() == true)
+            {
+                var material = dialog.Material;
+                MessageBox.Show($"已添加物料: {material.MaterialName}", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
         private Border CreateDialogPanel(UIElement content, Thickness padding)
         {
             return new Border
