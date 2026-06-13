@@ -2,6 +2,7 @@ using FactoryProductManager.Models;
 using FactoryProductManager.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace FactoryProductManager.Views
 {
@@ -14,6 +15,25 @@ namespace FactoryProductManager.Views
             InitializeComponent();
             _viewModel = new MaterialViewModel();
             DataContext = _viewModel;
+        }
+
+        private void Thumbnail_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ClickCount == 1)
+            {
+                var border = sender as Border;
+                var material = border?.DataContext as FactoryMaterial;
+                if (material != null && !string.IsNullOrWhiteSpace(material.ImageUrl))
+                {
+                    var imageViewer = new ImageViewerWindow(
+                        material.ImageUrl,
+                        material.MaterialName,
+                        material.MyMaterialCode,
+                        material.Specification);
+                    imageViewer.Owner = Window.GetWindow(this);
+                    imageViewer.ShowDialog();
+                }
+            }
         }
 
         private void AddButton_Click(object sender, RoutedEventArgs e)

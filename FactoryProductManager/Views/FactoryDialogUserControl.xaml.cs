@@ -1,10 +1,12 @@
 using FactoryProductManager.Models;
+using FactoryProductManager.Services;
 using System.Windows.Controls;
 
 namespace FactoryProductManager.Views
 {
     public partial class FactoryDialogUserControl : UserControl
     {
+        private readonly DbService _dbService = new DbService();
         public Factory Factory { get; set; }
         public bool IsSaved { get; private set; }
         public string Title { get; set; }
@@ -15,6 +17,7 @@ namespace FactoryProductManager.Views
             if (factory == null)
             {
                 Factory = new Factory();
+                Factory.FactoryCode = _dbService.GetNextFactoryCode();
                 Title = "添加工厂";
             }
             else
@@ -23,8 +26,7 @@ namespace FactoryProductManager.Views
                 Title = "编辑工厂";
             }
             DataContext = this;
-            
-            // 使用统一的工厂类型数据源，确保与物料管理页面一致
+
             foreach (var type in ProductCategoryData.GetFactoryTypes())
             {
                 FactoryTypeComboBox.Items.Add(type);

@@ -5,6 +5,8 @@
     <Application.Resources>
         <ResourceDictionary>
             <converters:PageToBackgroundConverter x:Key="PageToBackgroundConverter"/>
+            <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+            <converters:NotNullToVisibilityConverter x:Key="NotNullToVisibilityConverter"/>
 
             <SolidColorBrush x:Key="WarmPanelBrush" Color="#FFF2EEE8" Opacity="0.84"/>
             <SolidColorBrush x:Key="WarmSurfaceBrush" Color="#FFF2EEE8" Opacity="0.9"/>
@@ -68,19 +70,24 @@
                 <Setter Property="Background" Value="Transparent"/>
                 <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}"/>
                 <Setter Property="BorderThickness" Value="{StaticResource UnifiedBorderThickness}"/>
-                <Setter Property="Padding" Value="8"/>
+                <Setter Property="Padding" Value="10,0"/>
                 <Setter Property="FontSize" Value="13"/>
                 <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="TextBox">
-                            <Border
+                            <Border x:Name="Border"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="{StaticResource UnifiedMediumCornerRadius}"
                                 SnapsToDevicePixels="True">
-                                <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"/>
+                                <ScrollViewer x:Name="PART_ContentHost"
+                                              Margin="{TemplateBinding Padding}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              VerticalScrollBarVisibility="Hidden"
+                                              HorizontalScrollBarVisibility="Hidden"/>
                             </Border>
                         </ControlTemplate>
                     </Setter.Value>
@@ -374,7 +381,7 @@
                                     BorderThickness="{TemplateBinding BorderThickness}"
                                     CornerRadius="4"
                                     SnapsToDevicePixels="True">
-                                <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"/>
+                                <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"/>
                             </Border>
                         </ControlTemplate>
                     </Setter.Value>

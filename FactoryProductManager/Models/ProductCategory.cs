@@ -90,8 +90,8 @@ namespace FactoryProductManager.Models
                         new ProductCategory { Name = "丙纶满铺毯" },
                         new ProductCategory { Name = "晴纶满铺毯" },
                         new ProductCategory { Name = "涤纶满铺毯" },
-                        new ProductCategory { Name = "羊毛/羊毛混纺满铺毯" },
-                        new ProductCategory { Name = "植物纤维（剑麻/黄麻）" }
+                        new ProductCategory { Name = "羊毛/羊毛混纺" },
+                        new ProductCategory { Name = "植物纤维" }
                     }
                 },
                 new ProductCategory
@@ -101,7 +101,7 @@ namespace FactoryProductManager.Models
                     {
                         new ProductCategory { Name = "亮面砖" },
                         new ProductCategory { Name = "哑光砖" },
-                        new ProductCategory { Name = "肌理砖/手工砖/仿古砖" },
+                        new ProductCategory { Name = "肌理/手工/仿古砖" },
                         new ProductCategory { Name = "马赛克/小砖" },
                         new ProductCategory { Name = "岩板/大规格瓷砖" }
                     }
@@ -239,7 +239,7 @@ namespace FactoryProductManager.Models
                     Name = "灯具开关",
                     Children = new List<ProductCategory>
                     {
-                        new ProductCategory { Name = "嵌入式灯具（筒灯/射灯/灯带）" },
+                        new ProductCategory { Name = "筒灯/射灯/灯带" },
                         new ProductCategory { Name = "吊灯" },
                         new ProductCategory { Name = "壁灯" },
                         new ProductCategory { Name = "开关插座面板" },

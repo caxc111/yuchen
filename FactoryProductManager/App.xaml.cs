@@ -133,8 +133,7 @@ namespace FactoryProductManager
         {
             if (e.ClickCount != 1 || sender is not UIElement element) return;
 
-            var pos = e.GetPosition(element);
-            var hit = element.InputHitTest(pos) as DependencyObject;
+            var hit = e.OriginalSource as DependencyObject;
             if (hit != null && IsInteractiveElement(hit)) return;
 
             var window = GetWindow(element);
@@ -143,7 +142,7 @@ namespace FactoryProductManager
 
         private static bool IsInteractiveElement(DependencyObject obj)
         {
-            for (int i = 0; i < 20 && obj != null; i++, obj = System.Windows.Media.VisualTreeHelper.GetParent(obj))
+            for (int i = 0; i < 30 && obj != null; i++, obj = VisualTreeHelper.GetParent(obj))
             {
                 if (obj is System.Windows.Controls.Primitives.ButtonBase) return true;
                 if (obj is System.Windows.Controls.ComboBox) return true;
@@ -153,13 +152,15 @@ namespace FactoryProductManager
                 if (obj is System.Windows.Controls.TextBox) return true;
                 if (obj is System.Windows.Controls.Primitives.TextBoxBase) return true;
                 if (obj is System.Windows.Controls.PasswordBox) return true;
+                if (obj is System.Windows.Controls.Primitives.ScrollBar) return true;
+                if (obj is System.Windows.Controls.Slider) return true;
             }
             return false;
         }
 
         private static Window? GetWindow(DependencyObject obj)
         {
-            for (int i = 0; i < 20 && obj != null; i++, obj = System.Windows.Media.VisualTreeHelper.GetParent(obj))
+            for (int i = 0; i < 30 && obj != null; i++, obj = VisualTreeHelper.GetParent(obj))
             {
                 if (obj is Window w) return w;
             }

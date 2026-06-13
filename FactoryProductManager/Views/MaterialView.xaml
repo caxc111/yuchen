@@ -47,7 +47,7 @@
                         <TextBox x:Name="SearchTextBox"
                                  Style="{StaticResource WarmSearchTextBoxStyle}"
                                  Foreground="{StaticResource PrimaryTextBrush}"
-                                 Padding="10"
+                                 Padding="10,0"
                                  FontSize="14"
                                  ToolTip="搜索物料..."/>
                     </Grid>
@@ -87,7 +87,16 @@
                         <DataGridTemplateColumn Header="缩略图" Width="90">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Border Width="44" Height="44" CornerRadius="10" BorderThickness="0" Background="{StaticResource WarmInputBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="True">
+                                    <Border Width="44" Height="44" CornerRadius="10" BorderThickness="0" Background="{StaticResource WarmInputBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="True" Cursor="Hand" MouseLeftButtonDown="Thumbnail_MouseLeftButtonDown">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Opacity" Value="0.8"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
                                         <Grid>
                                             <Image Source="{Binding ImageUrl}" Stretch="UniformToFill"/>
                                             <TextBlock Text="无图" FontSize="11" Foreground="{StaticResource HintTextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center">

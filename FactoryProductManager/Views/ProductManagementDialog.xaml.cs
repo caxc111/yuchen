@@ -149,19 +149,8 @@ namespace FactoryProductManager.Views
                 return null; // 返回null表示有中文，需要弹窗提示
             }
 
-            // 只取前两个字符（英文或数字）
-            string result = trimmed.Length >= 2 
-                ? trimmed.Substring(0, 2).ToUpperInvariant() 
-                : trimmed.ToUpperInvariant();
-
-            // 提取数字
-            var digits = new string(trimmed.Where(char.IsDigit).ToArray());
-            if (!string.IsNullOrEmpty(digits))
-            {
-                result += digits;
-            }
-
-            return string.IsNullOrEmpty(result) ? "XX" : result;
+            // 直接返回全部内容（只转大写）
+            return trimmed.ToUpperInvariant();
         }
 
         private string BuildProductCode()

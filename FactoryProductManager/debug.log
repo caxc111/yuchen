@@ -1,3 +1,62 @@
-[7316:22608:0528/002359.969:WARNING:t_skinfilemap.cpp(63)] SGRenderLog:CheckUpdate newMem.OpenMem Suc, szNewMem:Local\sgime_skin.v5.filemap.sogouime
-[7316:22608:0528/002359.973:WARNING:t_skinfilemap.cpp(65)] SGRenderLog:CheckUpdate finish: old version:1
-[7316:22608:0528/002359.973:WARNING:t_skinfilemap.cpp(67)] SGRenderLog:CheckUpdate finish: new version:5
+﻿2026-06-12 17:50:33.064 [INFO] 日志服务初始化完成，日志目录: C:\Users\34408\AppData\Local\YuchenInfoCenter\FactoryProductManager\Logs
+2026-06-12 17:50:33.069 [INFO] 日志保留天数: 30
+2026-06-12 17:50:33.070 [INFO] 调试日志开关: True
+2026-06-12 17:50:33.070 [INFO] 全局异常处理器注册完成
+2026-06-12 17:50:33.071 [INFO] ========================================
+2026-06-12 17:50:33.071 [INFO] 应用程序启动
+2026-06-12 17:50:33.071 [INFO] 会话标识: F23D3843
+2026-06-12 17:50:33.071 [INFO] 启动时间: 2026-06-12 17:50:33.071
+2026-06-12 17:50:33.071 [INFO] 操作系统: Microsoft Windows NT 10.0.26200.0
+2026-06-12 17:50:33.072 [INFO] CLR版本: 10.0.9
+2026-06-12 17:50:33.072 [INFO] 应用程序目录: D:\BaiduSyncdisk\宇程科技智能家居\编程\宇辰信息中心\FactoryProductManager\bin\Debug\net10.0-windows\
+2026-06-12 17:50:33.072 [INFO] 日志目录: C:\Users\34408\AppData\Local\YuchenInfoCenter\FactoryProductManager\Logs
+2026-06-12 17:50:33.072 [INFO] 日志文件: C:\Users\34408\AppData\Local\YuchenInfoCenter\FactoryProductManager\Logs\Log_20260612.txt
+2026-06-12 17:50:33.072 [INFO] 程序集版本: 1.0.0.0
+2026-06-12 17:50:33.073 [INFO] 进程ID: 20736
+2026-06-12 17:50:33.073 [INFO] 处理器数量: 32
+2026-06-12 17:50:33.080 [INFO] 系统内存: 已使用: 63 MB, 峰值: 63 MB
+2026-06-12 17:50:33.081 [INFO] ========================================
+2026-06-12 17:50:33.081 [INFO] 开始初始化应用程序组件...
+2026-06-12 17:50:33.081 [INFO] 创建主窗口...
+2026-06-12 17:50:33.201 [INFO] 创建ViewModel: FactoryViewModel
+2026-06-12 17:50:33.201 [INFO] 初始化FactoryViewModel...
+2026-06-12 17:50:33.241 [INFO] 开始加载工厂数据...
+2026-06-12 17:50:33.241 [DEBUG] 进入LoadFactories方法
+2026-06-12 17:50:33.242 [INFO] 开始查询工厂列表
+2026-06-12 17:50:33.243 [INFO] 数据库连接已初始化: Data Source=<redacted:FactoryProductDB.db>
+2026-06-12 17:50:33.295 [INFO] 查询工厂列表完成，共 17 条记录
+2026-06-12 17:50:33.296 [DEBUG] LoadFactories方法完成，加载了 17 条记录
+2026-06-12 17:50:33.296 [INFO] FactoryViewModel初始化完成，共加载 17 条工厂数据
+2026-06-12 17:50:33.297 [INFO] 显示主窗口...
+2026-06-12 17:50:33.523 [INFO] 应用程序启动完成
+2026-06-12 17:50:34.606 [INFO] 创建ViewModel: MaterialViewModel
+2026-06-12 17:50:34.607 [INFO] 初始化MaterialViewModel...
+2026-06-12 17:50:34.608 [INFO] 开始加载物料数据...
+2026-06-12 17:50:34.609 [DEBUG] 进入LoadMaterials方法
+2026-06-12 17:50:34.611 [INFO] 查询工厂物料列表完成，共 4 条记录
+2026-06-12 17:50:34.611 [DEBUG] LoadMaterials方法完成，加载了 4 条记录
+2026-06-12 17:50:34.611 [INFO] MaterialViewModel初始化完成，共加载 4 条物料数据
+2026-06-12 17:50:36.467 [DEBUG] [MaterialDialogUserControl] Material.FactoryName='佛山市南海区和邦盛世建材有限公司', Material.FactoryId=2
+2026-06-12 17:50:36.467 [DEBUG] [MaterialDialogUserControl] _savedFactoryName set to '佛山市南海区和邦盛世建材有限公司'
+2026-06-12 17:50:36.475 [DEBUG] [ResetFactoryComboBoxItems] factoryList.Count=0, Material.FactoryName BEFORE=佛山市南海区和邦盛世建材有限公司
+2026-06-12 17:50:36.508 [DEBUG] [SelectionChanged] UNSELECTED branch
+2026-06-12 17:50:36.510 [INFO] 开始查询工厂列表
+2026-06-12 17:50:36.510 [INFO] 数据库连接已初始化: Data Source=<redacted:FactoryProductDB.db>
+2026-06-12 17:50:36.511 [INFO] 查询工厂列表完成，共 17 条记录
+2026-06-12 17:50:36.512 [DEBUG] [InitializeFactories] _savedFactoryName='佛山市南海区和邦盛世建材有限公司', Material.FactoryName='', Material.FactoryId=, _allFactories.Count=17
+2026-06-12 17:50:36.512 [DEBUG] [InitializeFactories] savedFactory lookup: 佛山市南海区和邦盛世建材有限公司
+2026-06-12 17:50:36.513 [DEBUG] [SelectionChanged] UNSELECTED branch
+2026-06-12 17:50:36.513 [DEBUG] [SelectionChanged] SELECTED: DisplayName=佛山市南海区和邦盛世建材有限公司, Id=2
+2026-06-12 17:50:36.516 [DEBUG] [InitializeFactories] selected index=1, DisplayName=佛山市南海区和邦盛世建材有限公司
+2026-06-12 17:50:36.576 [DEBUG] [ResetFactoryComboBoxItems] factoryList.Count=6, Material.FactoryName BEFORE=佛山市南海区和邦盛世建材有限公司
+2026-06-12 17:50:36.577 [DEBUG] [SelectionChanged] UNSELECTED branch
+2026-06-12 17:50:36.578 [DEBUG] [SelectionChanged] UNSELECTED branch
+2026-06-12 17:50:46.907 [INFO] 开始更新物料: 实木皮饰面板
+2026-06-12 17:50:46.927 [INFO] 更新工厂物料成功: ID=2, 编码=28328572
+2026-06-12 17:50:46.929 [INFO] 物料更新成功，ID: 2
+2026-06-12 17:50:48.399 [INFO] 应用程序开始退出...
+2026-06-12 17:50:48.400 [INFO] ========================================
+2026-06-12 17:50:48.400 [INFO] 应用程序退出
+2026-06-12 17:50:48.401 [INFO] 会话标识: F23D3843
+2026-06-12 17:50:48.401 [INFO] 退出时间: 2026-06-12 17:50:48.401
+2026-06-12 17:50:48.401 [INFO] ========================================

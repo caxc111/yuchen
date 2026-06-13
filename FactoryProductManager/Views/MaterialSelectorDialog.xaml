@@ -67,14 +67,15 @@
                           AutoGenerateColumns="False"
                           IsReadOnly="True"
                           SelectionMode="Single"
-                          SelectionChanged="MaterialsDataGrid_SelectionChanged"
-                          GridLinesVisibility="Horizontal"
-                          HorizontalGridLinesBrush="{StaticResource InputBorderBrush}"
+                          GridLinesVisibility="None"
                           Background="Transparent"
                           BorderThickness="0"
                           RowBackground="{StaticResource WarmRowBrush}"
                           AlternatingRowBackground="{StaticResource WarmSurfaceBrush}"
-                          RowHeight="36"
+                          RowHeight="42"
+                          MinRowHeight="42"
+                          PreviewMouseLeftButtonDown="MaterialsDataGrid_PreviewMouseLeftButtonDown"
+                          MouseDoubleClick="MaterialsDataGrid_MouseDoubleClick"
                           HeadersVisibility="Column"
                           CanUserResizeRows="False"
                           SelectionUnit="FullRow">
@@ -84,31 +85,72 @@
                             <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
                             <Setter Property="FontWeight" Value="Bold"/>
                             <Setter Property="FontSize" Value="13"/>
-                            <Setter Property="Padding" Value="10,8"/>
+                            <Setter Property="Padding" Value="8,10"/>
+                            <Setter Property="Margin" Value="0"/>
                             <Setter Property="BorderThickness" Value="0"/>
                             <Setter Property="HorizontalContentAlignment" Value="Center"/>
                         </Style>
                     </DataGrid.ColumnHeaderStyle>
                     <DataGrid.CellStyle>
                         <Style TargetType="DataGridCell">
-                            <Setter Property="Padding" Value="10,0"/>
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Margin" Value="0"/>
                             <Setter Property="BorderThickness" Value="0"/>
-                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="VerticalAlignment" Value="Stretch"/>
+                            <Setter Property="VerticalContentAlignment" Value="Center"/>
+                            <Setter Property="Background" Value="Transparent"/>
                             <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
                             <Style.Triggers>
                                 <Trigger Property="IsSelected" Value="True">
-                                    <Setter Property="Background" Value="{StaticResource WarmActionBrush}"/>
-                                    <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="Foreground" Value="Black"/>
                                 </Trigger>
                             </Style.Triggers>
                         </Style>
                     </DataGrid.CellStyle>
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="{StaticResource WarmActionBrush}"/>
+                                </Trigger>
+                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                    <Setter Property="Background" Value="#E3F2FD"/>
+                                    <Setter Property="Foreground" Value="Black"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.RowStyle>
                     <DataGrid.Columns>
+                        <DataGridTemplateColumn Width="50">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Border x:Name="CheckBorder" Width="20" Height="20" CornerRadius="4"
+                                                BorderBrush="{StaticResource HintTextBrush}" BorderThickness="2"
+                                                Background="White"/>
+                                        <TextBlock x:Name="CheckMark" Text="✔" FontSize="14" FontWeight="Bold"
+                                                   Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Visibility="Collapsed"/>
+                                    </Grid>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                            <Setter TargetName="CheckBorder" Property="Background" Value="#2196F3"/>
+                                            <Setter TargetName="CheckBorder" Property="BorderBrush" Value="#2196F3"/>
+                                            <Setter TargetName="CheckMark" Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <DataGridTextColumn Header="物料名称" Binding="{Binding MaterialName}" Width="*">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="VerticalAlignment" Value="Center"/>
-                                    <Setter Property="Padding" Value="10,0"/>
+                                    <Setter Property="Margin" Value="8,0"/>
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
@@ -116,8 +158,8 @@
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="VerticalAlignment" Value="Center"/>
-                                    <Setter Property="Padding" Value="10,0"/>
-                                    <Setter Property="TextAlignment" Value="Center"/>
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Setter Property="Margin" Value="4,0"/>
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
@@ -125,54 +167,37 @@
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="VerticalAlignment" Value="Center"/>
-                                    <Setter Property="Padding" Value="10,0"/>
-                                    <Setter Property="TextAlignment" Value="Center"/>
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Setter Property="Margin" Value="4,0"/>
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
-                        <DataGridTextColumn Header="纹理" Binding="{Binding Texture}" Width="80">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="VerticalAlignment" Value="Center"/>
-                                    <Setter Property="Padding" Value="10,0"/>
-                                    <Setter Property="TextAlignment" Value="Center"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
-                        <DataGridTextColumn Header="工艺" Binding="{Binding Process}" Width="80">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="VerticalAlignment" Value="Center"/>
-                                    <Setter Property="Padding" Value="10,0"/>
-                                    <Setter Property="TextAlignment" Value="Center"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
-                        <DataGridTextColumn Header="单位" Binding="{Binding Unit}" Width="70">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="VerticalAlignment" Value="Center"/>
-                                    <Setter Property="Padding" Value="10,0"/>
-                                    <Setter Property="TextAlignment" Value="Center"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
+                        <DataGridTemplateColumn Header="缩略图" Width="80">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border x:Name="ImageBorder" Width="60" Height="34" CornerRadius="4"
+                                            Background="{StaticResource WarmPanelBrush}" Cursor="Hand"
+                                            BorderBrush="{StaticResource InputBorderBrush}" BorderThickness="1"
+                                            MouseLeftButtonUp="Thumbnail_Click" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Grid>
+                                            <TextBlock Text="无图片" FontSize="10" HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center" Foreground="{StaticResource HintTextBrush}"
+                                                       Visibility="{Binding ImageUrl, Converter={StaticResource NullToVisibilityConverter}}"/>
+                                            <Image Source="{Binding ImageUrl}" Stretch="UniformToFill"
+                                                   Visibility="{Binding ImageUrl, Converter={StaticResource NotNullToVisibilityConverter}}"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <DataGridTextColumn Header="单价" Binding="{Binding CostPrice, StringFormat={}{0:F2}}" Width="80">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="VerticalAlignment" Value="Center"/>
-                                    <Setter Property="Padding" Value="10,0"/>
-                                    <Setter Property="TextAlignment" Value="Right"/>
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    <Setter Property="Margin" Value="4,0,8,0"/>
                                     <Setter Property="Foreground" Value="#E67E22"/>
                                     <Setter Property="FontWeight" Value="Bold"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                        </DataGridTextColumn>
-                        <DataGridTextColumn Header="厂家" Binding="{Binding FactoryName}" Width="120">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="VerticalAlignment" Value="Center"/>
-                                    <Setter Property="Padding" Value="10,0"/>
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>

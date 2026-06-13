@@ -193,13 +193,13 @@ namespace MaterialImportTool.ViewModels
                     SubCategoryCodes.Add("BL-丙纶满铺毯");
                     SubCategoryCodes.Add("QL-晴纶满铺毯");
                     SubCategoryCodes.Add("DL-涤纶满铺毯");
-                    SubCategoryCodes.Add("YM-羊毛/羊毛混纺满铺毯");
+                    SubCategoryCodes.Add("YM-羊毛/羊毛混纺");
                     SubCategoryCodes.Add("ZQ-植物纤维(剑麻/黄麻)");
                     break;
                 case "CZ":
                     SubCategoryCodes.Add("LM-亮面砖");
                     SubCategoryCodes.Add("YG-亚光砖");
-                    SubCategoryCodes.Add("JL-肌理砖/手工砖/仿古砖");
+                    SubCategoryCodes.Add("JL-肌理/手工/仿古砖");
                     SubCategoryCodes.Add("MK-马赛克/小砖");
                     SubCategoryCodes.Add("YB-岩板/大规格瓷砖");
                     break;

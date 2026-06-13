@@ -46,7 +46,9 @@
                     <Grid Width="400" Height="35">
                         <TextBox x:Name="SearchTextBox"
                                  Style="{StaticResource WarmSearchTextBoxStyle}"
-                                 Foreground="{StaticResource PrimaryTextBrush}" Padding="10" FontSize="14"
+                                 Foreground="{StaticResource PrimaryTextBrush}" Padding="10,0" FontSize="14"
+                                 HorizontalAlignment="Stretch"
+                                 VerticalContentAlignment="Center"
                                  ToolTip="搜索工厂名称..."/>
                     </Grid>
                     <Border Width="80" Height="35" Margin="20,0,0,0" Style="{StaticResource WarmActionBorderStyle}">
@@ -80,7 +82,7 @@
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="工厂编码" Binding="{Binding FactoryCode}" Width="140" HeaderStyle="{StaticResource GlobalFirstDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
                         <DataGridTextColumn Header="工厂名称" Binding="{Binding FactoryName}" Width="*" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
-                        <DataGridTextColumn Header="品牌" Binding="{Binding Brand}" Width="140" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
+                        <DataGridTextColumn Header="品牌" Binding="{Binding Brand}" Width="200" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
                         <DataGridTextColumn Header="类型" Binding="{Binding FactoryType}" Width="100" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
                         <DataGridTemplateColumn Header="详细信息" Width="90">
                             <DataGridTemplateColumn.CellTemplate>

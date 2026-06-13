@@ -306,7 +306,7 @@ namespace FactoryProductManager.Views
             });
             buttonGrid.Children.Add(new TextBlock
             {
-                Text = "+ 添加物料",
+                Text = "添加物料",
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
                 FontSize = 12,
@@ -342,9 +342,10 @@ namespace FactoryProductManager.Views
                             Owner = this
                         };
 
-                        if (selectorDialog.ShowDialog() == true && selectorDialog.SelectedMaterial != null)
+                        if (selectorDialog.ShowDialog() == true && selectorDialog.SelectedMaterials.Count > 0)
                         {
-                            var selectedDbMaterial = selectorDialog.SelectedMaterial;
+                            foreach (var selectedDbMaterial in selectorDialog.SelectedMaterials)
+                            {
 
                             var newMaterial = new SelectedMaterial
                             {
@@ -361,6 +362,7 @@ namespace FactoryProductManager.Views
 
                             SelectedMaterials.Add(newMaterial);
                             UpdateEmptyText();
+                            }
                         }
                     }
                 }

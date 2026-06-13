@@ -47,7 +47,7 @@
                         <TextBox x:Name="SearchTextBox"
                                  Text="{Binding SearchKeyword, UpdateSourceTrigger=PropertyChanged}"
                                  Style="{StaticResource WarmSearchTextBoxStyle}"
-                                 Foreground="{StaticResource PrimaryTextBrush}" Padding="10" FontSize="14"
+                                 Foreground="{StaticResource PrimaryTextBrush}" Padding="10,0" FontSize="14"
                                  ToolTip="搜索产品..."/>
                     </Grid>
                     <Border Width="80" Height="35" Margin="20,0,0,0" Style="{StaticResource WarmActionBorderStyle}">

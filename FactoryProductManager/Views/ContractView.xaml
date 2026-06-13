@@ -24,7 +24,7 @@
                 <StackPanel Orientation="Horizontal">
                     <Grid Width="220" Height="35">
                         <TextBox Width="220" Style="{StaticResource WarmSearchTextBoxStyle}"
-                                 Padding="10" FontSize="14" Foreground="{StaticResource PrimaryTextBrush}"
+                                 Padding="10,0" FontSize="14" Foreground="{StaticResource PrimaryTextBrush}"
                                  materialDesign:HintAssist.Hint="搜索合同号..."/>
                     </Grid>
                     <Border Width="80" Height="35" Margin="20,0,0,0" Style="{StaticResource WarmActionBorderStyle}">
