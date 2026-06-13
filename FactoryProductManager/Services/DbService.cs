@@ -21,7 +21,7 @@ namespace FactoryProductManager.Services
                 string projectDirectory = Path.GetFullPath(Path.Combine(appDirectory, "..", "..", "..", ".."));
                 databasePath = Path.Combine(projectDirectory, "FactoryProductManager", "FactoryProductDB.db");
             }
-            _connectionString = $"Data Source={databasePath};Version=3;";
+            _connectionString = $"Data Source={databasePath};Version=3;BusyTimeout=3000;";
             CreateTables();
         }
 
@@ -345,6 +345,63 @@ namespace FactoryProductManager.Services
             catch (Exception ex)
             {
                 LogService.Error($"查询工厂物料列表失败: {ex.Message}", ex);
+                throw;
+            }
+        }
+
+        public List<FactoryMaterial> GetFactoryMaterialsByType(string materialType)
+        {
+            var materials = new List<FactoryMaterial>();
+            try
+            {
+                using (var conn = GetConnection())
+                {
+                    conn.Open();
+                    var cmd = new SQLiteCommand(@"
+                    SELECT p.*, f.factory_name 
+                    FROM FactoryProducts p 
+                    LEFT JOIN Factories f ON p.factory_id = f.id 
+                    WHERE p.product_name = @materialType
+                       OR p.category LIKE @materialTypePattern
+                       OR p.texture = @materialType
+                    ORDER BY p.factory_product_code", conn);
+                    cmd.Parameters.AddWithValue("@materialType", materialType);
+                    cmd.Parameters.AddWithValue("@materialTypePattern", $"%{materialType}%");
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            materials.Add(new FactoryMaterial
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("id")),
+                                FactoryMaterialCode = reader.GetString(reader.GetOrdinal("factory_product_code")),
+                                MyMaterialCode = reader.IsDBNull(reader.GetOrdinal("my_product_code")) ? string.Empty : reader.GetString(reader.GetOrdinal("my_product_code")),
+                                MaterialName = reader.GetString(reader.GetOrdinal("product_name")),
+                                Brand = reader.IsDBNull(reader.GetOrdinal("brand")) ? string.Empty : reader.GetString(reader.GetOrdinal("brand")),
+                                Specification = reader.IsDBNull(reader.GetOrdinal("specification")) ? string.Empty : reader.GetString(reader.GetOrdinal("specification")),
+                                Texture = reader.IsDBNull(reader.GetOrdinal("texture")) ? string.Empty : reader.GetString(reader.GetOrdinal("texture")),
+                                Process = reader.IsDBNull(reader.GetOrdinal("process")) ? string.Empty : reader.GetString(reader.GetOrdinal("process")),
+                                Unit = reader.IsDBNull(reader.GetOrdinal("unit")) ? string.Empty : reader.GetString(reader.GetOrdinal("unit")),
+                                CostPrice = reader.IsDBNull(reader.GetOrdinal("cost_price")) ? null : Convert.ToDecimal(reader.GetValue(reader.GetOrdinal("cost_price"))),
+                                UsageScenario = reader.IsDBNull(reader.GetOrdinal("usage_scenario")) ? string.Empty : reader.GetString(reader.GetOrdinal("usage_scenario")),
+                                Certifications = reader.IsDBNull(reader.GetOrdinal("certifications")) ? string.Empty : reader.GetString(reader.GetOrdinal("certifications")),
+                                Category = reader.IsDBNull(reader.GetOrdinal("category")) ? string.Empty : reader.GetString(reader.GetOrdinal("category")),
+                                ImageUrl = reader.IsDBNull(reader.GetOrdinal("image_url")) ? string.Empty : reader.GetString(reader.GetOrdinal("image_url")),
+                                FactoryId = reader.IsDBNull(reader.GetOrdinal("factory_id")) ? null : reader.GetInt32(reader.GetOrdinal("factory_id")),
+                                FactoryName = reader.IsDBNull(reader.GetOrdinal("factory_name")) ? string.Empty : reader.GetString(reader.GetOrdinal("factory_name")),
+                                CreatedAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? DateTime.Now : DateTime.Parse(reader.GetString(reader.GetOrdinal("created_at"))),
+                                UpdatedAt = reader.IsDBNull(reader.GetOrdinal("updated_at")) ? DateTime.Now : DateTime.Parse(reader.GetString(reader.GetOrdinal("updated_at")))
+                            });
+                        }
+                    }
+                }
+
+                LogService.Info($"按类型查询工厂物料完成，类型={materialType}，共 {materials.Count} 条记录");
+                return materials;
+            }
+            catch (Exception ex)
+            {
+                LogService.Error($"按类型查询工厂物料列表失败: {ex.Message}", ex);
                 throw;
             }
         }

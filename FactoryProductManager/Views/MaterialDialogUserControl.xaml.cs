@@ -27,11 +27,14 @@ namespace FactoryProductManager.Views
         private readonly Brush _factoryWarningBorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F2B366"));
         private List<Factory> _allFactories = new();
         private Factory? _selectedFactory;
+        private string? _savedFactoryName;
+        private string? _savedBrandName;
 
         private List<ProductCategory> _allCategories = new();
         private ProductCategory? _selectedLevel1;
         private ProductCategory? _selectedLevel2;
         private ProductCategory? _selectedLevel3;
+        private bool _suppressBrandReset;
 
         public FactoryMaterial Material { get; }
         public List<string> UnitOptions { get; } = PresetUnits.ToList();
@@ -58,23 +61,33 @@ namespace FactoryProductManager.Views
 
             DataContext = this;
 
-            InitializeFactories();
-            InitializeCategories();
+            LogService.Debug($"[MaterialDialogUserControl] Material.FactoryName='{Material.FactoryName}', Material.FactoryId={Material.FactoryId}");
+
+            if (!string.IsNullOrWhiteSpace(Material.FactoryName))
+            {
+                _savedFactoryName = Material.FactoryName;
+                LogService.Debug($"[MaterialDialogUserControl] _savedFactoryName set to '{_savedFactoryName}'");
+            }
 
             if (!string.IsNullOrWhiteSpace(Material.Brand))
             {
-                SelectBrand(Material.Brand);
+                _savedBrandName = Material.Brand;
+                LogService.Debug($"[MaterialDialogUserControl] _savedBrandName set to '{_savedBrandName}'");
             }
+
+            InitializeCategories();
 
             if (!string.IsNullOrEmpty(Material.ImageUrl) && File.Exists(Material.ImageUrl))
             {
                 SetPreviewImage(Material.ImageUrl);
             }
 
-            if (!string.IsNullOrEmpty(Material.Category))
+            if (!string.IsNullOrWhiteSpace(Material.Category))
             {
                 SetCurrentCategory(Material.Category);
             }
+
+            InitializeFactories();
 
             if (UnitComboBox != null)
             {
@@ -86,8 +99,51 @@ namespace FactoryProductManager.Views
 
         private void InitializeFactories()
         {
-            _allFactories = _dbService.GetFactories();
-            ResetFactoryComboBoxItems(Enumerable.Empty<Factory>());
+            _suppressBrandReset = true;
+            try
+            {
+                _allFactories = _dbService.GetFactories();
+
+                LogService.Debug($"[InitializeFactories] _savedFactoryName='{_savedFactoryName}', Material.FactoryName='{Material.FactoryName}', Material.FactoryId={Material.FactoryId}, _allFactories.Count={_allFactories.Count}");
+
+                if (!string.IsNullOrWhiteSpace(_savedFactoryName))
+                {
+                    var savedFactory = _allFactories.FirstOrDefault(f =>
+                        string.Equals(f.FactoryName, _savedFactoryName, StringComparison.Ordinal));
+                    LogService.Debug($"[InitializeFactories] savedFactory lookup: {savedFactory?.FactoryName ?? "(null)"}");
+
+                    if (savedFactory != null)
+                    {
+                        var factoryOptions = _allFactories
+                            .Select(factory => new FactoryOption
+                            {
+                                Id = factory.Id,
+                                FactoryCode = factory.FactoryCode,
+                                DisplayName = factory.FactoryName,
+                                IsSelectable = true
+                            })
+                            .ToList();
+
+                        FactoryNameComboBox.ItemsSource = factoryOptions;
+                        int selectIndex = factoryOptions.FindIndex(o => o.Id == savedFactory.Id);
+                        FactoryNameComboBox.SelectedIndex = selectIndex >= 0 ? selectIndex : 0;
+                        _selectedFactory = savedFactory;
+                        LogService.Debug($"[InitializeFactories] selected index={selectIndex}, DisplayName={savedFactory.FactoryName}");
+                        FactoryNameBorder.BorderBrush = _factoryDefaultBorderBrush;
+
+                        LogService.Debug($"[InitializeFactories] BEFORE ResetBrandComboBoxItems: _savedBrandName='{_savedBrandName}', Material.Brand='{Material.Brand}'");
+                        ResetBrandComboBoxItems(new[] { savedFactory });
+                        LogService.Debug($"[InitializeFactories] AFTER ResetBrandComboBoxItems: Material.Brand='{Material.Brand}', BrandComboBox.SelectedItem='{BrandComboBox.SelectedItem?.ToString()}'");
+                        return;
+                    }
+                }
+
+                ResetFactoryComboBoxItems(Enumerable.Empty<Factory>());
+            }
+            finally
+            {
+                _suppressBrandReset = false;
+            }
         }
 
         private void InitializeCategories()
@@ -103,6 +159,9 @@ namespace FactoryProductManager.Views
         private void ResetFactoryComboBoxItems(IEnumerable<Factory> factories)
         {
             var factoryList = factories.ToList();
+            LogService.Debug($"[ResetFactoryComboBoxItems] factoryList.Count={factoryList.Count}, Material.FactoryName BEFORE={Material.FactoryName}");
+            System.Diagnostics.Debug.WriteLine($"[ResetFactoryComboBoxItems] stack trace:\n{new System.Diagnostics.StackTrace(true)}");
+
             var factoryOptions = new List<FactoryOption>
             {
                 new FactoryOption
@@ -140,32 +199,57 @@ namespace FactoryProductManager.Views
                 .OrderBy(brand => brand, StringComparer.Ordinal)
                 .ToList();
 
+            string brandToSelect = _savedBrandName ?? Material.Brand ?? string.Empty;
+            LogService.Debug($"[ResetBrandComboBoxItems] brandOptions count={brandOptions.Count}, options=[{string.Join(", ", brandOptions)}]");
+            LogService.Debug($"[ResetBrandComboBoxItems] _savedBrandName='{_savedBrandName}', Material.Brand='{Material.Brand}', brandToSelect='{brandToSelect}'");
+
             BrandComboBox.ItemsSource = new[]
             {
                 brandOptions.Count == 0 ? BrandEmptyPlaceholder : BrandPlaceholder
             }.Concat(brandOptions).ToList();
-            BrandComboBox.SelectedIndex = 0;
-            Material.Brand = string.Empty;
+
+            int targetIndex = FindItemIndex(BrandComboBox, brandToSelect);
+            LogService.Debug($"[ResetBrandComboBoxItems] targetIndex={targetIndex}");
+
+            if (targetIndex > 0)
+            {
+                Material.Brand = brandToSelect;
+                LogService.Debug($"[ResetBrandComboBoxItems] set Material.Brand='{Material.Brand}'");
+            }
+            else if (targetIndex == 0 && !string.IsNullOrEmpty(brandToSelect))
+            {
+                LogService.Debug($"[ResetBrandComboBoxItems] brand not found in options ('{brandToSelect}'), do NOT clear Material.Brand");
+            }
+            BrandComboBox.SelectedIndex = targetIndex >= 0 ? targetIndex : 0;
         }
 
-        private void UpdateFactoryOptionsByLevel1()
+        private void UpdateFactoryOptionsByLevel1(bool skipReset = false)
         {
-            if (_selectedLevel1 == null)
+            string? factoryNameToSelect = _savedFactoryName ?? Material.FactoryName;
+
+            if (!skipReset)
             {
-                ResetFactoryComboBoxItems(Enumerable.Empty<Factory>());
-                return;
+                if (_selectedLevel1 == null)
+                {
+                    ResetFactoryComboBoxItems(Enumerable.Empty<Factory>());
+                    return;
+                }
+
+                var filteredFactories = _allFactories
+                    .Where(factory => string.Equals(factory.FactoryType, _selectedLevel1.Name, StringComparison.Ordinal))
+                    .OrderBy(factory => factory.FactoryCode)
+                    .ToList();
+
+                ResetFactoryComboBoxItems(filteredFactories);
+
+                if (!string.IsNullOrWhiteSpace(factoryNameToSelect))
+                {
+                    SelectFactoryByName(factoryNameToSelect);
+                }
             }
-
-            var filteredFactories = _allFactories
-                .Where(factory => string.Equals(factory.FactoryType, _selectedLevel1.Name, StringComparison.Ordinal))
-                .OrderBy(factory => factory.FactoryCode)
-                .ToList();
-
-            ResetFactoryComboBoxItems(filteredFactories);
-
-            if (!string.IsNullOrWhiteSpace(Material.FactoryName))
+            else if (!string.IsNullOrWhiteSpace(factoryNameToSelect) && _selectedFactory != null)
             {
-                SelectFactoryByName(Material.FactoryName);
+                SelectFactoryByName(factoryNameToSelect);
             }
         }
 
@@ -187,15 +271,33 @@ namespace FactoryProductManager.Views
 
         private void SelectBrand(string brand)
         {
+            LogService.Debug($"[SelectBrand] CALLED with brand='{brand}', BrandComboBox.Items.Count={BrandComboBox.Items?.Count ?? -1}");
+            if (BrandComboBox.Items != null)
+            {
+                for (int i = 0; i < BrandComboBox.Items.Count; i++)
+                {
+                    LogService.Debug($"[SelectBrand]   Items[{i}]='{BrandComboBox.Items[i]?.ToString()}'");
+                }
+            }
+
             if (string.IsNullOrWhiteSpace(brand) || BrandComboBox.Items == null)
             {
+                LogService.Debug($"[SelectBrand] SKIP - empty brand or no items");
                 return;
             }
 
             int index = FindItemIndex(BrandComboBox, brand);
+            LogService.Debug($"[SelectBrand] FindItemIndex result={index}");
             if (index > 0)
             {
                 BrandComboBox.SelectedIndex = index;
+                Material.Brand = brand;
+                _savedBrandName = null;
+                LogService.Debug($"[SelectBrand] SET SelectedIndex={index}, Material.Brand='{Material.Brand}', _savedBrandName=null");
+            }
+            else
+            {
+                LogService.Debug($"[SelectBrand] NOT FOUND in combo, doing nothing");
             }
         }
 
@@ -285,6 +387,7 @@ namespace FactoryProductManager.Views
         {
             if (FactoryNameComboBox.SelectedItem is not FactoryOption option || !option.IsSelectable || option.Id == null)
             {
+                LogService.Debug($"[SelectionChanged] UNSELECTED branch");
                 _selectedFactory = null;
                 Material.FactoryId = null;
                 Material.FactoryName = string.Empty;
@@ -292,28 +395,37 @@ namespace FactoryProductManager.Views
                 return;
             }
 
+            LogService.Debug($"[SelectionChanged] SELECTED: DisplayName={option.DisplayName}, Id={option.Id}");
             _selectedFactory = _allFactories.FirstOrDefault(factory => factory.Id == option.Id);
             Material.FactoryId = option.Id;
             Material.FactoryName = option.DisplayName;
 
             if (_selectedFactory != null)
             {
+                LogService.Debug($"[SelectionChanged] SELECTED branch - calling ResetBrandComboBoxItems, _savedBrandName='{_savedBrandName}', Material.Brand='{Material.Brand}'");
                 ResetBrandComboBoxItems(new[] { _selectedFactory });
-                SelectBrand(Material.Brand);
+                LogService.Debug($"[SelectionChanged] AFTER ResetBrandComboBoxItems: Material.Brand='{Material.Brand}', SelectedItem='{BrandComboBox.SelectedItem?.ToString()}'");
             }
         }
 
         private void BrandComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            LogService.Debug($"[BrandComboBox_SelectionChanged] SelectedItem='{BrandComboBox.SelectedItem?.ToString()}', SelectedIndex={BrandComboBox.SelectedIndex}");
             if (BrandComboBox.SelectedItem is not string selectedBrand ||
                 selectedBrand == BrandPlaceholder ||
                 selectedBrand == BrandEmptyPlaceholder)
             {
                 Material.Brand = string.Empty;
+                if (!_suppressBrandReset)
+                    _savedBrandName = null;
+                LogService.Debug($"[BrandComboBox_SelectionChanged] Set to empty/placeholder, Material.Brand='{Material.Brand}'");
                 return;
             }
 
             Material.Brand = selectedBrand;
+            if (!_suppressBrandReset)
+                _savedBrandName = null;
+            LogService.Debug($"[BrandComboBox_SelectionChanged] Set Material.Brand='{Material.Brand}'");
         }
 
         private void UnitComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -371,7 +483,7 @@ namespace FactoryProductManager.Views
             CategoryLevel1.SelectedIndex = FindItemIndex(CategoryLevel1, parts[0]);
             ResetComboBoxItems(CategoryLevel2, _selectedLevel1?.Children.Select(child => child.Name) ?? Enumerable.Empty<string>());
             CategoryLevel2.SelectedIndex = FindItemIndex(CategoryLevel2, parts[1]);
-            UpdateFactoryOptionsByLevel1();
+            UpdateFactoryOptionsByLevel1(skipReset: !string.IsNullOrWhiteSpace(_savedFactoryName) || !string.IsNullOrWhiteSpace(Material.FactoryName));
 
             bool hasLevel3 = _selectedLevel2?.Children != null && _selectedLevel2.Children.Count > 0;
             Level3Border.Visibility = hasLevel3 ? Visibility.Visible : Visibility.Collapsed;
@@ -411,7 +523,7 @@ namespace FactoryProductManager.Views
                 }
             }
 
-            return 0;
+            return -1;
         }
 
         private void SetMaterialNameFromCategory(string materialName)

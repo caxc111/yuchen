@@ -21,6 +21,18 @@ namespace FactoryProductManager.Services
 
         public static string LogDirectory => _logDirectory;
         public static string CurrentLogFilePath => Path.Combine(LogDirectory, $"Log_{DateTime.Now:yyyyMMdd}.txt");
+        public static string RootDebugLogPath
+        {
+            get
+            {
+                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                for (int i = 0; i < 5 && !string.IsNullOrEmpty(baseDir); i++)
+                {
+                    baseDir = Path.GetDirectoryName(baseDir) ?? string.Empty;
+                }
+                return Path.Combine(baseDir, "debug.log");
+            }
+        }
         public static string CurrentSessionId => SessionId;
         public static bool DebugEnabled => _debugEnabled;
 
@@ -43,6 +55,7 @@ namespace FactoryProductManager.Services
                     Directory.CreateDirectory(_logDirectory);
                     _debugEnabled = ResolveDebugEnabled();
 
+                    ClearRootDebugLog();
                     CleanupOldLogs();
 
                     _isInitialized = true;
@@ -223,6 +236,19 @@ namespace FactoryProductManager.Services
                 && !value.Equals("off", StringComparison.OrdinalIgnoreCase);
         }
 
+        private static void ClearRootDebugLog()
+        {
+            try
+            {
+                string path = RootDebugLogPath;
+                if (File.Exists(path))
+                    File.Delete(path);
+            }
+            catch
+            {
+            }
+        }
+
         private static void CleanupOldLogs()
         {
             try
@@ -342,6 +368,16 @@ namespace FactoryProductManager.Services
             string logEntry =
                 $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} [{level}] [Session:{SessionId}] [PID:{Environment.ProcessId}] [TID:{Environment.CurrentManagedThreadId}] {message}{Environment.NewLine}";
             File.AppendAllText(CurrentLogFilePath, logEntry, Encoding.UTF8);
+
+            string rootEntry =
+                $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} [{level}] {message}{Environment.NewLine}";
+            try
+            {
+                File.AppendAllText(RootDebugLogPath, rootEntry, Encoding.UTF8);
+            }
+            catch
+            {
+            }
         }
     }
 }

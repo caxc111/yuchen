@@ -1,42 +1,74 @@
-using System.Windows;
-using System.Windows.Input;
 using FactoryProductManager.Models;
+using System;
+using System.Windows;
 
 namespace FactoryProductManager.Views
 {
     public partial class MaterialDialogWindow : Window
     {
-        private readonly MaterialDialogUserControl _userControl;
+        private MaterialDialogUserControl? _materialDialogControl;
 
-        public FactoryMaterial Material => _userControl.Material;
-        public bool IsSaved => _userControl.IsSaved;
+        public FactoryMaterial Material => _materialDialogControl?.Material ?? new FactoryMaterial();
+        public bool IsSaved => _materialDialogControl?.IsSaved ?? false;
 
         public MaterialDialogWindow(FactoryMaterial? material = null)
         {
             InitializeComponent();
-            _userControl = new MaterialDialogUserControl(material);
-            DialogContent.Content = _userControl;
-            Title = _userControl.Title;
 
-            _userControl.OkClicked += (_, _) =>
-            {
-                DialogResult = true;
-                Close();
-            };
+            _materialDialogControl = new MaterialDialogUserControl(material);
+            _materialDialogControl.OkClicked += MaterialDialogControl_OkClicked;
+            _materialDialogControl.CancelClicked += MaterialDialogControl_CancelClicked;
 
-            _userControl.CancelClicked += (_, _) =>
-            {
-                DialogResult = false;
-                Close();
-            };
+            DialogContent.Content = _materialDialogControl;
+            Title = _materialDialogControl.Title;
+
+            StateChanged += MaterialDialogWindow_StateChanged;
         }
 
-        private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void MaterialDialogWindow_StateChanged(object? sender, System.EventArgs e)
         {
-            if (e.ButtonState == MouseButtonState.Pressed)
+            if (WindowState == WindowState.Maximized)
             {
-                DragMove();
+                MaximizeButton.ToolTip = "还原";
             }
+            else
+            {
+                MaximizeButton.ToolTip = "最大化";
+            }
+        }
+
+        private void MaterialDialogControl_OkClicked(object? sender, EventArgs e)
+        {
+            DialogResult = true;
+            Close();
+        }
+
+        private void MaterialDialogControl_CancelClicked(object? sender, EventArgs e)
+        {
+            DialogResult = false;
+            Close();
+        }
+
+        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState.Minimized;
+        }
+
+        private void MaximizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (WindowState == WindowState.Maximized)
+            {
+                WindowState = WindowState.Normal;
+            }
+            else
+            {
+                WindowState = WindowState.Maximized;
+            }
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
         }
     }
 }

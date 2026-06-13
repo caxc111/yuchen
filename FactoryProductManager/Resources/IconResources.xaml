@@ -25,5 +25,11 @@
     <materialDesign:PackIcon x:Key="IconError" Kind="AlertCircle" Width="16" Height="16" />
     <materialDesign:PackIcon x:Key="IconWarning" Kind="AlertTriangle" Width="16" Height="16" />
     <materialDesign:PackIcon x:Key="IconInfo" Kind="Information" Width="16" Height="16" />
-    
+
+    <!-- 窗口按钮图标 -->
+    <materialDesign:PackIcon x:Key="IconMinimize" Kind="WindowMinimize" Width="14" Height="14" />
+    <materialDesign:PackIcon x:Key="IconMaximize" Kind="WindowMaximize" Width="14" Height="14" />
+    <materialDesign:PackIcon x:Key="IconRestore" Kind="WindowRestore" Width="14" Height="14" />
+    <materialDesign:PackIcon x:Key="IconClose" Kind="Close" Width="14" Height="14" />
+
 </ResourceDictionary>

@@ -3,13 +3,55 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FactoryProductManager.Views"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="物料信息" Height="720" Width="680"
+        Title="物料管理" Height="700" Width="700"
         WindowStartupLocation="CenterOwner"
         Background="Transparent"
         AllowsTransparency="True"
-        WindowStyle="None">
-    <Grid MouseLeftButtonDown="Window_MouseLeftButtonDown">
-        <ContentControl x:Name="DialogContent"/>
-    </Grid>
+        WindowStyle="None"
+        ShowInTaskbar="False"
+        ResizeMode="CanResize">
+    <Border Background="{StaticResource WarmSurfaceBrush}"
+            CornerRadius="12"
+            BorderBrush="{StaticResource ActionBorderBrush}"
+            BorderThickness="1"
+            Margin="8">
+        <Border.Effect>
+            <DropShadowEffect ShadowDepth="0" BlurRadius="15" Opacity="0.25" Color="Black"/>
+        </Border.Effect>
+        <Grid Background="Transparent"
+              xmlns:local="clr-namespace:FactoryProductManager"
+              local:WindowDragBehavior.Enable="True">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="38"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- 标题栏 -->
+            <Grid Grid.Row="0" Background="{StaticResource WarmHeaderBrush}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- 窗口按钮 -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Style="{StaticResource WindowButtonStyle}" Click="MinimizeButton_Click" ToolTip="最小化">
+                        <materialDesign:PackIcon Kind="WindowMinimize" Width="14" Height="14"/>
+                    </Button>
+                    <Button x:Name="MaximizeButton" Style="{StaticResource WindowButtonStyle}" Click="MaximizeButton_Click" ToolTip="最大化">
+                        <materialDesign:PackIcon Kind="WindowMaximize" Width="14" Height="14"/>
+                    </Button>
+                    <Button Style="{StaticResource WindowCloseButtonStyle}" Click="CloseButton_Click" ToolTip="关闭">
+                        <materialDesign:PackIcon Kind="Close" Width="14" Height="14"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- 内容层 -->
+            <ContentPresenter Grid.Row="1" x:Name="DialogContent"/>
+        </Grid>
+    </Border>
 </Window>

@@ -54,7 +54,9 @@ namespace FactoryProductManager.Views
 
         public ProductManagementDialog(Product? product = null)
         {
+            LogService.Debug("[ProductManagementDialog] 构造开始");
             InitializeComponent();
+            LogService.Debug("[ProductManagementDialog] InitializeComponent 完成");
             if (product == null)
             {
                 Product = new Product
@@ -207,12 +209,36 @@ namespace FactoryProductManager.Views
 
         private void AddMaterialButton_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new MaterialDialogWindow();
+            LogService.Debug("[ProductManagementDialog] AddMaterialButton_Click 开始");
+            var selectedParts = new List<ProductPart>();
+            if (_pendingParts != null)
+            {
+                selectedParts.AddRange(_pendingParts);
+            }
+            else if (Product.Id > 0)
+            {
+                try
+                {
+                    selectedParts = _dbService.GetProductParts(Product.Id);
+                }
+                catch { }
+            }
+
+            LogService.Debug($"[ProductManagementDialog] selectedParts count={selectedParts.Count}");
+            if (selectedParts.Count == 0)
+            {
+                MessageBox.Show("请先选择部位", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            LogService.Debug("[ProductManagementDialog] 开始 new AddProductMaterialWindow");
+            var dialog = new AddProductMaterialWindow(selectedParts);
+            LogService.Debug("[ProductManagementDialog] AddProductMaterialWindow 构造完成，开始 ShowDialog");
             dialog.Owner = this;
             if (dialog.ShowDialog() == true)
             {
-                var material = dialog.Material;
-                MessageBox.Show($"已添加物料: {material.MaterialName}", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
+                var materials = dialog.SelectedMaterials;
+                MessageBox.Show($"已添加 {materials.Count} 个物料", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 

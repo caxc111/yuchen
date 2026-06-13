@@ -9,6 +9,37 @@ namespace FactoryProductManager.Views
         {
             InitializeComponent();
             DataContext = material;
+
+            StateChanged += MaterialDetailsWindow_StateChanged;
+        }
+
+        private void MaterialDetailsWindow_StateChanged(object? sender, System.EventArgs e)
+        {
+            if (WindowState == WindowState.Maximized)
+            {
+                MaximizeButton.ToolTip = "还原";
+            }
+            else
+            {
+                MaximizeButton.ToolTip = "最大化";
+            }
+        }
+
+        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState.Minimized;
+        }
+
+        private void MaximizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (WindowState == WindowState.Maximized)
+            {
+                WindowState = WindowState.Normal;
+            }
+            else
+            {
+                WindowState = WindowState.Maximized;
+            }
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)

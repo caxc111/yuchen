@@ -115,11 +115,7 @@ namespace FactoryProductManager.ViewModels
                 LogService.Info("开始更新物料: " + material.MaterialName);
                 material.UpdatedAt = DateTime.Now;
                 _dbService.UpdateFactoryMaterial(material);
-                var index = Materials.IndexOf(Materials.First(m => m.Id == material.Id));
-                if (index >= 0)
-                {
-                    Materials[index] = material;
-                }
+                LoadMaterials(_currentSearchKeyword);
                 LogService.Info("物料更新成功，ID: " + material.Id);
             }
             catch (Exception ex)
