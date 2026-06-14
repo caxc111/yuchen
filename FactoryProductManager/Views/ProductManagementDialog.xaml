@@ -96,7 +96,7 @@
                                                   Style="{StaticResource WarmInputComboBoxStyle}"
                                                   Width="80"/>
                                     </Grid>
-                                    <!-- 项目名称标签 -->
+                                    <!-- 项目代码标签 -->
                                     <Grid Grid.Column="2">
                                         <Border Width="80" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
                                             <Grid Width="80" Height="35">
@@ -105,15 +105,15 @@
                                                         <BlurEffect Radius="20"/>
                                                     </Border.Effect>
                                                 </Border>
-                                                <TextBlock Text="项目代号" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Style="{StaticResource UnifiedDialogLabelTextStyle}"/>
+                                                <TextBlock Text="项目代码" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Style="{StaticResource UnifiedDialogLabelTextStyle}"/>
                                             </Grid>
                                         </Border>
                                     </Grid>
-                                    <!-- 项目名称输入框 -->
+                                    <!-- 项目代码输入框 -->
                                     <Grid Grid.Column="4" Width="200">
                                         <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}" Width="200">
                                         </Border>
-                                        <TextBox Text="{Binding Product.ProjectName}" Style="{StaticResource WarmInputTextBoxStyle}" Width="200" VerticalContentAlignment="Center" Background="Transparent" BorderThickness="0"/>
+                                        <TextBox Text="{Binding Product.ProjectCode}" Style="{StaticResource WarmInputTextBoxStyle}" Width="200" VerticalContentAlignment="Center" Background="Transparent" BorderThickness="0"/>
                                     </Grid>
                                 </Grid>
                             </Grid>

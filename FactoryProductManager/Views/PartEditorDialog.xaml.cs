@@ -15,7 +15,7 @@ namespace FactoryProductManager.Views
         {
             InitializeComponent();
             _originalPart = part;
-            Part = part != null ? ClonePart(part) : new ProductPart();
+            Part = part != null ? ClonePart(part) : new ProductPart { Quantity = 1 };
 
             if (part != null)
             {

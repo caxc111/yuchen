@@ -432,6 +432,9 @@
                 <Setter Property="Padding" Value="10,8"/>
                 <Setter Property="Margin" Value="5,2"/>
                 <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="BorderBrush" Value="{StaticResource ActionBorderBrush}"/>
+                <Setter Property="BorderThickness" Value="{StaticResource UnifiedBorderThickness}"/>
+                <Setter Property="Background" Value="Transparent"/>
             </Style>
 
             <Style x:Key="PartComboBoxStyle" TargetType="ComboBox">

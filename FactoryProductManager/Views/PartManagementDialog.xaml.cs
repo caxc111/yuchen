@@ -24,6 +24,17 @@ namespace FactoryProductManager.Views
         // 自定义部位列表（不在预设选项中的部位）
         public ObservableCollection<ProductPart> CustomParts { get; } = new();
 
+        // 暂存"待新增"的预设部位（_isNewProduct=true 时累积，Ok 时由外部落库）
+        private readonly List<ProductPart> _pendingPresetParts = new();
+        // 暂存"待新增"的自定义部位
+        private readonly List<ProductPart> _pendingCustomParts = new();
+        // 暂存"待删除"的预设部位 id（_isNewProduct=true 时累积，Ok 时由外部落库）
+        private readonly List<int> _pendingRemovedPresetIds = new();
+        // 暂存"待删除"的自定义部位 id
+        private readonly List<int> _pendingRemovedCustomIds = new();
+        // 调用方传入的"上次已选部位"（避免再次打开窗口时清空）
+        private readonly IReadOnlyList<ProductPart>? _existingParts;
+
         // 预设部位名称
         private static readonly string[] PartNameOptions = new[]
         {
@@ -50,11 +61,12 @@ namespace FactoryProductManager.Views
         public event PropertyChangedEventHandler? PropertyChanged;
         public event Action? PartsChanged;
 
-        public PartManagementDialog(int productId, bool isNewProduct = false)
+        public PartManagementDialog(int productId, bool isNewProduct = false, IReadOnlyList<ProductPart>? existingParts = null)
         {
             InitializeComponent();
             _productId = productId;
             _isNewProduct = isNewProduct;
+            _existingParts = existingParts;
             _dbService = new DbService();
             DataContext = this;
 
@@ -170,6 +182,7 @@ namespace FactoryProductManager.Views
             {
                 newPart.Id = -(Parts.Count + 1);
                 newPart.ProductId = 0;
+                _pendingPresetParts.Add(newPart);
             }
             else
             {
@@ -178,7 +191,6 @@ namespace FactoryProductManager.Views
                     newPart.ProductId = _productId;
                     int newId = _dbService.AddProductPart(newPart);
                     newPart.Id = newId;
-                    PartsChanged?.Invoke();
                 }
                 catch (Exception ex)
                 {
@@ -201,13 +213,17 @@ namespace FactoryProductManager.Views
                     try
                     {
                         _dbService.DeleteProductPart(part.Id);
-                        PartsChanged?.Invoke();
                     }
                     catch (Exception ex)
                     {
                         MessageBox.Show($"删除部位失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                         return;
                     }
+                }
+                else
+                {
+                    _pendingPresetParts.Remove(part);
+                    _pendingRemovedPresetIds.Remove(part.Id);
                 }
                 Parts.Remove(part);
             }
@@ -224,7 +240,6 @@ namespace FactoryProductManager.Views
                     try
                     {
                         _dbService.UpdateProductPart(part);
-                        PartsChanged?.Invoke();
                     }
                     catch { }
                 }
@@ -237,6 +252,7 @@ namespace FactoryProductManager.Views
             Parts.Clear();
             CustomParts.Clear();
 
+            // 1) 先加载 DB 中已保存的部位（仅对已存在产品 _productId > 0）
             if (!_isNewProduct && _productId > 0)
             {
                 try
@@ -260,8 +276,37 @@ namespace FactoryProductManager.Views
                 }
             }
 
+            // 2) 合并调用方传入的"上次已选部位"（覆盖 DB 数据，避免再次打开窗口时清空）
+            //    _existingParts 是上次 Ok 时缓存的清单，按 PartName 去重合并
+            //    自定义部位的 Quantity 在 UI 上没意义，强制为 1 保证下拉显示
+            if (_existingParts != null)
+            {
+                foreach (var ep in _existingParts)
+                {
+                    if (string.IsNullOrWhiteSpace(ep.PartName)) continue;
+                    if (PartNameOptions.Contains(ep.PartName))
+                    {
+                        if (!Parts.Any(p => p.PartName == ep.PartName))
+                        {
+                            Parts.Add(ep);
+                        }
+                    }
+                    else
+                    {
+                        if (!CustomParts.Any(p => p.PartName == ep.PartName))
+                        {
+                            ep.Quantity = 1; // 防御：合并时强制 1
+                            CustomParts.Add(ep);
+                        }
+                    }
+                }
+            }
+
             SyncCheckBoxesWithParts();
             OnPropertyChanged(nameof(CustomPartsEmpty));
+
+            // 新加载的自定义部位行会在 DataTemplate 根 Grid Loaded 事件中
+            // 自动通过 CustomPartRow_Loaded 初始化 ComboBox.SelectedItem = 1
         }
 
         private void SyncCheckBoxesWithParts()
@@ -301,23 +346,23 @@ namespace FactoryProductManager.Views
             {
                 var newPart = partEditor.Part;
 
+                // 无论 PartEditorDialog 返回什么 Quantity，自定义部位都强制从 1 开始
+                newPart.Quantity = 1;
+                newPart.Unit = string.IsNullOrEmpty(newPart.Unit) ? "件" : newPart.Unit;
+
                 if (_isNewProduct || _productId <= 0)
                 {
                     newPart.Id = -(Parts.Count + CustomParts.Count + 1);
                     newPart.ProductId = 0;
-                    newPart.Quantity = 1;
-                    CustomParts.Add(newPart);
+                    _pendingCustomParts.Add(newPart);
                 }
                 else
                 {
                     try
                     {
                         newPart.ProductId = _productId;
-                        newPart.Quantity = 1;
                         int newId = _dbService.AddProductPart(newPart);
                         newPart.Id = newId;
-                        CustomParts.Add(newPart);
-                        PartsChanged?.Invoke();
                     }
                     catch (Exception ex)
                     {
@@ -325,7 +370,33 @@ namespace FactoryProductManager.Views
                     }
                 }
 
+                CustomParts.Add(newPart);
                 OnPropertyChanged(nameof(CustomPartsEmpty));
+            }
+        }
+
+        // DataTemplate 根 Grid 加载完成时触发 —— 此时 ComboBox 已实例化，直接拿到引用
+        private void CustomPartRow_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Grid row) return;
+            if (row.DataContext is not ProductPart part) return;
+            if (row.FindName("CustomPartQuantityComboBox") is not ComboBox combo) return;
+
+            // 把 decimal 强转 int 默认 1，范围 1-5
+            int q = 1;
+            if (part.Quantity >= 1 && part.Quantity <= 5)
+            {
+                q = (int)part.Quantity;
+            }
+            combo.SelectedItem = q;
+        }
+
+        private void CustomPartQuantity_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ComboBox combo && combo.DataContext is ProductPart part && combo.SelectedItem is int q)
+            {
+                // 把 int 写回 decimal 字段，保持 ProductPart.Quantity 类型不变
+                part.Quantity = q;
             }
         }
 
@@ -338,13 +409,17 @@ namespace FactoryProductManager.Views
                     try
                     {
                         _dbService.DeleteProductPart(part.Id);
-                        PartsChanged?.Invoke();
                     }
                     catch (Exception ex)
                     {
                         MessageBox.Show($"删除部位失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                         return;
                     }
+                }
+                else
+                {
+                    _pendingCustomParts.Remove(part);
+                    _pendingRemovedCustomIds.Remove(part.Id);
                 }
                 CustomParts.Remove(part);
                 OnPropertyChanged(nameof(CustomPartsEmpty));
@@ -368,6 +443,15 @@ namespace FactoryProductManager.Views
                             Parts[index] = updatedPart;
                             OnPropertyChanged(nameof(Parts));
                         }
+                        var customIndex = CustomParts.IndexOf(part);
+                        if (customIndex >= 0)
+                        {
+                            CustomParts[customIndex] = updatedPart;
+                        }
+                        var pendingPresetIndex = _pendingPresetParts.IndexOf(part);
+                        if (pendingPresetIndex >= 0) _pendingPresetParts[pendingPresetIndex] = updatedPart;
+                        var pendingCustomIndex = _pendingCustomParts.IndexOf(part);
+                        if (pendingCustomIndex >= 0) _pendingCustomParts[pendingCustomIndex] = updatedPart;
                     }
                     else
                     {
@@ -382,7 +466,6 @@ namespace FactoryProductManager.Views
                                 Parts[index] = updatedPart;
                                 OnPropertyChanged(nameof(Parts));
                             }
-                            PartsChanged?.Invoke();
                         }
                         catch (Exception ex)
                         {

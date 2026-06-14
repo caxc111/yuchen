@@ -71,19 +71,19 @@
                 <DataGrid Style="{StaticResource GlobalBaseDataGridStyle}"
                           ItemsSource="{Binding Products}"
                           ColumnHeaderHeight="35"
-                          RowHeight="36">
+                          RowHeight="60">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="业态" Binding="{Binding BusinessType}" Width="80" HeaderStyle="{StaticResource GlobalFirstDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
-                        <DataGridTextColumn Header="产品编码" Binding="{Binding ProductCode}" Width="120" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
-                        <DataGridTextColumn Header="项目名称" Binding="{Binding ProjectName}" Width="120" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
+                        <DataGridTextColumn Header="产品编码" Binding="{Binding ProductCode}" Width="160" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
+                        <DataGridTextColumn Header="项目代码" Binding="{Binding ProjectCode}" Width="120" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
                         <DataGridTextColumn Header="户型" Binding="{Binding HouseType}" Width="120" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
                         <DataGridTextColumn Header="面积（㎡）" Binding="{Binding Area}" Width="80" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
                         <DataGridTextColumn Header="成本合价（元）" Binding="{Binding CostTotalPrice, StringFormat=F2}" Width="100" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
                         <DataGridTextColumn Header="销售合价（元）" Binding="{Binding SellingTotalPrice, StringFormat=F2}" Width="120" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
-                        <DataGridTemplateColumn Header="平面图" Width="140">
+                        <DataGridTemplateColumn Header="平面图" Width="90">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Border Width="72" Height="44" CornerRadius="8" BorderThickness="0" Background="{StaticResource WarmInputBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="True">
+                                    <Border Width="44" Height="44" CornerRadius="8" BorderThickness="0" Background="{StaticResource WarmInputBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="True">
                                         <Grid>
                                             <Image Source="{Binding FloorPlan}" Stretch="UniformToFill"/>
                                             <TextBlock Text="无图" FontSize="11" Foreground="{StaticResource HintTextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center">

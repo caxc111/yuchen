@@ -72,6 +72,7 @@ namespace FactoryProductManager.Views
                     Id = product.Id,
                     BusinessType = product.BusinessType,
                     ProductCode = product.ProductCode,
+                    ProjectCode = product.ProjectCode,
                     HouseType = product.HouseType,
                     Area = product.Area,
                     CostTotalPrice = product.CostTotalPrice,
@@ -86,6 +87,37 @@ namespace FactoryProductManager.Views
 
             BusinessType = string.IsNullOrWhiteSpace(Product.BusinessType) ? BusinessTypeOptions[0] : Product.BusinessType;
             DataContext = this;
+
+            if (product != null && product.Id > 0)
+            {
+                ContentRendered += ProductManagementDialog_ContentRendered;
+            }
+        }
+
+        private void ProductManagementDialog_ContentRendered(object? sender, EventArgs e)
+        {
+            ContentRendered -= ProductManagementDialog_ContentRendered;
+            LogService.Debug($"[ProductManagementDialog] ContentRendered, Product.Id={Product.Id}, PartsSummaryTextBox.IsLoaded={PartsSummaryTextBox.IsLoaded}");
+            try
+            {
+                var existingParts = _dbService.GetProductParts(Product.Id);
+                LogService.Debug($"[ProductManagementDialog] GetProductParts 返回 {existingParts.Count} 条");
+                if (existingParts.Count > 0)
+                {
+                    var summary = string.Join("，", existingParts.Select(p => $"{p.PartName}*{p.Quantity}"));
+                    PartsSummaryTextBox.Text = summary;
+
+                    if (RequiresResidentialHouseType && string.IsNullOrWhiteSpace(Product.HouseType))
+                    {
+                        Product.HouseType = CalculateHouseType(existingParts);
+                        OnPropertyChanged(nameof(Product));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogService.Debug($"[ProductManagementDialog] 加载部位失败: {ex.Message}");
+            }
         }
 
         private void OkButton_Click(object sender, RoutedEventArgs e)
@@ -161,10 +193,10 @@ namespace FactoryProductManager.Views
                 throw new InvalidOperationException("请先选择有效业态");
             }
 
-            var projectCodeValue = GetProjectNameCode(Product.ProjectName);
+            var projectCodeValue = GetProjectNameCode(Product.ProjectCode);
             if (projectCodeValue == null)
             {
-                throw new InvalidOperationException("项目代号只能输入英文或数字，请重新输入");
+                throw new InvalidOperationException("项目代码只能输入英文或数字，请重新输入");
             }
 
             var houseTypeCode = RequiresResidentialHouseType
@@ -221,13 +253,21 @@ namespace FactoryProductManager.Views
             }
 
             LogService.Debug("[ProductManagementDialog] 开始 new AddProductMaterialWindow");
-            var dialog = new AddProductMaterialWindow(selectedParts);
+            var dialog = new AddProductMaterialWindow(Product.Id, selectedParts);
             LogService.Debug("[ProductManagementDialog] AddProductMaterialWindow 构造完成，开始 ShowDialog");
             dialog.Owner = this;
             if (dialog.ShowDialog() == true)
             {
                 var materials = dialog.SelectedMaterials;
-                MessageBox.Show($"已添加 {materials.Count} 个物料", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
+                if (Product.Id > 0)
+                {
+                    LogService.Info($"[ProductManagementDialog] 已为 productId={Product.Id} 写入 {materials.Count} 个物料");
+                }
+                else
+                {
+                    _pendingMaterials = materials.ToList();
+                    MessageBox.Show($"已暂存 {materials.Count} 个物料（保存产品后落库）", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
             }
         }
 
@@ -271,7 +311,8 @@ namespace FactoryProductManager.Views
             int productId = Product.Id > 0 ? Product.Id : 0;
             bool isNewProduct = Product.Id <= 0;
 
-            var partsDialog = new PartManagementDialog(productId, isNewProduct);
+            // 把上次已选部位传回窗口，避免再次打开时被清空
+            var partsDialog = new PartManagementDialog(productId, isNewProduct, _pendingParts);
             partsDialog.Owner = this;
 
             if (partsDialog.ShowDialog() == true)
@@ -283,7 +324,7 @@ namespace FactoryProductManager.Views
                 }
                 else
                 {
-                    _pendingParts = null;
+                    _pendingParts = partsDialog.Parts.Concat(partsDialog.CustomParts).ToList();
                 }
                 UpdatePartsSummary(partsDialog);
             }
@@ -321,5 +362,8 @@ namespace FactoryProductManager.Views
 
         private List<ProductPart>? _pendingParts;
         public IReadOnlyList<ProductPart>? PendingParts => _pendingParts;
+
+        private List<SelectedMaterial>? _pendingMaterials;
+        public IReadOnlyList<SelectedMaterial>? PendingMaterials => _pendingMaterials;
     }
 }

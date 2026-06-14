@@ -1,7 +1,9 @@
 using FactoryProductManager.Models;
 using FactoryProductManager.Services;
+using FactoryProductManager.Views;
 using OfficeOpenXml;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -34,18 +36,23 @@ namespace FactoryProductManager.ViewModels
             LoadProducts(SearchKeyword);
         }
 
-        public void AddProduct(Product product)
+        public void AddProduct(Product product, IReadOnlyList<ProductPart>? parts = null, IReadOnlyList<SelectedMaterial>? materials = null)
         {
             product.CreatedAt = DateTime.Now;
             product.UpdatedAt = DateTime.Now;
-            product.Id = _dbService.AddProduct(product);
+            product.Id = _dbService.AddProduct(product, parts);
             Products.Add(product);
+
+            if (materials != null && materials.Count > 0)
+            {
+                PersistSelectedMaterials(product.Id, parts, materials);
+            }
         }
 
-        public void UpdateProduct(Product product)
+        public void UpdateProduct(Product product, IReadOnlyList<ProductPart>? parts = null, IReadOnlyList<SelectedMaterial>? materials = null)
         {
             product.UpdatedAt = DateTime.Now;
-            _dbService.UpdateProduct(product);
+            _dbService.UpdateProduct(product, parts);
 
             var existing = Products.FirstOrDefault(item => item.Id == product.Id);
             if (existing != null)
@@ -53,6 +60,42 @@ namespace FactoryProductManager.ViewModels
                 var index = Products.IndexOf(existing);
                 Products[index] = product;
             }
+
+            if (materials != null && materials.Count > 0)
+            {
+                _dbService.DeleteProductPartMaterialsByProduct(product.Id);
+                PersistSelectedMaterials(product.Id, parts, materials);
+            }
+        }
+
+        private void PersistSelectedMaterials(int productId, IReadOnlyList<ProductPart>? parts, IReadOnlyList<SelectedMaterial> materials)
+        {
+            var partMap = (parts ?? _dbService.GetProductParts(productId))
+                .ToDictionary(p => p.PartName, p => p.Id);
+
+            var entities = materials.Select(sm => new ProductPartMaterial
+            {
+                ProductId = productId,
+                PartId = partMap.TryGetValue(sm.ComponentName, out var pid) && pid > 0
+                    ? (int?)pid
+                    : null,
+                PartName = sm.ComponentName,
+                ComponentName = sm.ComponentName,
+                MaterialTypeName = sm.MaterialTypeName,
+                MaterialId = sm.FactoryMaterialId > 0 ? (int?)sm.FactoryMaterialId : null,
+                MaterialName = sm.MaterialName,
+                FactoryMaterialCode = sm.FactoryMaterialCode,
+                MyMaterialCode = sm.MyMaterialCode,
+                Brand = sm.Brand,
+                Specification = sm.Specification,
+                Unit = sm.Unit,
+                UnitPrice = sm.UnitPrice,
+                Quantity = sm.Quantity,
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
+            }).ToList();
+
+            _dbService.AddProductPartMaterials(productId, entities);
         }
 
         public void DeleteProduct(int id)

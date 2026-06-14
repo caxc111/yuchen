@@ -111,6 +111,7 @@ namespace FactoryProductManager.Services
 
                 EnsureProductsSchema(conn);
                 EnsureProductPartsSchema(conn);
+                EnsureCustomPartsSchema(conn);
             }
         }
 
@@ -274,6 +275,67 @@ namespace FactoryProductManager.Services
             {
                 cmd.ExecuteNonQuery();
             }
+
+            EnsureProductPartMaterialsSchema(conn);
+        }
+
+        private void EnsureProductPartMaterialsSchema(SQLiteConnection conn)
+        {
+            string createTable = @"
+                CREATE TABLE IF NOT EXISTS ProductPartMaterials (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    product_id INTEGER NOT NULL,
+                    part_id INTEGER,
+                    part_name TEXT NOT NULL,
+                    component_name TEXT NOT NULL,
+                    material_type_name TEXT,
+                    material_id INTEGER,
+                    material_name TEXT NOT NULL,
+                    factory_material_code TEXT,
+                    my_material_code TEXT,
+                    brand TEXT,
+                    specification TEXT,
+                    unit TEXT,
+                    unit_price REAL DEFAULT 0,
+                    quantity REAL DEFAULT 0,
+                    total_price REAL DEFAULT 0,
+                    remarks TEXT,
+                    created_at TEXT,
+                    updated_at TEXT,
+                    FOREIGN KEY (product_id) REFERENCES Products(id),
+                    FOREIGN KEY (part_id) REFERENCES ProductParts(id),
+                    FOREIGN KEY (material_id) REFERENCES FactoryProducts(id)
+                )";
+
+            using (var cmd = new SQLiteCommand(createTable, conn))
+            {
+                cmd.ExecuteNonQuery();
+            }
+
+            if (!IndexExists(conn, "ProductPartMaterials", "idx_ppm_product_id"))
+            {
+                using var idxCmd = new SQLiteCommand("CREATE INDEX idx_ppm_product_id ON ProductPartMaterials(product_id)", conn);
+                idxCmd.ExecuteNonQuery();
+            }
+            if (!IndexExists(conn, "ProductPartMaterials", "idx_ppm_part_id"))
+            {
+                using var idxCmd = new SQLiteCommand("CREATE INDEX idx_ppm_part_id ON ProductPartMaterials(part_id)", conn);
+                idxCmd.ExecuteNonQuery();
+            }
+        }
+
+        private bool IndexExists(SQLiteConnection conn, string tableName, string indexName)
+        {
+            using var cmd = new SQLiteCommand($"PRAGMA index_list({tableName})", conn);
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                if (string.Equals(reader["name"]?.ToString(), indexName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private bool ColumnExists(SQLiteConnection conn, string tableName, string columnName)
@@ -526,7 +588,7 @@ namespace FactoryProductManager.Services
                                 BusinessType = reader.IsDBNull(1) ? string.Empty : reader.GetString(1),
                                 ProductCode = reader.GetString(2),
                                 ProductName = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
-                                ProjectName = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
+                                ProjectCode = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
                                 HouseType = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
                                 Area = reader.IsDBNull(6) ? 0 : Convert.ToDecimal(reader.GetValue(6)),
                                 CostTotalPrice = reader.IsDBNull(7) ? 0 : Convert.ToDecimal(reader.GetValue(7)),
@@ -681,32 +743,42 @@ namespace FactoryProductManager.Services
             }
         }
 
-        public int AddProduct(Product product)
+        public int AddProduct(Product product, IReadOnlyList<ProductPart>? parts = null)
         {
             try
             {
                 using (var conn = GetConnection())
                 {
                     conn.Open();
-                    var cmd = new SQLiteCommand(@"
-                    INSERT INTO Products (business_type, product_code, product_name, project_name, house_type, area, cost_total_price, selling_total_price, floor_plan, is_active, created_at, updated_at)
-                    VALUES (@businessType, @code, @productName, @projectName, @houseType, @area, @costTotalPrice, @sellingTotalPrice, @floorPlan, @isActive, @createdAt, @updatedAt);
-                    SELECT last_insert_rowid();", conn);
-                    cmd.Parameters.AddWithValue("@businessType", ToDbValue(product.BusinessType));
-                    cmd.Parameters.AddWithValue("@code", product.ProductCode);
-                    cmd.Parameters.AddWithValue("@productName", ToDbValue(product.ProductName));
-                    cmd.Parameters.AddWithValue("@projectName", ToDbValue(product.ProjectName));
-                    cmd.Parameters.AddWithValue("@houseType", ToDbValue(product.HouseType));
-                    cmd.Parameters.AddWithValue("@area", product.Area);
-                    cmd.Parameters.AddWithValue("@costTotalPrice", product.CostTotalPrice);
-                    cmd.Parameters.AddWithValue("@sellingTotalPrice", product.SellingTotalPrice.HasValue ? (object)product.SellingTotalPrice.Value : DBNull.Value);
-                    cmd.Parameters.AddWithValue("@floorPlan", ToDbValue(product.FloorPlan));
-                    cmd.Parameters.AddWithValue("@isActive", product.IsActive ? 1 : 0);
-                    cmd.Parameters.AddWithValue("@createdAt", product.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
-                    cmd.Parameters.AddWithValue("@updatedAt", product.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
-                    int productId = Convert.ToInt32(cmd.ExecuteScalar());
-                    LogService.Info($"新增产品成功: ID={productId}, 编码={product.ProductCode}");
-                    return productId;
+                    using (var tx = conn.BeginTransaction())
+                    {
+                        var cmd = new SQLiteCommand(@"
+                        INSERT INTO Products (business_type, product_code, product_name, project_name, house_type, area, cost_total_price, selling_total_price, floor_plan, is_active, created_at, updated_at)
+                        VALUES (@businessType, @code, @productName, @projectName, @houseType, @area, @costTotalPrice, @sellingTotalPrice, @floorPlan, @isActive, @createdAt, @updatedAt);
+                        SELECT last_insert_rowid();", conn, tx);
+                        cmd.Parameters.AddWithValue("@businessType", ToDbValue(product.BusinessType));
+                        cmd.Parameters.AddWithValue("@code", product.ProductCode);
+                        cmd.Parameters.AddWithValue("@productName", ToDbValue(product.ProductName));
+                        cmd.Parameters.AddWithValue("@projectName", ToDbValue(product.ProjectCode));
+                        cmd.Parameters.AddWithValue("@houseType", ToDbValue(product.HouseType));
+                        cmd.Parameters.AddWithValue("@area", product.Area);
+                        cmd.Parameters.AddWithValue("@costTotalPrice", product.CostTotalPrice);
+                        cmd.Parameters.AddWithValue("@sellingTotalPrice", product.SellingTotalPrice.HasValue ? (object)product.SellingTotalPrice.Value : DBNull.Value);
+                        cmd.Parameters.AddWithValue("@floorPlan", ToDbValue(product.FloorPlan));
+                        cmd.Parameters.AddWithValue("@isActive", product.IsActive ? 1 : 0);
+                        cmd.Parameters.AddWithValue("@createdAt", product.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
+                        cmd.Parameters.AddWithValue("@updatedAt", product.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
+                        int productId = Convert.ToInt32(cmd.ExecuteScalar());
+                        LogService.Info($"新增产品成功: ID={productId}, 编码={product.ProductCode}");
+
+                        if (parts != null && parts.Count > 0)
+                        {
+                            InsertProductPartsInternal(conn, tx, productId, parts);
+                        }
+
+                        tx.Commit();
+                        return productId;
+                    }
                 }
             }
             catch (Exception ex)
@@ -926,40 +998,57 @@ namespace FactoryProductManager.Services
             }
         }
 
-        public void UpdateProduct(Product product)
+        public void UpdateProduct(Product product, IReadOnlyList<ProductPart>? parts = null)
         {
             try
             {
                 using (var conn = GetConnection())
                 {
                     conn.Open();
-                    var cmd = new SQLiteCommand(@"
-                    UPDATE Products SET
-                        business_type = @businessType,
-                        product_code = @code,
-                        product_name = @productName,
-                        project_name = @projectName,
-                        house_type = @houseType,
-                        area = @area,
-                        cost_total_price = @costTotalPrice,
-                        selling_total_price = @sellingTotalPrice,
-                        floor_plan = @floorPlan,
-                        is_active = @isActive,
-                        updated_at = @updatedAt
-                    WHERE id = @id", conn);
-                    cmd.Parameters.AddWithValue("@businessType", ToDbValue(product.BusinessType));
-                    cmd.Parameters.AddWithValue("@code", product.ProductCode);
-                    cmd.Parameters.AddWithValue("@productName", ToDbValue(product.ProductName));
-                    cmd.Parameters.AddWithValue("@projectName", ToDbValue(product.ProjectName));
-                    cmd.Parameters.AddWithValue("@houseType", ToDbValue(product.HouseType));
-                    cmd.Parameters.AddWithValue("@area", product.Area);
-                    cmd.Parameters.AddWithValue("@costTotalPrice", product.CostTotalPrice);
-                    cmd.Parameters.AddWithValue("@sellingTotalPrice", product.SellingTotalPrice.HasValue ? (object)product.SellingTotalPrice.Value : DBNull.Value);
-                    cmd.Parameters.AddWithValue("@floorPlan", ToDbValue(product.FloorPlan));
-                    cmd.Parameters.AddWithValue("@isActive", product.IsActive ? 1 : 0);
-                    cmd.Parameters.AddWithValue("@updatedAt", product.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
-                    cmd.Parameters.AddWithValue("@id", product.Id);
-                    cmd.ExecuteNonQuery();
+                    using (var tx = conn.BeginTransaction())
+                    {
+                        var cmd = new SQLiteCommand(@"
+                        UPDATE Products SET
+                            business_type = @businessType,
+                            product_code = @code,
+                            product_name = @productName,
+                            project_name = @projectName,
+                            house_type = @houseType,
+                            area = @area,
+                            cost_total_price = @costTotalPrice,
+                            selling_total_price = @sellingTotalPrice,
+                            floor_plan = @floorPlan,
+                            is_active = @isActive,
+                            updated_at = @updatedAt
+                        WHERE id = @id", conn, tx);
+                        cmd.Parameters.AddWithValue("@businessType", ToDbValue(product.BusinessType));
+                        cmd.Parameters.AddWithValue("@code", product.ProductCode);
+                        cmd.Parameters.AddWithValue("@productName", ToDbValue(product.ProductName));
+                        cmd.Parameters.AddWithValue("@projectName", ToDbValue(product.ProjectCode));
+                        cmd.Parameters.AddWithValue("@houseType", ToDbValue(product.HouseType));
+                        cmd.Parameters.AddWithValue("@area", product.Area);
+                        cmd.Parameters.AddWithValue("@costTotalPrice", product.CostTotalPrice);
+                        cmd.Parameters.AddWithValue("@sellingTotalPrice", product.SellingTotalPrice.HasValue ? (object)product.SellingTotalPrice.Value : DBNull.Value);
+                        cmd.Parameters.AddWithValue("@floorPlan", ToDbValue(product.FloorPlan));
+                        cmd.Parameters.AddWithValue("@isActive", product.IsActive ? 1 : 0);
+                        cmd.Parameters.AddWithValue("@updatedAt", product.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
+                        cmd.Parameters.AddWithValue("@id", product.Id);
+                        cmd.ExecuteNonQuery();
+
+                        if (parts != null)
+                        {
+                            var del = new SQLiteCommand("DELETE FROM ProductParts WHERE product_id = @id", conn, tx);
+                            del.Parameters.AddWithValue("@id", product.Id);
+                            del.ExecuteNonQuery();
+
+                            if (parts.Count > 0)
+                            {
+                                InsertProductPartsInternal(conn, tx, product.Id, parts);
+                            }
+                        }
+
+                        tx.Commit();
+                    }
                 }
 
                 LogService.Info($"更新产品成功: ID={product.Id}, 编码={product.ProductCode}");
@@ -968,6 +1057,51 @@ namespace FactoryProductManager.Services
             {
                 LogService.Error($"更新产品失败: ID={product.Id}, 编码={product.ProductCode}", ex);
                 throw;
+            }
+        }
+
+        private void InsertProductPartsInternal(SQLiteConnection conn, SQLiteTransaction tx, int productId, IReadOnlyList<ProductPart> parts)
+        {
+            var insertCmd = new SQLiteCommand(@"
+                INSERT INTO ProductParts (product_id, part_name, part_code, part_type, material, specification,
+                    quantity, unit, unit_price, total_price, remarks, is_active, created_at, updated_at)
+                VALUES (@productId, @partName, @partCode, @partType, @material, @specification,
+                    @quantity, @unit, @unitPrice, @totalPrice, @remarks, @isActive, @createdAt, @updatedAt);
+                SELECT last_insert_rowid();", conn, tx);
+
+            insertCmd.Parameters.Add("@productId", System.Data.DbType.Int32);
+            insertCmd.Parameters.Add("@partName", System.Data.DbType.String);
+            insertCmd.Parameters.Add("@partCode", System.Data.DbType.String);
+            insertCmd.Parameters.Add("@partType", System.Data.DbType.String);
+            insertCmd.Parameters.Add("@material", System.Data.DbType.String);
+            insertCmd.Parameters.Add("@specification", System.Data.DbType.String);
+            insertCmd.Parameters.Add("@quantity", System.Data.DbType.Decimal);
+            insertCmd.Parameters.Add("@unit", System.Data.DbType.String);
+            insertCmd.Parameters.Add("@unitPrice", System.Data.DbType.Decimal);
+            insertCmd.Parameters.Add("@totalPrice", System.Data.DbType.Decimal);
+            insertCmd.Parameters.Add("@remarks", System.Data.DbType.String);
+            insertCmd.Parameters.Add("@isActive", System.Data.DbType.Int32);
+            insertCmd.Parameters.Add("@createdAt", System.Data.DbType.String);
+            insertCmd.Parameters.Add("@updatedAt", System.Data.DbType.String);
+
+            foreach (var p in parts)
+            {
+                insertCmd.Parameters["@productId"].Value = productId;
+                insertCmd.Parameters["@partName"].Value = p.PartName ?? string.Empty;
+                insertCmd.Parameters["@partCode"].Value = ToDbValue(p.PartCode);
+                insertCmd.Parameters["@partType"].Value = ToDbValue(p.PartType);
+                insertCmd.Parameters["@material"].Value = ToDbValue(p.Material);
+                insertCmd.Parameters["@specification"].Value = ToDbValue(p.Specification);
+                insertCmd.Parameters["@quantity"].Value = p.Quantity;
+                insertCmd.Parameters["@unit"].Value = ToDbValue(p.Unit);
+                insertCmd.Parameters["@unitPrice"].Value = p.UnitPrice;
+                insertCmd.Parameters["@totalPrice"].Value = p.TotalPrice;
+                insertCmd.Parameters["@remarks"].Value = ToDbValue(p.Remarks);
+                insertCmd.Parameters["@isActive"].Value = p.IsActive ? 1 : 0;
+                insertCmd.Parameters["@createdAt"].Value = p.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss");
+                insertCmd.Parameters["@updatedAt"].Value = p.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss");
+                int newId = Convert.ToInt32(insertCmd.ExecuteScalar());
+                LogService.Info($"新增产品部位成功: ID={newId}, 名称={p.PartName}");
             }
         }
 
@@ -1168,6 +1302,340 @@ namespace FactoryProductManager.Services
             {
                 LogService.Error($"删除产品部位失败: ID={id}", ex);
                 throw;
+            }
+        }
+
+        public int AddProductPartMaterials(int productId, IReadOnlyList<ProductPartMaterial> materials)
+        {
+            if (materials == null || materials.Count == 0) return 0;
+            try
+            {
+                using (var conn = GetConnection())
+                {
+                    conn.Open();
+                    using (var tx = conn.BeginTransaction())
+                    {
+                        var cmd = new SQLiteCommand(@"
+                            INSERT INTO ProductPartMaterials
+                                (product_id, part_id, part_name, component_name, material_type_name,
+                                 material_id, material_name, factory_material_code, my_material_code,
+                                 brand, specification, unit, unit_price, quantity, total_price,
+                                 remarks, created_at, updated_at)
+                            VALUES
+                                (@productId, @partId, @partName, @componentName, @materialTypeName,
+                                 @materialId, @materialName, @factoryMaterialCode, @myMaterialCode,
+                                 @brand, @specification, @unit, @unitPrice, @quantity, @totalPrice,
+                                 @remarks, @createdAt, @updatedAt);
+                            SELECT last_insert_rowid();", conn, tx);
+
+                        cmd.Parameters.Add("@productId", System.Data.DbType.Int32);
+                        cmd.Parameters.Add("@partId", System.Data.DbType.Int32);
+                        cmd.Parameters.Add("@partName", System.Data.DbType.String);
+                        cmd.Parameters.Add("@componentName", System.Data.DbType.String);
+                        cmd.Parameters.Add("@materialTypeName", System.Data.DbType.String);
+                        cmd.Parameters.Add("@materialId", System.Data.DbType.Int32);
+                        cmd.Parameters.Add("@materialName", System.Data.DbType.String);
+                        cmd.Parameters.Add("@factoryMaterialCode", System.Data.DbType.String);
+                        cmd.Parameters.Add("@myMaterialCode", System.Data.DbType.String);
+                        cmd.Parameters.Add("@brand", System.Data.DbType.String);
+                        cmd.Parameters.Add("@specification", System.Data.DbType.String);
+                        cmd.Parameters.Add("@unit", System.Data.DbType.String);
+                        cmd.Parameters.Add("@unitPrice", System.Data.DbType.Decimal);
+                        cmd.Parameters.Add("@quantity", System.Data.DbType.Decimal);
+                        cmd.Parameters.Add("@totalPrice", System.Data.DbType.Decimal);
+                        cmd.Parameters.Add("@remarks", System.Data.DbType.String);
+                        cmd.Parameters.Add("@createdAt", System.Data.DbType.String);
+                        cmd.Parameters.Add("@updatedAt", System.Data.DbType.String);
+
+                        int count = 0;
+                        foreach (var m in materials)
+                        {
+                            cmd.Parameters["@productId"].Value = productId;
+                            cmd.Parameters["@partId"].Value = m.PartId.HasValue ? (object)m.PartId.Value : DBNull.Value;
+                            cmd.Parameters["@partName"].Value = m.PartName ?? string.Empty;
+                            cmd.Parameters["@componentName"].Value = m.ComponentName ?? string.Empty;
+                            cmd.Parameters["@materialTypeName"].Value = ToDbValue(m.MaterialTypeName);
+                            cmd.Parameters["@materialId"].Value = m.MaterialId.HasValue ? (object)m.MaterialId.Value : DBNull.Value;
+                            cmd.Parameters["@materialName"].Value = m.MaterialName ?? string.Empty;
+                            cmd.Parameters["@factoryMaterialCode"].Value = ToDbValue(m.FactoryMaterialCode);
+                            cmd.Parameters["@myMaterialCode"].Value = ToDbValue(m.MyMaterialCode);
+                            cmd.Parameters["@brand"].Value = ToDbValue(m.Brand);
+                            cmd.Parameters["@specification"].Value = ToDbValue(m.Specification);
+                            cmd.Parameters["@unit"].Value = ToDbValue(m.Unit);
+                            cmd.Parameters["@unitPrice"].Value = m.UnitPrice;
+                            cmd.Parameters["@quantity"].Value = m.Quantity;
+                            cmd.Parameters["@totalPrice"].Value = m.TotalPrice;
+                            cmd.Parameters["@remarks"].Value = ToDbValue(m.Remarks);
+                            cmd.Parameters["@createdAt"].Value = m.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss");
+                            cmd.Parameters["@updatedAt"].Value = m.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss");
+                            Convert.ToInt32(cmd.ExecuteScalar());
+                            count++;
+                        }
+
+                        tx.Commit();
+                        LogService.Info($"新增产品部位物料成功: productId={productId}, 共 {count} 条");
+                        return count;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogService.Error($"新增产品部位物料失败: productId={productId}", ex);
+                throw;
+            }
+        }
+
+        public List<ProductPartMaterial> GetProductPartMaterials(int productId, int? partId = null)
+        {
+            var list = new List<ProductPartMaterial>();
+            try
+            {
+                using (var conn = GetConnection())
+                {
+                    conn.Open();
+                    var cmd = new SQLiteCommand(@"
+                        SELECT id, product_id, part_id, part_name, component_name, material_type_name,
+                               material_id, material_name, factory_material_code, my_material_code,
+                               brand, specification, unit, unit_price, quantity, total_price,
+                               remarks, created_at, updated_at
+                        FROM ProductPartMaterials
+                        WHERE product_id = @productId" + (partId.HasValue ? " AND part_id = @partId" : "") + @"
+                        ORDER BY part_name, component_name, id", conn);
+                    cmd.Parameters.AddWithValue("@productId", productId);
+                    if (partId.HasValue)
+                    {
+                        cmd.Parameters.AddWithValue("@partId", partId.Value);
+                    }
+                    using var reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        list.Add(new ProductPartMaterial
+                        {
+                            Id = reader.GetInt32(0),
+                            ProductId = reader.GetInt32(1),
+                            PartId = reader.IsDBNull(2) ? null : reader.GetInt32(2),
+                            PartName = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
+                            ComponentName = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
+                            MaterialTypeName = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
+                            MaterialId = reader.IsDBNull(6) ? null : reader.GetInt32(6),
+                            MaterialName = reader.IsDBNull(7) ? string.Empty : reader.GetString(7),
+                            FactoryMaterialCode = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
+                            MyMaterialCode = reader.IsDBNull(9) ? string.Empty : reader.GetString(9),
+                            Brand = reader.IsDBNull(10) ? string.Empty : reader.GetString(10),
+                            Specification = reader.IsDBNull(11) ? string.Empty : reader.GetString(11),
+                            Unit = reader.IsDBNull(12) ? string.Empty : reader.GetString(12),
+                            UnitPrice = reader.IsDBNull(13) ? 0 : Convert.ToDecimal(reader.GetValue(13)),
+                            Quantity = reader.IsDBNull(14) ? 0 : Convert.ToDecimal(reader.GetValue(14)),
+                            Remarks = reader.IsDBNull(16) ? string.Empty : reader.GetString(16),
+                            CreatedAt = reader.IsDBNull(17) ? DateTime.Now : DateTime.Parse(reader.GetString(17)),
+                            UpdatedAt = reader.IsDBNull(18) ? DateTime.Now : DateTime.Parse(reader.GetString(18))
+                        });
+                    }
+                }
+                LogService.Info($"查询产品部位物料完成: productId={productId}, partId={partId}, 共 {list.Count} 条");
+                return list;
+            }
+            catch (Exception ex)
+            {
+                LogService.Error($"查询产品部位物料失败: productId={productId}", ex);
+                throw;
+            }
+        }
+
+        public int DeleteProductPartMaterialsByProduct(int productId)
+        {
+            try
+            {
+                using (var conn = GetConnection())
+                {
+                    conn.Open();
+                    var cmd = new SQLiteCommand("DELETE FROM ProductPartMaterials WHERE product_id = @productId", conn);
+                    cmd.Parameters.AddWithValue("@productId", productId);
+                    int n = cmd.ExecuteNonQuery();
+                    LogService.Info($"清空产品部位物料: productId={productId}, 删除 {n} 条");
+                    return n;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogService.Error($"清空产品部位物料失败: productId={productId}", ex);
+                throw;
+            }
+        }
+
+        // ===== CustomPart 自定义部位 =====
+
+        private void EnsureCustomPartsSchema(SQLiteConnection conn)
+        {
+            string createTable = @"
+                CREATE TABLE IF NOT EXISTS CustomParts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    part_name TEXT NOT NULL UNIQUE,
+                    components TEXT,
+                    created_at TEXT,
+                    updated_at TEXT
+                )";
+
+            using (var cmd = new SQLiteCommand(createTable, conn))
+            {
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public List<CustomPart> GetCustomParts()
+        {
+            var list = new List<CustomPart>();
+            try
+            {
+                using (var conn = GetConnection())
+                {
+                    conn.Open();
+                    var cmd = new SQLiteCommand("SELECT id, part_name, components, created_at, updated_at FROM CustomParts ORDER BY id", conn);
+                    using var reader = cmd.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        list.Add(new CustomPart
+                        {
+                            Id = reader.GetInt32(0),
+                            PartName = reader.IsDBNull(1) ? string.Empty : reader.GetString(1),
+                            Components = reader.IsDBNull(2) ? string.Empty : reader.GetString(2),
+                            CreatedAt = reader.IsDBNull(3) ? DateTime.Now : DateTime.Parse(reader.GetString(3)),
+                            UpdatedAt = reader.IsDBNull(4) ? DateTime.Now : DateTime.Parse(reader.GetString(4))
+                        });
+                    }
+                }
+                LogService.Info($"查询自定义部位列表完成，共 {list.Count} 条记录");
+                return list;
+            }
+            catch (Exception ex)
+            {
+                LogService.Error("查询自定义部位列表失败", ex);
+                throw;
+            }
+        }
+
+        public int AddCustomPart(CustomPart part)
+        {
+            if (part == null || string.IsNullOrWhiteSpace(part.PartName))
+            {
+                throw new ArgumentException("部位名称不能为空");
+            }
+
+            try
+            {
+                using (var conn = GetConnection())
+                {
+                    conn.Open();
+
+                    var checkCmd = new SQLiteCommand("SELECT id FROM CustomParts WHERE part_name = @name", conn);
+                    checkCmd.Parameters.AddWithValue("@name", part.PartName.Trim());
+                    var existing = checkCmd.ExecuteScalar();
+                    if (existing != null && existing != DBNull.Value)
+                    {
+                        throw new InvalidOperationException($"自定义部位\"{part.PartName}\"已存在");
+                    }
+
+                    var cmd = new SQLiteCommand(@"
+                        INSERT INTO CustomParts (part_name, components, created_at, updated_at)
+                        VALUES (@name, @components, @createdAt, @updatedAt);
+                        SELECT last_insert_rowid();", conn);
+                    cmd.Parameters.AddWithValue("@name", part.PartName.Trim());
+                    cmd.Parameters.AddWithValue("@components", ToDbValue(part.Components));
+                    cmd.Parameters.AddWithValue("@createdAt", part.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
+                    cmd.Parameters.AddWithValue("@updatedAt", part.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
+                    int newId = Convert.ToInt32(cmd.ExecuteScalar());
+                    part.Id = newId;
+                    LogService.Info($"新增自定义部位成功: ID={newId}, 名称={part.PartName}");
+                    return newId;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogService.Error($"新增自定义部位失败: 名称={part.PartName}", ex);
+                throw;
+            }
+        }
+
+        public void UpdateCustomPart(CustomPart part)
+        {
+            if (part == null || part.Id <= 0)
+            {
+                throw new ArgumentException("自定义部位 ID 无效");
+            }
+
+            try
+            {
+                using (var conn = GetConnection())
+                {
+                    conn.Open();
+                    var cmd = new SQLiteCommand(@"
+                        UPDATE CustomParts SET
+                            part_name = @name,
+                            components = @components,
+                            updated_at = @updatedAt
+                        WHERE id = @id", conn);
+                    cmd.Parameters.AddWithValue("@name", part.PartName.Trim());
+                    cmd.Parameters.AddWithValue("@components", ToDbValue(part.Components));
+                    cmd.Parameters.AddWithValue("@updatedAt", part.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
+                    cmd.Parameters.AddWithValue("@id", part.Id);
+                    cmd.ExecuteNonQuery();
+                }
+                LogService.Info($"更新自定义部位成功: ID={part.Id}, 名称={part.PartName}");
+            }
+            catch (Exception ex)
+            {
+                LogService.Error($"更新自定义部位失败: ID={part.Id}", ex);
+                throw;
+            }
+        }
+
+        public void DeleteCustomPart(int id)
+        {
+            try
+            {
+                using (var conn = GetConnection())
+                {
+                    conn.Open();
+                    var cmd = new SQLiteCommand("DELETE FROM CustomParts WHERE id = @id", conn);
+                    cmd.Parameters.AddWithValue("@id", id);
+                    cmd.ExecuteNonQuery();
+                }
+                LogService.Info($"删除自定义部位成功: ID={id}");
+            }
+            catch (Exception ex)
+            {
+                LogService.Error($"删除自定义部位失败: ID={id}", ex);
+                throw;
+            }
+        }
+
+        public bool CustomPartExists(string partName, int? excludeId = null)
+        {
+            if (string.IsNullOrWhiteSpace(partName)) return false;
+            try
+            {
+                using (var conn = GetConnection())
+                {
+                    conn.Open();
+                    string sql = "SELECT COUNT(*) FROM CustomParts WHERE part_name = @name";
+                    if (excludeId.HasValue)
+                    {
+                        sql += " AND id <> @excludeId";
+                    }
+                    var cmd = new SQLiteCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@name", partName.Trim());
+                    if (excludeId.HasValue)
+                    {
+                        cmd.Parameters.AddWithValue("@excludeId", excludeId.Value);
+                    }
+                    long count = (long)cmd.ExecuteScalar();
+                    return count > 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogService.Error($"检查自定义部位是否存在失败: name={partName}", ex);
+                return false;
             }
         }
     }

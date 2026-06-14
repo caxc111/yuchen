@@ -1,5 +1,11 @@
-.vs/ 
-bin/ 
-obj/ 
-*.suo 
-*.user 
+.vs/
+bin/
+obj/
+*.suo
+*.user
+*.log
+Logs/
+*.db
+*.sqlite
+~$*.xlsx
+*.tmp

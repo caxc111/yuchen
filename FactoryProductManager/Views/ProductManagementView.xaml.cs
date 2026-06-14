@@ -33,7 +33,7 @@ namespace FactoryProductManager.Views
             dialog.ShowDialog();
             if (dialog.IsSaved)
             {
-                _viewModel.AddProduct(dialog.Product);
+                _viewModel.AddProduct(dialog.Product, dialog.PendingParts, dialog.PendingMaterials);
             }
         }
 
@@ -49,7 +49,7 @@ namespace FactoryProductManager.Views
             dialog.ShowDialog();
             if (dialog.IsSaved)
             {
-                _viewModel.UpdateProduct(dialog.Product);
+                _viewModel.UpdateProduct(dialog.Product, dialog.PendingParts, dialog.PendingMaterials);
             }
         }
 

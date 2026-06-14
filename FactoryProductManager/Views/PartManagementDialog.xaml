@@ -76,7 +76,7 @@
                     <ItemsControl x:Name="CustomPartsPanel">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Grid Margin="0,0,0,6">
+                                <Grid Margin="0,0,0,6" Loaded="CustomPartRow_Loaded">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
@@ -84,9 +84,10 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="{Binding PartName}" FontSize="14"
                                                VerticalAlignment="Center" Foreground="{StaticResource PrimaryTextBrush}"/>
-                                    <ComboBox Grid.Column="1" Style="{StaticResource PartOptionComboBoxStyle}"
+                                    <ComboBox x:Name="CustomPartQuantityComboBox" Grid.Column="1"
+                                              Style="{StaticResource PartOptionComboBoxStyle}"
                                               ItemsSource="{Binding Source={x:Static local:PartManagementDialog.QuantityOptions}}"
-                                              SelectedItem="{Binding Quantity, Mode=TwoWay}"
+                                              SelectionChanged="CustomPartQuantity_SelectionChanged"
                                               Margin="10,0"/>
                                     <Button Grid.Column="2" Content="删除" Click="DeleteCustomPart_Click"
                                             Style="{StaticResource UnifiedDialogActionButtonStyle}"

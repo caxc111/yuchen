@@ -210,10 +210,10 @@ namespace FactoryProductManager.Services
         {
             try
             {
-                string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                if (!string.IsNullOrWhiteSpace(localAppData))
+                string projectRoot = ResolveProjectRoot();
+                if (!string.IsNullOrWhiteSpace(projectRoot))
                 {
-                    return Path.Combine(localAppData, "YuchenInfoCenter", AppName, "Logs");
+                    return Path.Combine(projectRoot, "Logs");
                 }
             }
             catch
@@ -221,6 +221,21 @@ namespace FactoryProductManager.Services
             }
 
             return FallbackLogDirectory;
+        }
+
+        private static string ResolveProjectRoot()
+        {
+            string? dir = AppDomain.CurrentDomain.BaseDirectory;
+            for (int i = 0; i < 5 && !string.IsNullOrEmpty(dir); i++)
+            {
+                if (File.Exists(Path.Combine(dir, "FactoryProductManager.csproj"))
+                    || Directory.Exists(Path.Combine(dir, ".git")))
+                {
+                    return dir;
+                }
+                dir = Path.GetDirectoryName(dir);
+            }
+            return string.Empty;
         }
 
         private static bool ResolveDebugEnabled()
