@@ -12,7 +12,6 @@
         WindowStartupLocation="CenterOwner">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-        <converters:BusinessTypeToVisibilityConverter x:Key="BusinessTypeToVisibilityConverter"/>
         <Style x:Key="UnifiedDialogLabelTextStyle" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
         </Style>
