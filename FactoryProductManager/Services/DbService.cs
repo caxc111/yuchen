@@ -112,6 +112,7 @@ namespace FactoryProductManager.Services
                 EnsureProductsSchema(conn);
                 EnsureProductPartsSchema(conn);
                 EnsureCustomPartsSchema(conn);
+                EnsureMaterialGroupsSchema(conn);
             }
         }
 
@@ -321,6 +322,305 @@ namespace FactoryProductManager.Services
             {
                 using var idxCmd = new SQLiteCommand("CREATE INDEX idx_ppm_part_id ON ProductPartMaterials(part_id)", conn);
                 idxCmd.ExecuteNonQuery();
+            }
+
+            // 复合物料相关列（方案 B：MaterialGroup）
+            if (!ColumnExists(conn, "ProductPartMaterials", "is_composite"))
+            {
+                using var cmd = new SQLiteCommand("ALTER TABLE ProductPartMaterials ADD COLUMN is_composite INTEGER DEFAULT 0", conn);
+                cmd.ExecuteNonQuery();
+            }
+            if (!ColumnExists(conn, "ProductPartMaterials", "group_code"))
+            {
+                using var cmd = new SQLiteCommand("ALTER TABLE ProductPartMaterials ADD COLUMN group_code TEXT", conn);
+                cmd.ExecuteNonQuery();
+            }
+            if (!ColumnExists(conn, "ProductPartMaterials", "item_name"))
+            {
+                using var cmd = new SQLiteCommand("ALTER TABLE ProductPartMaterials ADD COLUMN item_name TEXT", conn);
+                cmd.ExecuteNonQuery();
+            }
+            if (!ColumnExists(conn, "ProductPartMaterials", "parent_id"))
+            {
+                using var cmd = new SQLiteCommand("ALTER TABLE ProductPartMaterials ADD COLUMN parent_id INTEGER", conn);
+                cmd.ExecuteNonQuery();
+            }
+            if (!IndexExists(conn, "ProductPartMaterials", "idx_ppm_parent_id"))
+            {
+                using var idxCmd = new SQLiteCommand("CREATE INDEX idx_ppm_parent_id ON ProductPartMaterials(parent_id)", conn);
+                idxCmd.ExecuteNonQuery();
+            }
+        }
+
+        // ===== MaterialGroup / MaterialGroupItem =====
+
+        private void EnsureMaterialGroupsSchema(SQLiteConnection conn)
+        {
+            string createGroupsTable = @"
+                CREATE TABLE IF NOT EXISTS MaterialGroups (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    group_code TEXT NOT NULL UNIQUE,
+                    group_name TEXT NOT NULL,
+                    category TEXT,
+                    description TEXT,
+                    is_active INTEGER DEFAULT 1,
+                    created_at TEXT,
+                    updated_at TEXT
+                )";
+
+            using (var cmd = new SQLiteCommand(createGroupsTable, conn))
+            {
+                cmd.ExecuteNonQuery();
+            }
+
+            string createItemsTable = @"
+                CREATE TABLE IF NOT EXISTS MaterialGroupItems (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    group_id INTEGER NOT NULL,
+                    item_name TEXT NOT NULL,
+                    item_order INTEGER DEFAULT 0,
+                    material_type TEXT,
+                    selection_rule TEXT DEFAULT 'Single',
+                    is_required INTEGER DEFAULT 1,
+                    prompt TEXT,
+                    FOREIGN KEY (group_id) REFERENCES MaterialGroups(id) ON DELETE CASCADE
+                )";
+
+            using (var cmd = new SQLiteCommand(createItemsTable, conn))
+            {
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public List<MaterialGroup> GetMaterialGroups()
+        {
+            var list = new List<MaterialGroup>();
+            try
+            {
+                using var conn = GetConnection();
+                conn.Open();
+                var cmd = new SQLiteCommand(
+                    "SELECT id, group_code, group_name, category, description, is_active, created_at, updated_at FROM MaterialGroups WHERE is_active = 1 ORDER BY id", conn);
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    list.Add(new MaterialGroup
+                    {
+                        Id = reader.GetInt32(0),
+                        GroupCode = reader.GetString(1),
+                        GroupName = reader.GetString(2),
+                        Category = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
+                        Description = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
+                        IsActive = !reader.IsDBNull(5) && reader.GetInt32(5) == 1,
+                        CreatedAt = reader.IsDBNull(6) ? DateTime.Now : DateTime.Parse(reader.GetString(6)),
+                        UpdatedAt = reader.IsDBNull(7) ? DateTime.Now : DateTime.Parse(reader.GetString(7))
+                    });
+                }
+
+                // 批量加载子项
+                if (list.Count > 0)
+                {
+                    var itemCmd = new SQLiteCommand(
+                        "SELECT id, group_id, item_name, item_order, material_type, selection_rule, is_required, prompt FROM MaterialGroupItems ORDER BY group_id, item_order", conn);
+                    using var itemReader = itemCmd.ExecuteReader();
+                    var byGroup = list.ToDictionary(g => g.Id);
+                    while (itemReader.Read())
+                    {
+                        int gid = itemReader.GetInt32(1);
+                        if (byGroup.TryGetValue(gid, out var g))
+                        {
+                            g.Items.Add(new MaterialGroupItem
+                            {
+                                Id = itemReader.GetInt32(0),
+                                GroupId = gid,
+                                ItemName = itemReader.GetString(2),
+                                ItemOrder = itemReader.GetInt32(3),
+                                MaterialType = itemReader.IsDBNull(4) ? string.Empty : itemReader.GetString(4),
+                                SelectionRule = itemReader.IsDBNull(5) ? SelectionRuleType.Single : itemReader.GetString(5),
+                                IsRequired = !itemReader.IsDBNull(6) && itemReader.GetInt32(6) == 1,
+                                Prompt = itemReader.IsDBNull(7) ? string.Empty : itemReader.GetString(7)
+                            });
+                        }
+                    }
+                }
+
+                LogService.Info($"查询物料组合模板完成，共 {list.Count} 条");
+                return list;
+            }
+            catch (Exception ex)
+            {
+                LogService.Error("查询物料组合模板失败", ex);
+                throw;
+            }
+        }
+
+        public MaterialGroup? GetMaterialGroupByCode(string groupCode)
+        {
+            if (string.IsNullOrWhiteSpace(groupCode)) return null;
+            try
+            {
+                using var conn = GetConnection();
+                conn.Open();
+                var cmd = new SQLiteCommand(
+                    "SELECT id, group_code, group_name, category, description, is_active, created_at, updated_at FROM MaterialGroups WHERE group_code = @code LIMIT 1", conn);
+                cmd.Parameters.AddWithValue("@code", groupCode.Trim());
+                using var reader = cmd.ExecuteReader();
+                if (!reader.Read()) return null;
+                var g = new MaterialGroup
+                {
+                    Id = reader.GetInt32(0),
+                    GroupCode = reader.GetString(1),
+                    GroupName = reader.GetString(2),
+                    Category = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
+                    Description = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
+                    IsActive = !reader.IsDBNull(5) && reader.GetInt32(5) == 1,
+                    CreatedAt = reader.IsDBNull(6) ? DateTime.Now : DateTime.Parse(reader.GetString(6)),
+                    UpdatedAt = reader.IsDBNull(7) ? DateTime.Now : DateTime.Parse(reader.GetString(7))
+                };
+                reader.Close();
+
+                var itemCmd = new SQLiteCommand(
+                    "SELECT id, group_id, item_name, item_order, material_type, selection_rule, is_required, prompt FROM MaterialGroupItems WHERE group_id = @gid ORDER BY item_order", conn);
+                itemCmd.Parameters.AddWithValue("@gid", g.Id);
+                using var itemReader = itemCmd.ExecuteReader();
+                while (itemReader.Read())
+                {
+                    g.Items.Add(new MaterialGroupItem
+                    {
+                        Id = itemReader.GetInt32(0),
+                        GroupId = g.Id,
+                        ItemName = itemReader.GetString(2),
+                        ItemOrder = itemReader.GetInt32(3),
+                        MaterialType = itemReader.IsDBNull(4) ? string.Empty : itemReader.GetString(4),
+                        SelectionRule = itemReader.IsDBNull(5) ? SelectionRuleType.Single : itemReader.GetString(5),
+                        IsRequired = !itemReader.IsDBNull(6) && itemReader.GetInt32(6) == 1,
+                        Prompt = itemReader.IsDBNull(7) ? string.Empty : itemReader.GetString(7)
+                    });
+                }
+                return g;
+            }
+            catch (Exception ex)
+            {
+                LogService.Error($"按编码查询物料组合失败: code={groupCode}", ex);
+                throw;
+            }
+        }
+
+        public int AddMaterialGroup(MaterialGroup group)
+        {
+            if (group == null || string.IsNullOrWhiteSpace(group.GroupCode) || string.IsNullOrWhiteSpace(group.GroupName))
+            {
+                throw new ArgumentException("组合编码和名称不能为空");
+            }
+            try
+            {
+                using var conn = GetConnection();
+                conn.Open();
+                using var tx = conn.BeginTransaction();
+
+                var cmd = new SQLiteCommand(@"
+                    INSERT INTO MaterialGroups (group_code, group_name, category, description, is_active, created_at, updated_at)
+                    VALUES (@code, @name, @category, @desc, @active, @createdAt, @updatedAt);
+                    SELECT last_insert_rowid();", conn, tx);
+                cmd.Parameters.AddWithValue("@code", group.GroupCode.Trim());
+                cmd.Parameters.AddWithValue("@name", group.GroupName.Trim());
+                cmd.Parameters.AddWithValue("@category", ToDbValue(group.Category));
+                cmd.Parameters.AddWithValue("@desc", ToDbValue(group.Description));
+                cmd.Parameters.AddWithValue("@active", group.IsActive ? 1 : 0);
+                cmd.Parameters.AddWithValue("@createdAt", group.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
+                cmd.Parameters.AddWithValue("@updatedAt", group.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss"));
+                int newId = Convert.ToInt32(cmd.ExecuteScalar());
+
+                foreach (var item in group.Items)
+                {
+                    var itemCmd = new SQLiteCommand(@"
+                        INSERT INTO MaterialGroupItems (group_id, item_name, item_order, material_type, selection_rule, is_required, prompt)
+                        VALUES (@gid, @name, @order, @mtype, @rule, @req, @prompt)", conn, tx);
+                    itemCmd.Parameters.AddWithValue("@gid", newId);
+                    itemCmd.Parameters.AddWithValue("@name", item.ItemName);
+                    itemCmd.Parameters.AddWithValue("@order", item.ItemOrder);
+                    itemCmd.Parameters.AddWithValue("@mtype", ToDbValue(item.MaterialType));
+                    itemCmd.Parameters.AddWithValue("@rule", item.SelectionRule);
+                    itemCmd.Parameters.AddWithValue("@req", item.IsRequired ? 1 : 0);
+                    itemCmd.Parameters.AddWithValue("@prompt", ToDbValue(item.Prompt));
+                    itemCmd.ExecuteNonQuery();
+                }
+
+                tx.Commit();
+                LogService.Info($"新增物料组合成功: ID={newId}, code={group.GroupCode}, 子项 {group.Items.Count} 个");
+                return newId;
+            }
+            catch (Exception ex)
+            {
+                LogService.Error($"新增物料组合失败: code={group.GroupCode}", ex);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 种子数据：3 个柜类模板（橱柜/洗衣柜/中岛台），仅在数据库无任何 MaterialGroups 记录时插入。
+        /// </summary>
+        public void SeedDefaultMaterialGroups()
+        {
+            try
+            {
+                using var conn = GetConnection();
+                conn.Open();
+
+                var checkCmd = new SQLiteCommand("SELECT COUNT(*) FROM MaterialGroups", conn);
+                long count = (long)checkCmd.ExecuteScalar();
+                if (count > 0) return; // 已有数据，跳过 seed
+
+                var seeds = new List<MaterialGroup>
+                {
+                    new MaterialGroup
+                    {
+                        GroupCode = "CB-001", GroupName = "定制橱柜", Category = "柜类",
+                        Description = "厨房定制橱柜：柜体+门板+台面+五金+拉手",
+                        Items = new List<MaterialGroupItem>
+                        {
+                            new MaterialGroupItem { ItemName = "柜体", ItemOrder = 1, MaterialType = "板材", IsRequired = true },
+                            new MaterialGroupItem { ItemName = "门板", ItemOrder = 2, MaterialType = "门板", IsRequired = true },
+                            new MaterialGroupItem { ItemName = "台面", ItemOrder = 3, MaterialType = "石英石,大理石,岩板", IsRequired = true, Prompt = "请选择台面材质（石英石/大理石/岩板 三选一）" },
+                            new MaterialGroupItem { ItemName = "五金", ItemOrder = 4, MaterialType = "五金", IsRequired = true },
+                            new MaterialGroupItem { ItemName = "拉手", ItemOrder = 5, MaterialType = "拉手", IsRequired = false, SelectionRule = SelectionRuleType.SingleOrNone }
+                        }
+                    },
+                    new MaterialGroup
+                    {
+                        GroupCode = "XYG-001", GroupName = "洗衣柜", Category = "柜类",
+                        Description = "洗衣房洗衣柜：柜体+门板+台面+五金",
+                        Items = new List<MaterialGroupItem>
+                        {
+                            new MaterialGroupItem { ItemName = "柜体", ItemOrder = 1, MaterialType = "板材", IsRequired = true },
+                            new MaterialGroupItem { ItemName = "门板", ItemOrder = 2, MaterialType = "门板", IsRequired = true },
+                            new MaterialGroupItem { ItemName = "台面", ItemOrder = 3, MaterialType = "石英石,大理石,岩板", IsRequired = true, Prompt = "请选择台面材质（石英石/大理石/岩板 三选一）" },
+                            new MaterialGroupItem { ItemName = "五金", ItemOrder = 4, MaterialType = "五金", IsRequired = true }
+                        }
+                    },
+                    new MaterialGroup
+                    {
+                        GroupCode = "ZDT-001", GroupName = "餐厨中岛台", Category = "柜类",
+                        Description = "餐厨中岛台：柜体+门板+台面+五金",
+                        Items = new List<MaterialGroupItem>
+                        {
+                            new MaterialGroupItem { ItemName = "柜体", ItemOrder = 1, MaterialType = "板材", IsRequired = true },
+                            new MaterialGroupItem { ItemName = "门板", ItemOrder = 2, MaterialType = "门板", IsRequired = true },
+                            new MaterialGroupItem { ItemName = "台面", ItemOrder = 3, MaterialType = "石英石,大理石,岩板", IsRequired = true, Prompt = "请选择台面材质（石英石/大理石/岩板 三选一）" },
+                            new MaterialGroupItem { ItemName = "五金", ItemOrder = 4, MaterialType = "五金", IsRequired = true }
+                        }
+                    }
+                };
+
+                foreach (var g in seeds)
+                {
+                    AddMaterialGroup(g);
+                }
+                LogService.Info($"种子数据插入完成，共 {seeds.Count} 个柜类模板");
+            }
+            catch (Exception ex)
+            {
+                LogService.Error("种子物料组合模板失败", ex);
             }
         }
 
@@ -1320,12 +1620,14 @@ namespace FactoryProductManager.Services
                                 (product_id, part_id, part_name, component_name, material_type_name,
                                  material_id, material_name, factory_material_code, my_material_code,
                                  brand, specification, unit, unit_price, quantity, total_price,
-                                 remarks, created_at, updated_at)
+                                 remarks, is_composite, group_code, item_name, parent_id,
+                                 created_at, updated_at)
                             VALUES
                                 (@productId, @partId, @partName, @componentName, @materialTypeName,
                                  @materialId, @materialName, @factoryMaterialCode, @myMaterialCode,
                                  @brand, @specification, @unit, @unitPrice, @quantity, @totalPrice,
-                                 @remarks, @createdAt, @updatedAt);
+                                 @remarks, @isComposite, @groupCode, @itemName, @parentId,
+                                 @createdAt, @updatedAt);
                             SELECT last_insert_rowid();", conn, tx);
 
                         cmd.Parameters.Add("@productId", System.Data.DbType.Int32);
@@ -1344,6 +1646,10 @@ namespace FactoryProductManager.Services
                         cmd.Parameters.Add("@quantity", System.Data.DbType.Decimal);
                         cmd.Parameters.Add("@totalPrice", System.Data.DbType.Decimal);
                         cmd.Parameters.Add("@remarks", System.Data.DbType.String);
+                        cmd.Parameters.Add("@isComposite", System.Data.DbType.Int32);
+                        cmd.Parameters.Add("@groupCode", System.Data.DbType.String);
+                        cmd.Parameters.Add("@itemName", System.Data.DbType.String);
+                        cmd.Parameters.Add("@parentId", System.Data.DbType.Int32);
                         cmd.Parameters.Add("@createdAt", System.Data.DbType.String);
                         cmd.Parameters.Add("@updatedAt", System.Data.DbType.String);
 
@@ -1366,6 +1672,10 @@ namespace FactoryProductManager.Services
                             cmd.Parameters["@quantity"].Value = m.Quantity;
                             cmd.Parameters["@totalPrice"].Value = m.TotalPrice;
                             cmd.Parameters["@remarks"].Value = ToDbValue(m.Remarks);
+                            cmd.Parameters["@isComposite"].Value = m.IsComposite ? 1 : 0;
+                            cmd.Parameters["@groupCode"].Value = ToDbValue(m.GroupCode);
+                            cmd.Parameters["@itemName"].Value = ToDbValue(m.ItemName);
+                            cmd.Parameters["@parentId"].Value = m.ParentId.HasValue ? (object)m.ParentId.Value : DBNull.Value;
                             cmd.Parameters["@createdAt"].Value = m.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss");
                             cmd.Parameters["@updatedAt"].Value = m.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss");
                             Convert.ToInt32(cmd.ExecuteScalar());
@@ -1397,7 +1707,8 @@ namespace FactoryProductManager.Services
                         SELECT id, product_id, part_id, part_name, component_name, material_type_name,
                                material_id, material_name, factory_material_code, my_material_code,
                                brand, specification, unit, unit_price, quantity, total_price,
-                               remarks, created_at, updated_at
+                               remarks, is_composite, group_code, item_name, parent_id,
+                               created_at, updated_at
                         FROM ProductPartMaterials
                         WHERE product_id = @productId" + (partId.HasValue ? " AND part_id = @partId" : "") + @"
                         ORDER BY part_name, component_name, id", conn);
@@ -1426,9 +1737,13 @@ namespace FactoryProductManager.Services
                             Unit = reader.IsDBNull(12) ? string.Empty : reader.GetString(12),
                             UnitPrice = reader.IsDBNull(13) ? 0 : Convert.ToDecimal(reader.GetValue(13)),
                             Quantity = reader.IsDBNull(14) ? 0 : Convert.ToDecimal(reader.GetValue(14)),
-                            Remarks = reader.IsDBNull(16) ? string.Empty : reader.GetString(16),
-                            CreatedAt = reader.IsDBNull(17) ? DateTime.Now : DateTime.Parse(reader.GetString(17)),
-                            UpdatedAt = reader.IsDBNull(18) ? DateTime.Now : DateTime.Parse(reader.GetString(18))
+                            Remarks = reader.IsDBNull(15) ? string.Empty : reader.GetString(15),
+                            IsComposite = !reader.IsDBNull(16) && reader.GetInt32(16) == 1,
+                            GroupCode = reader.IsDBNull(17) ? string.Empty : reader.GetString(17),
+                            ItemName = reader.IsDBNull(18) ? string.Empty : reader.GetString(18),
+                            ParentId = reader.IsDBNull(19) ? null : reader.GetInt32(19),
+                            CreatedAt = reader.IsDBNull(20) ? DateTime.Now : DateTime.Parse(reader.GetString(20)),
+                            UpdatedAt = reader.IsDBNull(21) ? DateTime.Now : DateTime.Parse(reader.GetString(21))
                         });
                     }
                 }

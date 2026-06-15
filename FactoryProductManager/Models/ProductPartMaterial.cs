@@ -7,6 +7,8 @@ namespace FactoryProductManager.Models
     public class ProductPartMaterial : INotifyPropertyChanged
     {
         private decimal _quantity = 1;
+        // 复合物料主行的总价需要可写（=子项之和），普通行用计算值
+        private decimal? _totalPriceOverride;
 
         public int Id { get; set; }
         public int ProductId { get; set; }
@@ -26,6 +28,16 @@ namespace FactoryProductManager.Models
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
+        // ===== 复合物料相关字段（方案 B） =====
+        // 1=主行（代表"定制橱柜"这种整体）；0=普通行或子行
+        public bool IsComposite { get; set; }
+        // 组合编码（如 CB-001），与 MaterialGroups.group_code 关联
+        public string GroupCode { get; set; } = string.Empty;
+        // 子项名（如"柜体"/"门板"/"台面"），普通行为空
+        public string ItemName { get; set; } = string.Empty;
+        // 子行指向主行 id；主行此字段为 null
+        public int? ParentId { get; set; }
+
         public decimal Quantity
         {
             get => _quantity;
@@ -40,7 +52,16 @@ namespace FactoryProductManager.Models
             }
         }
 
-        public decimal TotalPrice => UnitPrice * Quantity;
+        // 复合物料主行用 _totalPriceOverride；普通行用 UnitPrice * Quantity
+        public decimal TotalPrice
+        {
+            get => _totalPriceOverride ?? (UnitPrice * Quantity);
+            set
+            {
+                _totalPriceOverride = value;
+                OnPropertyChanged();
+            }
+        }
 
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
