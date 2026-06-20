@@ -7,6 +7,7 @@
             <converters:PageToBackgroundConverter x:Key="PageToBackgroundConverter"/>
             <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
             <converters:NotNullToVisibilityConverter x:Key="NotNullToVisibilityConverter"/>
+            <converters:GreaterThanZeroToBoolConverter x:Key="GreaterThanZeroToBoolConverter"/>
 
             <SolidColorBrush x:Key="WarmPanelBrush" Color="#FFF2EEE8" Opacity="0.84"/>
             <SolidColorBrush x:Key="WarmSurfaceBrush" Color="#FFF2EEE8" Opacity="0.9"/>

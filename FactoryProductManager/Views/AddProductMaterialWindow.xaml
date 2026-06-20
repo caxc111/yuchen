@@ -75,7 +75,7 @@
                             <Image Source="Resources/Icons/factory_bg.jpeg" Stretch="Fill"/>
                             <Border Padding="5" Background="Transparent" ClipToBounds="False">
                                 <StackPanel ClipToBounds="False">
-                                    <TextBlock Text="选择部位" FontSize="12" FontWeight="Bold"
+                                    <TextBlock Text="选择部件" FontSize="12" FontWeight="Bold"
                                                HorizontalAlignment="Center" Foreground="#333333"
                                                Margin="0,20,0,15"/>
                                     <StackPanel x:Name="NavPanel" Margin="0,10,0,0"/>
@@ -139,10 +139,10 @@
                                                         </TextBlock>
                                                     </Grid>
 
-                                                    <!-- 部位/部品 -->
+                                                    <!-- 部件/部品 -->
                                                     <TextBlock Grid.Row="1" Grid.Column="0" FontSize="11"
                                                                Foreground="{StaticResource SubtleTextBrush}" Margin="0,0,0,6">
-                                                        <Run Text="部位："/><Run Text="{Binding PartName}"/>
+                                                        <Run Text="部件："/><Run Text="{Binding PartName}"/>
                                                         <Run Text="  部品："/><Run Text="{Binding ComponentName}"/>
                                                     </TextBlock>
 
@@ -242,7 +242,7 @@
                                                             <RowDefinition Height="Auto"/>
                                                             <RowDefinition Height="Auto"/>
                                                         </Grid.RowDefinitions>
-                                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="部位："
+                                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="部件："
                                                                    FontSize="12" Foreground="{StaticResource SubtleTextBrush}"
                                                                    Margin="0,3"/>
                                                         <TextBlock Grid.Row="0" Grid.Column="1"

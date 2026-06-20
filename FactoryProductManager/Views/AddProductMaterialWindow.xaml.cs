@@ -18,13 +18,13 @@ namespace FactoryProductManager.Views
     {
         public ObservableCollection<SelectedMaterial> SelectedMaterials { get; } = new();
 
-        // 传入的部位列表
+        // 传入的部件列表
         private readonly List<ProductPart> _parts;
 
         // 关联的产品 id（>0 表示编辑已存在产品；<=0 表示新建产品暂存）
         private readonly int _productId;
 
-        // 当前选中的部位；初值在 InitializeNavPanel 中按 _parts[0] 动态设置
+        // 当前选中的部件；初值在 InitializeNavPanel 中按 _parts[0] 动态设置
         private string _selectedPartName = "";
         public string SelectedPartName
         {
@@ -39,7 +39,7 @@ namespace FactoryProductManager.Views
             }
         }
 
-        // 部位 → 部品（一个部位下可挂多个部品）
+        // 部件 → 部品（一个部件下可挂多个部品）
         private readonly Dictionary<string, List<string>> _partComponents = new()
         {
             ["门厅"]   = new List<string> { "地面", "固装", "灯具" },
@@ -53,7 +53,7 @@ namespace FactoryProductManager.Views
             ["阳台"]   = new List<string> { "地面", "墙面", "灯具" }
         };
 
-        // 从数据库加载自定义部位并合并到 _partComponents
+        // 从数据库加载自定义部件并合并到 _partComponents
         private void LoadCustomPartsFromDatabase()
         {
             try
@@ -63,19 +63,19 @@ namespace FactoryProductManager.Views
                 foreach (var cp in customParts)
                 {
                     if (string.IsNullOrWhiteSpace(cp.PartName)) continue;
-                    if (_partComponents.ContainsKey(cp.PartName)) continue; // 默认部位不覆盖
+                    if (_partComponents.ContainsKey(cp.PartName)) continue; // 默认部件不覆盖
                     _partComponents[cp.PartName] = cp.ComponentList ?? new List<string>();
                 }
-                LogService.Info($"[AddProductMaterialWindow] 加载自定义部位 {customParts.Count} 个");
+                LogService.Info($"[AddProductMaterialWindow] 加载自定义部件 {customParts.Count} 个");
             }
             catch (Exception ex)
             {
-                LogService.Error("[AddProductMaterialWindow] 加载自定义部位失败", ex);
+                LogService.Error("[AddProductMaterialWindow] 加载自定义部件失败", ex);
             }
         }
 
-        // 部位 × 部品 → 物料类型
-        // key 为 "{部位}-{部品}"，门厅数据保留为 fallback（即只用 "部品" 也能查到）
+        // 部件 × 部品 → 物料类型
+        // key 为 "{部件}-{部品}"，门厅数据保留为 fallback（即只用 "部品" 也能查到）
         private readonly Dictionary<string, List<MaterialType>> _componentMaterials = new()
         {
             ["门厅-地面"] = new List<MaterialType>
@@ -87,8 +87,8 @@ namespace FactoryProductManager.Views
             },
             ["门厅-固装"] = new List<MaterialType>
             {
-                new MaterialType { Name = "玄关柜", Unit = "元/套", DefaultPrice = 1680 },
-                new MaterialType { Name = "鞋柜", Unit = "元/套", DefaultPrice = 1680 }
+                new MaterialType { Name = "玄关柜", Unit = "元/套", DefaultPrice = 1680, IsComposite = true, GroupCode = "GX-001" },
+                new MaterialType { Name = "鞋柜", Unit = "元/套", DefaultPrice = 1680, IsComposite = true, GroupCode = "GX-001" }
             },
             ["门厅-灯具"] = new List<MaterialType>
             {
@@ -105,7 +105,7 @@ namespace FactoryProductManager.Views
             },
             ["洗衣房-固装"] = new List<MaterialType>
             {
-                new MaterialType { Name = "洗衣机柜", Unit = "元/套", DefaultPrice = 2500, IsComposite = true, GroupCode = "XYG-001" }
+                new MaterialType { Name = "洗衣机柜", Unit = "元/套", DefaultPrice = 2500, IsComposite = true, GroupCode = "GX-001" }
             },
             ["洗衣房-五金洁具"] = new List<MaterialType>
             {
@@ -134,10 +134,10 @@ namespace FactoryProductManager.Views
             },
             ["客餐厨-固装"] = new List<MaterialType>
             {
-                new MaterialType { Name = "定制橱柜", Unit = "元/套", DefaultPrice = 6000, IsComposite = true, GroupCode = "CB-001" },
-                new MaterialType { Name = "洗衣柜", Unit = "元/套", DefaultPrice = 2500, IsComposite = true, GroupCode = "XYG-001" },
-                new MaterialType { Name = "餐厨中岛台", Unit = "元/m", DefaultPrice = 3500, IsComposite = true, GroupCode = "ZDT-001" },
-                new MaterialType { Name = "电视柜", Unit = "元/m", DefaultPrice = 2000 }
+                new MaterialType { Name = "定制橱柜", Unit = "元/套", DefaultPrice = 6000, IsComposite = true, GroupCode = "GX-001" },
+                new MaterialType { Name = "洗衣柜", Unit = "元/套", DefaultPrice = 2500, IsComposite = true, GroupCode = "GX-001" },
+                new MaterialType { Name = "餐厨中岛台", Unit = "元/m", DefaultPrice = 3500, IsComposite = true, GroupCode = "GX-001" },
+                new MaterialType { Name = "电视柜", Unit = "元/m", DefaultPrice = 2000, IsComposite = true, GroupCode = "GX-001" }
             },
             ["客餐厨-五金洁具"] = new List<MaterialType>
             {
@@ -166,8 +166,8 @@ namespace FactoryProductManager.Views
             },
             ["主卧室-固装"] = new List<MaterialType>
             {
-                new MaterialType { Name = "电视柜", Unit = "元/m", DefaultPrice = 2000 },
-                new MaterialType { Name = "衣柜", Unit = "元/m²", DefaultPrice = 2500 }
+                new MaterialType { Name = "电视柜", Unit = "元/m", DefaultPrice = 2000, IsComposite = true, GroupCode = "GX-001" },
+                new MaterialType { Name = "衣柜", Unit = "元/m²", DefaultPrice = 2500, IsComposite = true, GroupCode = "GX-001" }
             },
             ["主卧室-灯具"] = new List<MaterialType>
             {
@@ -192,8 +192,8 @@ namespace FactoryProductManager.Views
             },
             ["主卫生间-固装"] = new List<MaterialType>
             {
-                new MaterialType { Name = "浴室柜", Unit = "元/m", DefaultPrice = 2200 },
-                new MaterialType { Name = "镜柜", Unit = "元/m²", DefaultPrice = 1800 }
+                new MaterialType { Name = "浴室柜", Unit = "元/m", DefaultPrice = 2200, IsComposite = true, GroupCode = "GX-001" },
+                new MaterialType { Name = "镜柜", Unit = "元/m²", DefaultPrice = 1800, IsComposite = true, GroupCode = "GX-001" }
             },
             ["主卫生间-五金洁具"] = new List<MaterialType>
             {
@@ -225,8 +225,8 @@ namespace FactoryProductManager.Views
             },
             ["次卧室-固装"] = new List<MaterialType>
             {
-                new MaterialType { Name = "电视柜", Unit = "元/m", DefaultPrice = 2000 },
-                new MaterialType { Name = "衣柜", Unit = "元/m²", DefaultPrice = 2500 }
+                new MaterialType { Name = "电视柜", Unit = "元/m", DefaultPrice = 2000, IsComposite = true, GroupCode = "GX-001" },
+                new MaterialType { Name = "衣柜", Unit = "元/m²", DefaultPrice = 2500, IsComposite = true, GroupCode = "GX-001" }
             },
             ["次卧室-灯具"] = new List<MaterialType>
             {
@@ -251,8 +251,8 @@ namespace FactoryProductManager.Views
             },
             ["次卫生间-固装"] = new List<MaterialType>
             {
-                new MaterialType { Name = "浴室柜", Unit = "元/m", DefaultPrice = 2200 },
-                new MaterialType { Name = "镜柜", Unit = "元/m²", DefaultPrice = 1800 }
+                new MaterialType { Name = "浴室柜", Unit = "元/m", DefaultPrice = 2200, IsComposite = true, GroupCode = "GX-001" },
+                new MaterialType { Name = "镜柜", Unit = "元/m²", DefaultPrice = 1800, IsComposite = true, GroupCode = "GX-001" }
             },
             ["次卫生间-五金洁具"] = new List<MaterialType>
             {
@@ -283,7 +283,7 @@ namespace FactoryProductManager.Views
             },
             ["书房-固装"] = new List<MaterialType>
             {
-                new MaterialType { Name = "书柜", Unit = "元/m²", DefaultPrice = 2000 }
+                new MaterialType { Name = "书柜", Unit = "元/m²", DefaultPrice = 2000, IsComposite = true, GroupCode = "GX-001" }
             },
             ["书房-灯具"] = new List<MaterialType>
             {
@@ -353,7 +353,7 @@ namespace FactoryProductManager.Views
                     new ProductPart { PartName = "门厅", Quantity = 1 }
                 };
 
-                // 加载数据库中保存的自定义部位，合并到 _partComponents
+                // 加载数据库中保存的自定义部件，合并到 _partComponents
                 LoadCustomPartsFromDatabase();
 
                 // 种子数据：3 个柜类模板（首次启动时插入）
@@ -414,8 +414,8 @@ namespace FactoryProductManager.Views
             NavPanel.Children.Clear();
             _navButtons.Clear();
 
-            // 只显示"编辑部位"中传入的 _parts 里有的部位；未选中的不显示
-            // _partComponents 里同时有默认部位和自定义部位（已 LoadCustomPartsFromDatabase 合并）
+            // 只显示"编辑部件"中传入的 _parts 里有的部件；未选中的不显示
+            // _partComponents 里同时有默认部件和自定义部件（已 LoadCustomPartsFromDatabase 合并）
             // 用 _parts 的 PartName 顺序作为导航栏顺序
             var selectedPartNames = _parts
                 .Where(p => !string.IsNullOrWhiteSpace(p.PartName))
@@ -455,7 +455,7 @@ namespace FactoryProductManager.Views
                 UpdateNavSelection();
             }
 
-            // 底部添加"➕ 自定义部位"按钮（仅在编辑部位里允许的额外添加，导航栏内临时使用）
+            // 底部添加"➕ 自定义部件"按钮（仅在编辑部件里允许的额外添加，导航栏内临时使用）
             var addCustomBtn = CreateAddCustomPartButton();
             NavPanel.Children.Add(addCustomBtn);
         }
@@ -482,7 +482,7 @@ namespace FactoryProductManager.Views
 
             contentStack.Children.Add(new TextBlock
             {
-                Text = "➕ 自定义部位",
+                Text = "➕ 自定义部件",
                 VerticalAlignment = VerticalAlignment.Center,
                 FontSize = 13,
                 Foreground = (Brush)FindResource("PrimaryTextBrush")
@@ -512,11 +512,11 @@ namespace FactoryProductManager.Views
                 var navBorder = CreateNavButton(newPart.PartName);
                 _navButtons[newPart.PartName] = navBorder;
 
-                // 插入到"➕ 自定义部位"按钮之前
+                // 插入到"➕ 自定义部件"按钮之前
                 var addIndex = NavPanel.Children.Count; // 当前末尾是添加按钮
                 NavPanel.Children.Insert(addIndex - 1, navBorder);
 
-                // 自动选中新部位
+                // 自动选中新部件
                 SelectedPartName = newPart.PartName;
             }
         }
@@ -586,7 +586,7 @@ namespace FactoryProductManager.Views
             {
                 PartItemsPanel.Children.Add(new TextBlock
                 {
-                    Text = $"该部位「{SelectedPartName}」暂未配置部品清单，请等待后续补充。",
+                    Text = $"该部件「{SelectedPartName}」暂未配置部品清单，请等待后续补充。",
                     FontSize = 13,
                     Foreground = (Brush)FindResource("HintTextBrush"),
                     Margin = new Thickness(0, 30, 0, 0),

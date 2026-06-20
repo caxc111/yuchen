@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FactoryProductManager.Views"
         mc:Ignorable="d"
-        Title="编辑部位" Height="620" Width="500"
+        Title="编辑部件" Height="620" Width="500"
         WindowStartupLocation="CenterOwner"
         ResizeMode="CanResize"
         ShowInTaskbar="False">
@@ -60,7 +60,7 @@
                 </Grid.RowDefinitions>
 
                 <!-- Header -->
-                <TextBlock Grid.Row="0" Text="选择部位" FontSize="18" FontWeight="Bold"
+                <TextBlock Grid.Row="0" Text="选择部件" FontSize="18" FontWeight="Bold"
                            Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,10"/>
 
                 <!-- Standard Parts Selection -->
@@ -71,7 +71,7 @@
 
                 <!-- Custom Parts Section -->
                 <StackPanel Grid.Row="2" Margin="0,15,0,0">
-                    <TextBlock Text="自定义部位" FontSize="14" FontWeight="Bold"
+                    <TextBlock Text="自定义部件" FontSize="14" FontWeight="Bold"
                                Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,8"/>
                     <ItemsControl x:Name="CustomPartsPanel">
                         <ItemsControl.ItemTemplate>
@@ -96,14 +96,14 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                    <TextBlock x:Name="NoCustomPartsText" Text="暂无自定义部位" FontSize="12"
+                    <TextBlock x:Name="NoCustomPartsText" Text="暂无自定义部件" FontSize="12"
                                Foreground="Gray" Margin="0,5,0,0"
                                Visibility="{Binding CustomPartsEmpty, Converter={StaticResource BoolToVisibilityConverter}}"/>
                 </StackPanel>
 
                 <!-- Action Buttons -->
                 <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
-                    <Button Content="添加自定义部位" Click="AddCustomPartButton_Click"
+                    <Button Content="添加自定义部件" Click="AddCustomPartButton_Click"
                             Style="{StaticResource UnifiedDialogActionButtonStyle}"
                             Width="120" Height="32" Margin="0,0,10,0"/>
                     <Button Content="确定" Click="OkButton_Click"

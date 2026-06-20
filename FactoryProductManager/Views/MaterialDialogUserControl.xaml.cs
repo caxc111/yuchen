@@ -134,6 +134,13 @@ namespace FactoryProductManager.Views
                         LogService.Debug($"[InitializeFactories] BEFORE ResetBrandComboBoxItems: _savedBrandName='{_savedBrandName}', Material.Brand='{Material.Brand}'");
                         ResetBrandComboBoxItems(new[] { savedFactory });
                         LogService.Debug($"[InitializeFactories] AFTER ResetBrandComboBoxItems: Material.Brand='{Material.Brand}', BrandComboBox.SelectedItem='{BrandComboBox.SelectedItem?.ToString()}'");
+
+                        // 确保品牌被正确选中
+                        if (!string.IsNullOrWhiteSpace(_savedBrandName) && BrandComboBox.SelectedIndex <= 0)
+                        {
+                            LogService.Debug($"[InitializeFactories] Brand not selected yet, calling SelectBrand with _savedBrandName='{_savedBrandName}'");
+                            SelectBrand(_savedBrandName);
+                        }
                         return;
                     }
                 }
@@ -143,6 +150,13 @@ namespace FactoryProductManager.Views
             finally
             {
                 _suppressBrandReset = false;
+
+                // 初始化完成后，如果品牌还没有被设置，尝试恢复
+                if (!string.IsNullOrWhiteSpace(_savedBrandName) && string.IsNullOrWhiteSpace(Material.Brand))
+                {
+                    LogService.Debug($"[InitializeFactories] finally: attempting to restore brand from _savedBrandName='{_savedBrandName}'");
+                    SelectBrand(_savedBrandName);
+                }
             }
         }
 
@@ -415,10 +429,13 @@ namespace FactoryProductManager.Views
                 selectedBrand == BrandPlaceholder ||
                 selectedBrand == BrandEmptyPlaceholder)
             {
-                Material.Brand = string.Empty;
-                if (!_suppressBrandReset)
+                // 只有在品牌选项列表不为空时才清空_savedBrandName
+                // 这样当工厂没有品牌时，用户之前选择的品牌会被保留
+                if (BrandComboBox.Items?.Count > 1 && !_suppressBrandReset)
+                {
                     _savedBrandName = null;
-                LogService.Debug($"[BrandComboBox_SelectionChanged] Set to empty/placeholder, Material.Brand='{Material.Brand}'");
+                }
+                LogService.Debug($"[BrandComboBox_SelectionChanged] Material.Brand set to empty, _savedBrandName='{_savedBrandName}'");
                 return;
             }
 

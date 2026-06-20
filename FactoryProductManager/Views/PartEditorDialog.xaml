@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="自定义部位" Height="220" Width="400"
+        Title="自定义部件" Height="220" Width="400"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
         ResizeMode="NoResize">
@@ -38,12 +38,12 @@
                 </Grid.RowDefinitions>
 
                 <!-- Header -->
-                <TextBlock Grid.Row="0" Text="自定义部位" FontSize="16" FontWeight="Bold"
+                <TextBlock Grid.Row="0" Text="自定义部件" FontSize="16" FontWeight="Bold"
                            Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,15"/>
 
                 <!-- Form -->
                 <StackPanel Grid.Row="1">
-                    <TextBlock Text="部位名称" FontSize="12" Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,5"/>
+                    <TextBlock Text="部件名称" FontSize="12" Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,5"/>
                     <TextBox x:Name="PartNameTextBox"
                              Style="{StaticResource WarmInputTextBoxStyle}"
                              Height="32"/>

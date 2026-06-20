@@ -25,6 +25,7 @@ namespace FactoryProductManager.Models
         public string Unit { get; set; } = string.Empty;
         public decimal UnitPrice { get; set; }
         public string Remarks { get; set; } = string.Empty;
+        public string FactoryName { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 

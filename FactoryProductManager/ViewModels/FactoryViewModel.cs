@@ -204,9 +204,8 @@ namespace FactoryProductManager.ViewModels
 
                         string[] headers = new string[]
                         {
-                            "工厂编码", "工厂名称", "品牌", "类型", "地址", "认证资质",
-                            "描述", "规模", "员工数量", "生产能力", "控制人",
-                            "联系人", "联系方式", "创建时间", "更新时间"
+                            "工厂编码", "工厂名称", "品牌", "工厂类型", "地址", "联系人",
+                            "联系信息", "认证情况", "工厂规模", "员工人数", "生产能力", "备注"
                         };
 
                         for (int i = 0; i < headers.Length; i++)
@@ -226,16 +225,13 @@ namespace FactoryProductManager.ViewModels
                             worksheet.Cells[row, 3].Value = factory.Brand;
                             worksheet.Cells[row, 4].Value = factory.FactoryType;
                             worksheet.Cells[row, 5].Value = factory.Address;
-                            worksheet.Cells[row, 6].Value = factory.Certifications;
-                            worksheet.Cells[row, 7].Value = factory.Description;
-                            worksheet.Cells[row, 8].Value = factory.Scale;
-                            worksheet.Cells[row, 9].Value = factory.EmployeeCount;
-                            worksheet.Cells[row, 10].Value = factory.ProductionCapacity;
-                            worksheet.Cells[row, 11].Value = factory.ControllingPerson;
-                            worksheet.Cells[row, 12].Value = factory.ContactPerson;
-                            worksheet.Cells[row, 13].Value = factory.ContactInfo;
-                            worksheet.Cells[row, 14].Value = factory.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss");
-                            worksheet.Cells[row, 15].Value = factory.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss");
+                            worksheet.Cells[row, 6].Value = factory.ContactPerson;
+                            worksheet.Cells[row, 7].Value = factory.ContactInfo;
+                            worksheet.Cells[row, 8].Value = factory.Certifications;
+                            worksheet.Cells[row, 9].Value = factory.Scale;
+                            worksheet.Cells[row, 10].Value = factory.EmployeeCount;
+                            worksheet.Cells[row, 11].Value = factory.ProductionCapacity;
+                            worksheet.Cells[row, 12].Value = factory.Description;
                             row++;
                         }
 
@@ -260,7 +256,7 @@ namespace FactoryProductManager.ViewModels
                         catch (UnauthorizedAccessException)
                         {
                             LogService.Warning($"无法保存到 {finalPath}，尝试保存到文档文件夹");
-                            
+
                             var docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
                             var fileName = Path.GetFileName(finalPath);
                             finalPath = Path.Combine(docPath, fileName);
@@ -275,10 +271,7 @@ namespace FactoryProductManager.ViewModels
                         if (saveSuccess)
                         {
                             LogService.Info($"工厂数据导出成功，共导出 {Factories.Count} 条记录，文件: {finalPath}");
-                            if (!saveDialog.FileName.Equals(finalPath))
-                            {
-                                MessageBox.Show($"成功导出 {Factories.Count} 条工厂数据！\n文件位置：{finalPath}", "导出成功", MessageBoxButton.OK, MessageBoxImage.Information);
-                            }
+                            MessageBox.Show($"成功导出 {Factories.Count} 个工厂的工作表！", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
                         }
                     }
                 }

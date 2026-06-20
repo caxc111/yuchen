@@ -89,6 +89,27 @@
                                 <Grid Margin="0,0,0,10">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="120"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                                     <Border Grid.Column="0" Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
+                                        <TextBlock Text="类别" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="{StaticResource PrimaryTextBrush}"/>
+                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="{Binding CategoryDisplay}" VerticalAlignment="Center" Foreground="{StaticResource PrimaryTextBrush}"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="120"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
+                                        <TextBlock Text="工厂名称" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="{StaticResource PrimaryTextBrush}"/>
+                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="{Binding FactoryName}" VerticalAlignment="Center" Foreground="{StaticResource PrimaryTextBrush}"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="120"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
+                                        <TextBlock Text="物料名称" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="{StaticResource PrimaryTextBrush}"/>
+                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="{Binding MaterialName}" VerticalAlignment="Center" Foreground="{StaticResource PrimaryTextBrush}"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="120"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
                                         <TextBlock Text="工厂物料编码" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="{StaticResource PrimaryTextBrush}"/>
                                     </Border>
                                     <TextBlock Grid.Column="1" Text="{Binding FactoryMaterialCode}" VerticalAlignment="Center" Foreground="{StaticResource PrimaryTextBrush}"/>
@@ -103,27 +124,6 @@
                                 <Grid Margin="0,0,0,10">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="120"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                                     <Border Grid.Column="0" Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
-                                        <TextBlock Text="物料名称" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="{StaticResource PrimaryTextBrush}"/>
-                                    </Border>
-                                    <TextBlock Grid.Column="1" Text="{Binding MaterialName}" VerticalAlignment="Center" Foreground="{StaticResource PrimaryTextBrush}"/>
-                                </Grid>
-                                <Grid Margin="0,0,0,10">
-                                    <Grid.ColumnDefinitions><ColumnDefinition Width="120"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
-                                        <TextBlock Text="类别" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="{StaticResource PrimaryTextBrush}"/>
-                                    </Border>
-                                    <TextBlock Grid.Column="1" Text="{Binding CategoryDisplay}" VerticalAlignment="Center" Foreground="{StaticResource PrimaryTextBrush}"/>
-                                </Grid>
-                                <Grid Margin="0,0,0,10">
-                                    <Grid.ColumnDefinitions><ColumnDefinition Width="120"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
-                                        <TextBlock Text="所属工厂" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="{StaticResource PrimaryTextBrush}"/>
-                                    </Border>
-                                    <TextBlock Grid.Column="1" Text="{Binding FactoryName}" VerticalAlignment="Center" Foreground="{StaticResource PrimaryTextBrush}"/>
-                                </Grid>
-                                <Grid Margin="0,0,0,10">
-                                    <Grid.ColumnDefinitions><ColumnDefinition Width="120"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
                                         <TextBlock Text="品牌" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="{StaticResource PrimaryTextBrush}"/>
                                     </Border>
                                     <TextBlock Grid.Column="1" Text="{Binding Brand}" VerticalAlignment="Center" Foreground="{StaticResource PrimaryTextBrush}"/>
@@ -134,6 +134,76 @@
                                         <TextBlock Text="规格" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="{StaticResource PrimaryTextBrush}"/>
                                     </Border>
                                     <TextBlock Grid.Column="1" Text="{Binding Specification}" VerticalAlignment="Center" Foreground="{StaticResource PrimaryTextBrush}"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="120"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
+                                        <TextBlock Text="纹理" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="{StaticResource PrimaryTextBrush}"/>
+                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="{Binding Texture}" VerticalAlignment="Center" Foreground="{StaticResource PrimaryTextBrush}"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="120"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
+                                        <TextBlock Text="工艺" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="{StaticResource PrimaryTextBrush}"/>
+                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="{Binding Process}" VerticalAlignment="Center" Foreground="{StaticResource PrimaryTextBrush}"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="120"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
+                                        <TextBlock Text="单位" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="{StaticResource PrimaryTextBrush}"/>
+                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="{Binding Unit}" VerticalAlignment="Center" Foreground="{StaticResource PrimaryTextBrush}"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="120"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
+                                        <TextBlock Text="成本价格" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="{StaticResource PrimaryTextBrush}"/>
+                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="{Binding CostPrice}" VerticalAlignment="Center" Foreground="{StaticResource PrimaryTextBrush}"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="120"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
+                                        <TextBlock Text="适用场景" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="{StaticResource PrimaryTextBrush}"/>
+                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="{Binding UsageScenario}" VerticalAlignment="Center" Foreground="{StaticResource PrimaryTextBrush}"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="120"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
+                                        <TextBlock Text="认证情况" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="{StaticResource PrimaryTextBrush}"/>
+                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="{Binding Certifications}" VerticalAlignment="Center" Foreground="{StaticResource PrimaryTextBrush}"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="120"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
+                                        <TextBlock Text="供货周期" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="{StaticResource PrimaryTextBrush}"/>
+                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="{Binding SupplyCycle}" VerticalAlignment="Center" Foreground="{StaticResource PrimaryTextBrush}"/>
+                                </Grid>
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="120"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
+                                        <TextBlock Text="图片" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" Foreground="{StaticResource PrimaryTextBrush}"/>
+                                    </Border>
+                                    <Image Grid.Column="1" Width="120" Height="90" Stretch="Uniform" HorizontalAlignment="Left">
+                                        <Image.Style>
+                                            <Style TargetType="Image">
+                                                <Setter Property="Source" Value="{Binding ImageUrl, FallbackValue=/Resources/Icons/icon_no_image.png}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ImageUrl}" Value="{x:Null}">
+                                                        <Setter Property="Source" Value="/Resources/Icons/icon_no_image.png"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding ImageUrl}" Value="">
+                                                        <Setter Property="Source" Value="/Resources/Icons/icon_no_image.png"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Image.Style>
+                                    </Image>
                                 </Grid>
                             </StackPanel>
                         </ScrollViewer>

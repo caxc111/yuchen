@@ -177,7 +177,7 @@
                             <Grid Grid.Column="1" Margin="10,10,0,0" Width="380" Height="35">
                                 <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}">
                                 </Border>
-                                <TextBox Text="{Binding Factory.Certifications}" 
+                                <TextBox Text="{Binding Factory.Certifications}"
                                          Style="{StaticResource WarmInputTextBoxStyle}"/>
                             </Grid>
                         </Grid>

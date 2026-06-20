@@ -191,9 +191,9 @@ namespace FactoryProductManager.ViewModels
 
                         string[] headers = new string[]
                         {
-                            "工厂物料编码", "宇辰物料编码", "物料名称", "类别", "所属工厂",
-                            "品牌", "规格", "纹理", "工艺", "适用场景",
-                            "认证情况", "图片", "创建时间", "更新时间"
+                            "工厂物料编码", "宇辰物料编码", "物料名称", "类别", "工厂名称",
+                            "品牌", "规格", "纹理", "工艺", "单位", "成本价格",
+                            "适用场景", "认证情况", "供货周期", "图片"
                         };
 
                         for (int i = 0; i < headers.Length; i++)
@@ -217,13 +217,14 @@ namespace FactoryProductManager.ViewModels
                             worksheet.Cells[row, 7].Value = material.Specification;
                             worksheet.Cells[row, 8].Value = material.Texture;
                             worksheet.Cells[row, 9].Value = material.Process;
-                            worksheet.Cells[row, 10].Value = material.UsageScenario;
-                            worksheet.Cells[row, 11].Value = material.Certifications;
-                            worksheet.Cells[row, 13].Value = material.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss");
-                            worksheet.Cells[row, 14].Value = material.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss");
+                            worksheet.Cells[row, 10].Value = material.Unit;
+                            worksheet.Cells[row, 11].Value = material.CostPrice;
+                            worksheet.Cells[row, 12].Value = material.UsageScenario;
+                            worksheet.Cells[row, 13].Value = material.Certifications;
+                            worksheet.Cells[row, 14].Value = material.SupplyCycle;
 
                             worksheet.Row(row).Height = 72;
-                            AddMaterialImageToWorksheet(worksheet, row, 12, material.ImageUrl);
+                            AddMaterialImageToWorksheet(worksheet, row, 15, material.ImageUrl);
                             row++;
                         }
 
@@ -234,7 +235,7 @@ namespace FactoryProductManager.ViewModels
                         }
 
                         worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
-                        worksheet.Column(12).Width = 14;
+                        worksheet.Column(14).Width = 14;
                         worksheet.Cells[worksheet.Dimension.Address].Style.Border.BorderAround(OfficeOpenXml.Style.ExcelBorderStyle.Thin);
 
                         string finalPath = saveDialog.FileName;
@@ -264,10 +265,7 @@ namespace FactoryProductManager.ViewModels
                         if (saveSuccess)
                         {
                             LogService.Info($"物料数据导出成功，共导出 {Materials.Count} 条记录，文件: {finalPath}");
-                            if (!saveDialog.FileName.Equals(finalPath))
-                            {
-                                MessageBox.Show($"成功导出 {Materials.Count} 条物料数据！\n文件位置：{finalPath}", "导出成功", MessageBoxButton.OK, MessageBoxImage.Information);
-                            }
+                            MessageBox.Show($"成功导出 {Materials.Count} 个物料的工作表！", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
                         }
                     }
                 }

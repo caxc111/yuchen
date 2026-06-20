@@ -26,6 +26,36 @@ namespace FactoryProductManager.Views
             _viewModel.ExportToExcel();
         }
 
+        private void ToggleInactiveButton_Click(object sender, RoutedEventArgs e)
+        {
+            _viewModel.ShowInactiveProducts = !_viewModel.ShowInactiveProducts;
+        }
+
+        private void StatusToggle_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (sender is not FrameworkElement element || element.Tag is not Product product)
+            {
+                return;
+            }
+
+            if (product.IsActive)
+            {
+                if (MessageBox.Show($"确定要停用产品 \"{product.ProductCode}\" 吗？停用后将不在列表中显示。", "确认停用",
+                    MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                {
+                    _viewModel.DisableProduct(product.Id);
+                }
+            }
+            else
+            {
+                if (MessageBox.Show($"确定要启用产品 \"{product.ProductCode}\" 吗？", "确认启用",
+                    MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                {
+                    _viewModel.EnableProduct(product.Id);
+                }
+            }
+        }
+
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new ProductManagementDialog();

@@ -84,7 +84,7 @@
                         <DataGridTextColumn Header="工厂名称" Binding="{Binding FactoryName}" Width="*" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
                         <DataGridTextColumn Header="品牌" Binding="{Binding Brand}" Width="200" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
                         <DataGridTextColumn Header="类型" Binding="{Binding FactoryType}" Width="100" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
-                        <DataGridTemplateColumn Header="详细信息" Width="90">
+                        <DataGridTemplateColumn Header="详细信息" Width="80" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel HorizontalAlignment="Center">
@@ -95,7 +95,7 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="操作" Width="110">
+                        <DataGridTemplateColumn Header="操作" Width="130" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">

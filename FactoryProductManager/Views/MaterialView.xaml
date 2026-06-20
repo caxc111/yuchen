@@ -84,7 +84,7 @@
 
                         <DataGridTextColumn Header="品牌" Binding="{Binding Brand}" Width="120" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
 
-                        <DataGridTemplateColumn Header="缩略图" Width="90">
+                        <DataGridTemplateColumn Header="缩略图" Width="80" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border Width="44" Height="44" CornerRadius="10" BorderThickness="0" Background="{StaticResource WarmInputBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="True" Cursor="Hand" MouseLeftButtonDown="Thumbnail_MouseLeftButtonDown">
@@ -120,7 +120,7 @@
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
 
-                        <DataGridTemplateColumn Header="操作" Width="130">
+                        <DataGridTemplateColumn Header="操作" Width="130" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">

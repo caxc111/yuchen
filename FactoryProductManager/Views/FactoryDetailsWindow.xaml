@@ -90,6 +90,15 @@
                                         <ColumnDefinition Width="120"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
+                                    <TextBlock Text="品牌" Grid.Column="0" FontWeight="Bold" Foreground="{StaticResource SubtleTextBrush}"/>
+                                    <TextBlock Text="{Binding Brand}" Grid.Column="1" Foreground="{StaticResource PrimaryTextBrush}"/>
+                                </Grid>
+
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
                                     <TextBlock Text="工厂类型" Grid.Column="0" FontWeight="Bold" Foreground="{StaticResource SubtleTextBrush}"/>
                                     <TextBlock Text="{Binding FactoryType}" Grid.Column="1" Foreground="{StaticResource PrimaryTextBrush}"/>
                                 </Grid>
@@ -155,15 +164,6 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="生产能力" Grid.Column="0" FontWeight="Bold" Foreground="{StaticResource SubtleTextBrush}"/>
                                     <TextBlock Text="{Binding ProductionCapacity}" Grid.Column="1" Foreground="{StaticResource PrimaryTextBrush}"/>
-                                </Grid>
-
-                                <Grid Margin="0,0,0,10">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="120"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="负责人" Grid.Column="0" FontWeight="Bold" Foreground="{StaticResource SubtleTextBrush}"/>
-                                    <TextBlock Text="{Binding ControllingPerson}" Grid.Column="1" Foreground="{StaticResource PrimaryTextBrush}"/>
                                 </Grid>
 
                                 <Grid>

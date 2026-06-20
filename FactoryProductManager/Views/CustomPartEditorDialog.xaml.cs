@@ -113,23 +113,23 @@ namespace FactoryProductManager.Views
             var partName = PartNameTextBox.Text?.Trim();
             if (string.IsNullOrWhiteSpace(partName))
             {
-                MessageBox.Show("请输入部位名称", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("请输入部件名称", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
                 PartNameTextBox.Focus();
                 return;
             }
 
-            // 默认部位重名校验
+            // 默认部件重名校验
             var defaultPartNames = new[] { "门厅", "客餐厨", "主卧室", "主卫生间", "次卧室", "次卫生间", "洗衣房", "书房", "阳台" };
             if (defaultPartNames.Contains(partName))
             {
-                MessageBox.Show($"\"{partName}\" 是默认部位，请直接使用默认按钮", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show($"\"{partName}\" 是默认部件，请直接使用默认按钮", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             // 数据库重名校验
             if (_dbService.CustomPartExists(partName))
             {
-                MessageBox.Show($"自定义部位\"{partName}\"已存在", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show($"自定义部件\"{partName}\"已存在", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -145,7 +145,7 @@ namespace FactoryProductManager.Views
 
             if (selected.Count == 0)
             {
-                var result = MessageBox.Show("未选择任何部品，保存后该部位将不挂载物料。是否继续？", "提示", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                var result = MessageBox.Show("未选择任何部品，保存后该部件将不挂载物料。是否继续？", "提示", MessageBoxButton.YesNo, MessageBoxImage.Question);
                 if (result != MessageBoxResult.Yes) return;
             }
 

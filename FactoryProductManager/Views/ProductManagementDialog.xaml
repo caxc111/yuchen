@@ -12,6 +12,7 @@
         WindowStartupLocation="CenterOwner">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
         <Style x:Key="UnifiedDialogLabelTextStyle" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
         </Style>
@@ -130,7 +131,7 @@
                                                     <BlurEffect Radius="20"/>
                                                 </Border.Effect>
                                             </Border>
-                                            <TextBlock Text="部位" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Style="{StaticResource UnifiedDialogLabelTextStyle}"/>
+                                            <TextBlock Text="部件" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Style="{StaticResource UnifiedDialogLabelTextStyle}"/>
                                         </Grid>
                                     </Border>
                                 </Grid>
@@ -140,7 +141,7 @@
                                         <ColumnDefinition Width="10"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <!-- 部位摘要文本框 -->
+                                    <!-- 部件摘要文本框 -->
                                     <Border Grid.Column="0" Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}" VerticalAlignment="Top" Width="260" Padding="0" Height="35"/>
                                     <TextBox Grid.Column="0" x:Name="PartsSummaryTextBox"
                                              Style="{StaticResource WarmInputTextBoxStyle}"
@@ -151,7 +152,7 @@
                                              MinHeight="0"
                                              Height="35"
                                              AcceptsReturn="True"/>
-                                    <!-- 编辑部位按钮 -->
+                                    <!-- 编辑部件按钮 -->
                                     <Border Grid.Column="2" Width="110" Height="35" Style="{StaticResource WarmActionBorderStyle}" Background="{StaticResource WarmSurfaceBrush}">
                                         <Grid Width="110" Height="35" ClipToBounds="False">
                                             <Border Width="110" Height="35" CornerRadius="10" ClipToBounds="False" Background="{StaticResource WarmSurfaceBrush}">
@@ -159,7 +160,7 @@
                                                     <BlurEffect Radius="20"/>
                                                 </Border.Effect>
                                             </Border>
-                                            <Button Content="编辑部位"
+                                            <Button Content="编辑部件"
                                                     Margin="0"
                                                     Width="110"
                                                     Height="35"
@@ -264,7 +265,7 @@
                                 </Grid>
                             </Grid>
 
-                            <Grid>
+                            <Grid Visibility="{Binding IsAdding, Converter={StaticResource InverseBoolToVisibilityConverter}}">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="120"/>
                                     <ColumnDefinition Width="*"/>
@@ -288,7 +289,7 @@
                                 </Grid>
                             </Grid>
 
-                            <Grid>
+                            <Grid Visibility="{Binding IsAdding, Converter={StaticResource InverseBoolToVisibilityConverter}}">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="120"/>
                                     <ColumnDefinition Width="*"/>
@@ -325,39 +326,53 @@
                                                     <BlurEffect Radius="20"/>
                                                 </Border.Effect>
                                             </Border>
-                                            <TextBlock Text="销售合价（元）" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Style="{StaticResource UnifiedDialogLabelTextStyle}"/>
-                                        </Grid>
-                                    </Border>
-                                </Grid>
-                                <Grid Grid.Column="1" Margin="0,10,0,0" Width="380" Height="35">
-                                    <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}" Width="380">
-                                    </Border>
-                                    <TextBox Text="{Binding Product.SellingTotalPrice, TargetNullValue='', UpdateSourceTrigger=LostFocus}" Style="{StaticResource WarmInputTextBoxStyle}"/>
-                                </Grid>
-                            </Grid>
-
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="120"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Grid Grid.Column="0" Margin="0,10,0,0">
-                                    <Border Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
-                                        <Grid Width="110" Height="35">
-                                            <Border Width="110" Height="35" CornerRadius="10" Background="{StaticResource WarmSurfaceBrush}">
-                                                <Border.Effect>
-                                                    <BlurEffect Radius="20"/>
-                                                </Border.Effect>
-                                            </Border>
                                             <TextBlock Text="平面图" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Style="{StaticResource UnifiedDialogLabelTextStyle}"/>
                                         </Grid>
                                     </Border>
                                 </Grid>
-                                <Grid Grid.Column="1" Margin="0,10,0,0" Width="380" Height="35">
-                                    <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}" Width="380">
-                                    </Border>
-                                    <TextBox Text="{Binding Product.FloorPlan}" Style="{StaticResource WarmInputTextBoxStyle}"/>
-                                </Grid>
+                                <Border Grid.Column="1" x:Name="FloorPlanDropZone"
+                                        Margin="0,10,0,0" Height="180"
+                                        BorderBrush="#CCCCCC"
+                                        BorderThickness="0"
+                                        CornerRadius="10"
+                                        Background="#FAFAFA"
+                                        AllowDrop="True"
+                                        DragOver="FloorPlanDropZone_DragOver"
+                                        Drop="FloorPlanDropZone_Drop"
+                                        MouseLeftButtonUp="FloorPlanDropZone_Click">
+                                    <Grid>
+                                        <Image x:Name="FloorPlanPreviewImage" Stretch="Uniform" Margin="8"/>
+                                        <StackPanel x:Name="FloorPlanHintPanel" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <Button x:Name="FloorPlanPickerButton"
+                                                    Width="52"
+                                                    Height="52"
+                                                    Background="#F4F4F4"
+                                                    BorderBrush="#D0D0D0"
+                                                    BorderThickness="0"
+                                                    FontSize="28"
+                                                    Foreground="#666666"
+                                                    Cursor="Hand"
+                                                    Content="+"
+                                                    Click="FloorPlanDropZone_Click">
+                                                <Button.Template>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border Background="{TemplateBinding Background}"
+                                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                                CornerRadius="26">
+                                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                    </ControlTemplate>
+                                                </Button.Template>
+                                            </Button>
+                                            <TextBlock x:Name="FloorPlanHintText"
+                                                       Text="点击加号或拖拽图片到这里"
+                                                       Foreground="#999999"
+                                                       HorizontalAlignment="Center"
+                                                       Margin="0,8,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
                             </Grid>
 
                             <Grid>

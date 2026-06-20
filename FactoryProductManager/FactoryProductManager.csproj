@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
     <!-- <ApplicationIcon>Resources/Icons/app_icon.ico</ApplicationIcon> -->
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- System.Drawing.Common 兼容模式 -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
   
   <ItemGroup>
@@ -13,6 +15,7 @@
     <PackageReference Include="MaterialDesignThemes" Version="4.9.0" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.118" />
     <PackageReference Include="Microsoft.Toolkit.Mvvm" Version="7.1.2" />
+    <PackageReference Include="System.Drawing.Common" Version="10.0.0" />
   </ItemGroup>
   
   <ItemGroup>

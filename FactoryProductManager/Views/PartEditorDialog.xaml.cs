@@ -19,12 +19,12 @@ namespace FactoryProductManager.Views
 
             if (part != null)
             {
-                Title = "编辑自定义部位";
+                Title = "编辑自定义部件";
                 PartNameTextBox.Text = part.PartName;
             }
             else
             {
-                Title = "添加自定义部位";
+                Title = "添加自定义部件";
             }
 
             DataContext = this;
@@ -56,7 +56,7 @@ namespace FactoryProductManager.Views
         {
             if (string.IsNullOrWhiteSpace(PartNameTextBox.Text))
             {
-                MessageBox.Show("请输入部位名称", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("请输入部件名称", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 

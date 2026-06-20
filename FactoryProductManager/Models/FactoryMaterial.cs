@@ -19,6 +19,7 @@ namespace FactoryProductManager.Models
         public decimal? CostPrice { get; set; }
         public string UsageScenario { get; set; } = string.Empty;
         public string Certifications { get; set; } = string.Empty;
+        public string SupplyCycle { get; set; } = string.Empty;
         public string Category { get; set; } = string.Empty;
         public string ImageUrl { get; set; } = string.Empty;
         public int? FactoryId { get; set; }

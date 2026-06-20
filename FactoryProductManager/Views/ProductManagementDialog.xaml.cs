@@ -1,13 +1,16 @@
 using FactoryProductManager.Models;
 using FactoryProductManager.Services;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace FactoryProductManager.Views
 {
@@ -50,6 +53,7 @@ namespace FactoryProductManager.Views
         public bool IsResidential => RequiresResidentialHouseType;
         public bool RequiresResidentialHouseType => ResidentialBusinessTypes.Contains(BusinessType);
         public bool IsSaved { get; private set; }
+        public bool IsAdding { get; }
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public ProductManagementDialog(Product? product = null)
@@ -64,6 +68,7 @@ namespace FactoryProductManager.Views
                     IsActive = true
                 };
                 Title = "添加产品";
+                IsAdding = true;
             }
             else
             {
@@ -83,10 +88,17 @@ namespace FactoryProductManager.Views
                     UpdatedAt = product.UpdatedAt
                 };
                 Title = "编辑产品";
+                IsAdding = false;
             }
 
             BusinessType = string.IsNullOrWhiteSpace(Product.BusinessType) ? BusinessTypeOptions[0] : Product.BusinessType;
             DataContext = this;
+
+            // 加载已有的平面图
+            if (!string.IsNullOrEmpty(Product.FloorPlan) && File.Exists(Product.FloorPlan))
+            {
+                SetFloorPlanPreviewImage(Product.FloorPlan);
+            }
 
             if (product != null && product.Id > 0)
             {
@@ -116,7 +128,7 @@ namespace FactoryProductManager.Views
             }
             catch (Exception ex)
             {
-                LogService.Debug($"[ProductManagementDialog] 加载部位失败: {ex.Message}");
+                LogService.Debug($"[ProductManagementDialog] 加载部件失败: {ex.Message}");
             }
         }
 
@@ -248,7 +260,7 @@ namespace FactoryProductManager.Views
             LogService.Debug($"[ProductManagementDialog] selectedParts count={selectedParts.Count}");
             if (selectedParts.Count == 0)
             {
-                MessageBox.Show("请先选择部位", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("请先选择部件", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -311,7 +323,7 @@ namespace FactoryProductManager.Views
             int productId = Product.Id > 0 ? Product.Id : 0;
             bool isNewProduct = Product.Id <= 0;
 
-            // 把上次已选部位传回窗口，避免再次打开时被清空
+            // 把上次已选部件传回窗口，避免再次打开时被清空
             var partsDialog = new PartManagementDialog(productId, isNewProduct, _pendingParts);
             partsDialog.Owner = this;
 
@@ -365,5 +377,87 @@ namespace FactoryProductManager.Views
 
         private List<SelectedMaterial>? _pendingMaterials;
         public IReadOnlyList<SelectedMaterial>? PendingMaterials => _pendingMaterials;
+
+        // ===== 平面图图片处理 =====
+        private void FloorPlanDropZone_DragOver(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effects = DragDropEffects.Copy;
+                e.Handled = true;
+            }
+        }
+
+        private void FloorPlanDropZone_Drop(object sender, DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
+
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            if (files.Length == 0) return;
+
+            string filePath = files[0];
+            if (IsValidImageFile(filePath))
+            {
+                LoadFloorPlanImage(filePath);
+            }
+            else
+            {
+                MessageBox.Show("请选择有效的图片文件（支持：jpg, jpeg, png, gif, bmp）");
+            }
+        }
+
+        private void FloorPlanDropZone_Click(object sender, RoutedEventArgs e)
+        {
+            var openFileDialog = new OpenFileDialog
+            {
+                Filter = "图片文件 (*.jpg;*.jpeg;*.png;*.gif;*.bmp)|*.jpg;*.jpeg;*.png;*.gif;*.bmp",
+                Title = "选择平面图"
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                LoadFloorPlanImage(openFileDialog.FileName);
+            }
+        }
+
+        private bool IsValidImageFile(string filePath)
+        {
+            string extension = Path.GetExtension(filePath).ToLower();
+            return extension is ".jpg" or ".jpeg" or ".png" or ".gif" or ".bmp";
+        }
+
+        private void LoadFloorPlanImage(string filePath)
+        {
+            try
+            {
+                string imagesDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
+                if (!Directory.Exists(imagesDir))
+                {
+                    Directory.CreateDirectory(imagesDir);
+                }
+
+                string fileName = Guid.NewGuid() + Path.GetExtension(filePath);
+                string destPath = Path.Combine(imagesDir, fileName);
+
+                File.Copy(filePath, destPath, true);
+                SetFloorPlanPreviewImage(destPath);
+                Product.FloorPlan = destPath;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"图片加载失败: {ex.Message}");
+            }
+        }
+
+        private void SetFloorPlanPreviewImage(string imagePath)
+        {
+            BitmapImage bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.UriSource = new Uri(imagePath);
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.EndInit();
+            FloorPlanPreviewImage.Source = bitmap;
+            FloorPlanHintPanel.Visibility = Visibility.Collapsed;
+        }
     }
 }

@@ -21,21 +21,21 @@ namespace FactoryProductManager.Views
         private readonly Dictionary<string, ComboBox> _partQuantityComboBoxes = new();
         private readonly Dictionary<string, CheckBox> _partCheckBoxes = new();
 
-        // 自定义部位列表（不在预设选项中的部位）
+        // 自定义部件列表（不在预设选项中的部件）
         public ObservableCollection<ProductPart> CustomParts { get; } = new();
 
-        // 暂存"待新增"的预设部位（_isNewProduct=true 时累积，Ok 时由外部落库）
+        // 暂存"待新增"的预设部件（_isNewProduct=true 时累积，Ok 时由外部落库）
         private readonly List<ProductPart> _pendingPresetParts = new();
-        // 暂存"待新增"的自定义部位
+        // 暂存"待新增"的自定义部件
         private readonly List<ProductPart> _pendingCustomParts = new();
-        // 暂存"待删除"的预设部位 id（_isNewProduct=true 时累积，Ok 时由外部落库）
+        // 暂存"待删除"的预设部件 id（_isNewProduct=true 时累积，Ok 时由外部落库）
         private readonly List<int> _pendingRemovedPresetIds = new();
-        // 暂存"待删除"的自定义部位 id
+        // 暂存"待删除"的自定义部件 id
         private readonly List<int> _pendingRemovedCustomIds = new();
-        // 调用方传入的"上次已选部位"（避免再次打开窗口时清空）
+        // 调用方传入的"上次已选部件"（避免再次打开窗口时清空）
         private readonly IReadOnlyList<ProductPart>? _existingParts;
 
-        // 预设部位名称
+        // 预设部件名称
         private static readonly string[] PartNameOptions = new[]
         {
             "门厅", "客餐厨", "主卧室", "主卫生间",
@@ -45,7 +45,7 @@ namespace FactoryProductManager.Views
         // 数量选项 1-5
         public static readonly int[] QuantityOptions = { 1, 2, 3, 4, 5 };
 
-        // 自定义部位是否为空
+        // 自定义部件是否为空
         public bool CustomPartsEmpty => CustomParts.Count == 0;
 
         public ProductPart? SelectedPart
@@ -59,7 +59,9 @@ namespace FactoryProductManager.Views
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
+#pragma warning disable CS0067 // PartsChanged 事件保留用于将来可能的使用
         public event Action? PartsChanged;
+#pragma warning restore CS0067
 
         public PartManagementDialog(int productId, bool isNewProduct = false, IReadOnlyList<ProductPart>? existingParts = null)
         {
@@ -194,7 +196,7 @@ namespace FactoryProductManager.Views
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"添加部位失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"添加部件失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
             }
@@ -216,7 +218,7 @@ namespace FactoryProductManager.Views
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show($"删除部位失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show($"删除部件失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                         return;
                     }
                 }
@@ -252,7 +254,7 @@ namespace FactoryProductManager.Views
             Parts.Clear();
             CustomParts.Clear();
 
-            // 1) 先加载 DB 中已保存的部位（仅对已存在产品 _productId > 0）
+            // 1) 先加载 DB 中已保存的部件（仅对已存在产品 _productId > 0）
             if (!_isNewProduct && _productId > 0)
             {
                 try
@@ -272,13 +274,13 @@ namespace FactoryProductManager.Views
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"加载部位数据失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"加载部件数据失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
 
-            // 2) 合并调用方传入的"上次已选部位"（覆盖 DB 数据，避免再次打开窗口时清空）
+            // 2) 合并调用方传入的"上次已选部件"（覆盖 DB 数据，避免再次打开窗口时清空）
             //    _existingParts 是上次 Ok 时缓存的清单，按 PartName 去重合并
-            //    自定义部位的 Quantity 在 UI 上没意义，强制为 1 保证下拉显示
+            //    自定义部件的 Quantity 在 UI 上没意义，强制为 1 保证下拉显示
             if (_existingParts != null)
             {
                 foreach (var ep in _existingParts)
@@ -305,7 +307,7 @@ namespace FactoryProductManager.Views
             SyncCheckBoxesWithParts();
             OnPropertyChanged(nameof(CustomPartsEmpty));
 
-            // 新加载的自定义部位行会在 DataTemplate 根 Grid Loaded 事件中
+            // 新加载的自定义部件行会在 DataTemplate 根 Grid Loaded 事件中
             // 自动通过 CustomPartRow_Loaded 初始化 ComboBox.SelectedItem = 1
         }
 
@@ -346,7 +348,7 @@ namespace FactoryProductManager.Views
             {
                 var newPart = partEditor.Part;
 
-                // 无论 PartEditorDialog 返回什么 Quantity，自定义部位都强制从 1 开始
+                // 无论 PartEditorDialog 返回什么 Quantity，自定义部件都强制从 1 开始
                 newPart.Quantity = 1;
                 newPart.Unit = string.IsNullOrEmpty(newPart.Unit) ? "件" : newPart.Unit;
 
@@ -366,7 +368,7 @@ namespace FactoryProductManager.Views
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show($"添加部位失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show($"添加部件失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
 
@@ -412,7 +414,7 @@ namespace FactoryProductManager.Views
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show($"删除部位失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show($"删除部件失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                         return;
                     }
                 }
@@ -469,7 +471,7 @@ namespace FactoryProductManager.Views
                         }
                         catch (Exception ex)
                         {
-                            MessageBox.Show($"更新部位失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                            MessageBox.Show($"更新部件失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                         }
                     }
                 }
