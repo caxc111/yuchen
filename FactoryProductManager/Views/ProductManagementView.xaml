@@ -7,6 +7,7 @@
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300">
     <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
         <Style x:Key="UnifiedToolbarActionButtonStyle" TargetType="Button" BasedOn="{StaticResource WarmActionButtonStyle}">
             <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
             <Setter Property="Background" Value="Transparent"/>
@@ -62,6 +63,11 @@
                         <Button Content="批量导出" Margin="0" Click="ExportButton_Click"
                                 Style="{StaticResource UnifiedToolbarActionButtonStyle}"/>
                     </Border>
+                    <Border Height="35" Margin="20,0,0,0" Style="{StaticResource WarmActionBorderStyle}"
+                        Visibility="{Binding HasInactiveProductsVisibility}">
+                        <Button Content="{Binding ShowInactiveButtonText}" Margin="0" Click="ToggleInactiveButton_Click"
+                                Style="{StaticResource UnifiedToolbarActionButtonStyle}"/>
+                    </Border>
                 </StackPanel>
             </Border>
         </Grid>
@@ -69,18 +75,18 @@
         <Grid Grid.Row="2">
             <Border Style="{StaticResource WarmPanelBorderStyle}" Padding="10">
                 <DataGrid Style="{StaticResource GlobalBaseDataGridStyle}"
-                          ItemsSource="{Binding Products}"
+                          ItemsSource="{Binding DisplayProducts}"
                           ColumnHeaderHeight="35"
-                          RowHeight="60">
+                          RowHeight="60"
+                          VerticalContentAlignment="Center">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="业态" Binding="{Binding BusinessType}" Width="80" HeaderStyle="{StaticResource GlobalFirstDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
-                        <DataGridTextColumn Header="产品编码" Binding="{Binding ProductCode}" Width="160" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
-                        <DataGridTextColumn Header="项目代码" Binding="{Binding ProjectCode}" Width="120" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
-                        <DataGridTextColumn Header="户型" Binding="{Binding HouseType}" Width="120" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
-                        <DataGridTextColumn Header="面积（㎡）" Binding="{Binding Area}" Width="80" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
-                        <DataGridTextColumn Header="成本合价（元）" Binding="{Binding CostTotalPrice, StringFormat=F2}" Width="100" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
-                        <DataGridTextColumn Header="销售合价（元）" Binding="{Binding SellingTotalPrice, StringFormat=F2}" Width="120" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
-                        <DataGridTemplateColumn Header="平面图" Width="90">
+                        <DataGridTextColumn Header="产品编码" Binding="{Binding ProductCode}" Width="180" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
+                        <DataGridTextColumn Header="项目代码" Binding="{Binding ProjectCode}" Width="150" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
+                        <DataGridTextColumn Header="户型" Binding="{Binding HouseType}" Width="*" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
+                        <DataGridTextColumn Header="面积（㎡）" Binding="{Binding Area}" Width="90" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
+                        <DataGridTextColumn Header="成本合价（元）" Binding="{Binding CostTotalPrice, StringFormat=F2}" Width="120" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
+                        <DataGridTemplateColumn Header="平面图" Width="80" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border Width="44" Height="44" CornerRadius="8" BorderThickness="0" Background="{StaticResource WarmInputBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="True">
@@ -106,10 +112,42 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="操作" Width="180">
+                        <DataGridTemplateColumn Header="状态" Width="80" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Border x:Name="StatusBorder" Background="Transparent" CornerRadius="4" Cursor="Hand" HorizontalAlignment="Center" VerticalAlignment="Center" MouseLeftButtonDown="StatusToggle_Click" Tag="{Binding}">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="#E8F5E9"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                                        <Setter Property="Background" Value="#FFF3E0"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Padding="8,2" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="11">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="启用"/>
+                                                    <Setter Property="Foreground" Value="#4CAF50"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                                            <Setter Property="Text" Value="停用"/>
+                                                            <Setter Property="Foreground" Value="#FF9800"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="操作" Width="130" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <Button ToolTip="详情" Click="DetailsButton_Click" Tag="{Binding}" Margin="0,0,5,0"
                                                 Style="{StaticResource WarmIconButtonStyle}">
                                             <Image Source="/Resources/Icons/icon_expand.png" Width="14" Height="14" Stretch="Uniform"/>
@@ -127,6 +165,16 @@
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
                     </DataGrid.Columns>
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                    <Setter Property="Background" Value="#FFF5E6"/>
+                                    <Setter Property="Foreground" Value="#999999"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.RowStyle>
                 </DataGrid>
             </Border>
         </Grid>
