@@ -15,6 +15,7 @@ namespace FactoryProductManager.Views
     {
         private readonly DbService _dbService;
         public MaterialGroup Group { get; }
+        public string CabinetName { get; }  // 柜子名称（如"玄关柜"）
 
         // UI 绑定的子项行（含运行时状态：已选物料等）
         public ObservableCollection<MaterialGroupItemRow> ItemRows { get; } = new();
@@ -28,13 +29,14 @@ namespace FactoryProductManager.Views
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public MaterialGroupEditorDialog(MaterialGroup group, DbService dbService)
+        public MaterialGroupEditorDialog(MaterialGroup group, DbService dbService, string cabinetName)
         {
             InitializeComponent();
             DataContext = this;
 
             Group = group ?? throw new ArgumentNullException(nameof(group));
             _dbService = dbService ?? throw new ArgumentNullException(nameof(dbService));
+            CabinetName = cabinetName ?? throw new ArgumentNullException(nameof(cabinetName));
 
             TitleText.Text = $"配置{group.GroupName}";
             SubtitleText.Text = string.IsNullOrWhiteSpace(group.Description)
@@ -51,6 +53,8 @@ namespace FactoryProductManager.Views
 
             UpdateOkButton();
             UpdateTotalPrice();
+
+            WindowPositionService.AddPositionProtection(this);
         }
 
         public void NotifyItemChanged()
@@ -152,22 +156,29 @@ namespace FactoryProductManager.Views
         {
             if (!OkButton.IsEnabled) return;
 
+            // 使用传入的柜子名称（如"玄关柜"）
+            var cabinetName = CabinetName;
+            LogService.Info($"[MaterialGroupEditorDialog] OkButton_Click: CabinetName={CabinetName}, Group.GroupName={Group.GroupName}");
+
             // 构造一个 SelectedMaterial 主行 + 子行集合
             var main = new SelectedMaterial
             {
                 IsComposite = true,
                 GroupCode = Group.GroupCode,
-                MaterialName = Group.GroupName,
+                MaterialName = cabinetName,  // 柜子名称
                 PartName = "",  // 由调用方填
-                ComponentName = "",
-                MaterialTypeName = Group.GroupName,
+                ComponentName = "固装",
+                CabinetName = cabinetName,
+                MaterialTypeName = cabinetName,
                 Quantity = 1
             };
 
+            LogService.Info($"[MaterialGroupEditorDialog] 构造的main: MaterialName={main.MaterialName}");
             foreach (var row in ItemRows)
             {
                 foreach (var m in row.SelectedMaterials)
                 {
+                    LogService.Info($"[MaterialGroupEditorDialog] 子项: ItemName={m.ItemName}, MaterialName={m.MaterialName}");
                     main.Children.Add(m);
                 }
             }
@@ -234,6 +245,7 @@ namespace FactoryProductManager.Views
         {
             var sm = new SelectedMaterial
             {
+                IsComposite = true,
                 FactoryMaterialId = m.Id,
                 MaterialName = m.MaterialName,
                 Specification = m.Specification,
@@ -243,7 +255,13 @@ namespace FactoryProductManager.Views
                 MyMaterialCode = m.MyMaterialCode,
                 Brand = m.Brand,
                 Unit = m.Unit,
-                ImageUrl = m.ImageUrl ?? ""
+                ImageUrl = m.ImageUrl ?? "",
+                // 从父对话框获取，用于组合 FullDisplayName
+                CabinetName = _owner.CabinetName,
+                ItemName = Item.ItemName,
+                ComponentName = "固装",
+                // ParentRef 用于子项归属主行
+                ParentRef = 0
             };
             SelectedMaterials.Add(sm);
         }
@@ -284,6 +302,7 @@ namespace FactoryProductManager.Views
         }
 
         public bool IsRequired => Item.IsRequired;
+        public string RequiredStar => Item.IsRequired ? " *" : "";
         public string ItemName => Item.ItemName;
         public string Prompt => Item.Prompt;
 

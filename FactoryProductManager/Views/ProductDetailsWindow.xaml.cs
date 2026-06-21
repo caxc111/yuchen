@@ -1,8 +1,12 @@
 using FactoryProductManager.Models;
 using FactoryProductManager.Services;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace FactoryProductManager.Views
 {
@@ -17,6 +21,8 @@ namespace FactoryProductManager.Views
         public decimal CostTotalPrice { get; set; }
         public string FloorPlan { get; set; } = "";
         public bool IsActive { get; set; }
+
+        public ObservableCollection<MaterialDisplayItem> MaterialsList { get; } = new();
 
         public ProductDetailsWindow(Product product)
         {
@@ -42,12 +48,32 @@ namespace FactoryProductManager.Views
                     {
                         PartsSummary = string.Join("，", parts.Select(p => $"{p.PartName}*{p.Quantity}"));
                     }
+
+                    // 加载所有物料详情
+                    var materials = db.GetProductPartMaterials(product.Id);
+                    foreach (var m in materials)
+                    {
+                        MaterialsList.Add(new MaterialDisplayItem
+                        {
+                            PartName = m.PartName ?? "",
+                            ComponentName = m.ComponentName ?? "",
+                            MaterialName = m.MaterialName ?? "",
+                            Specification = m.Specification ?? "",
+                            Unit = m.Unit ?? "",
+                            UnitPrice = m.UnitPrice,
+                            Quantity = m.Quantity,
+                            TotalPrice = m.TotalPrice,
+                            Remarks = m.Remarks ?? ""
+                        });
+                    }
                 }
                 catch { }
             }
 
             DataContext = this;
             StateChanged += ProductDetailsWindow_StateChanged;
+
+            WindowPositionService.AddPositionProtection(this);
         }
 
         private void ProductDetailsWindow_StateChanged(object? sender, System.EventArgs e)
@@ -83,5 +109,22 @@ namespace FactoryProductManager.Views
         {
             Close();
         }
+    }
+
+    public class MaterialDisplayItem
+    {
+        public string PartName { get; set; } = "";
+        public string ComponentName { get; set; } = "";
+        public string MaterialName { get; set; } = "";
+        public string Specification { get; set; } = "";
+        public string Unit { get; set; } = "";
+        public decimal UnitPrice { get; set; }
+        public decimal Quantity { get; set; }
+        public decimal TotalPrice { get; set; }
+        public string Remarks { get; set; } = "";
+
+        public string DisplayText => $"{PartName}-{ComponentName}：{MaterialName}" +
+            (string.IsNullOrEmpty(Specification) ? "" : $"（{Specification}）") +
+            $" {Quantity}{Unit} × ¥{UnitPrice:F2} = ¥{TotalPrice:F2}";
     }
 }

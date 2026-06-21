@@ -62,62 +62,62 @@
                                Margin="5,5,5,10"/>
 
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                        <ItemsControl x:Name="ItemsPanel">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Style="{StaticResource SelectedMaterialItemStyle}" Padding="12" Margin="0,0,0,10">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="100"/>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                            </Grid.RowDefinitions>
+                            <ItemsControl x:Name="ItemsPanel">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource SelectedMaterialItemStyle}" Padding="12" Margin="0,0,0,10">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="100"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                </Grid.RowDefinitions>
 
-                                            <!-- 子项名 -->
-                                            <TextBlock Grid.Row="0" Grid.Column="0"
-                                                       FontSize="14" FontWeight="Bold"
-                                                       VerticalAlignment="Center"
-                                                       Foreground="{StaticResource PrimaryTextBrush}">
-                                                <Run Text="{Binding ItemName, Mode=OneWay}"/>
-                                                <Run Text=" *" Foreground="#E74C3C"/>
-                                            </TextBlock>
+                                                <!-- 子项名 -->
+                                                <TextBlock Grid.Row="0" Grid.Column="0"
+                                                           FontSize="14" FontWeight="Bold"
+                                                           VerticalAlignment="Center"
+                                                           Foreground="{StaticResource PrimaryTextBrush}">
+                                                    <Run Text="{Binding ItemName, Mode=OneWay}"/>
+                                                    <Run Text="{Binding RequiredStar, Mode=OneWay}" Foreground="#E74C3C"/>
+                                                </TextBlock>
 
-                                            <!-- 提示语 -->
-                                            <TextBlock Grid.Row="1" Grid.Column="0"
-                                                       Text="{Binding Prompt, Mode=OneWay}"
-                                                       FontSize="11" Foreground="{StaticResource HintTextBrush}"
-                                                       TextWrapping="Wrap" Margin="0,4,0,0"
-                                                       Visibility="{Binding Prompt, Mode=OneWay, Converter={StaticResource NotNullToVisibilityConverter}}"/>
-
-                                            <!-- 已选物料名 / 物料类型说明 -->
-                                            <StackPanel Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
-                                                        VerticalAlignment="Center" Margin="10,0,10,0">
-                                                <TextBlock Text="{Binding SelectedDisplay, Mode=OneWay}"
-                                                           FontSize="13"
-                                                           Foreground="{StaticResource PrimaryTextBrush}"
-                                                           TextWrapping="Wrap"/>
-                                                <TextBlock Text="{Binding StatusText, Mode=OneWay}"
+                                                <!-- 提示语 -->
+                                                <TextBlock Grid.Row="1" Grid.Column="0"
+                                                           Text="{Binding Prompt, Mode=OneWay}"
                                                            FontSize="11" Foreground="{StaticResource HintTextBrush}"
-                                                           Margin="0,3,0,0"/>
-                                            </StackPanel>
+                                                           TextWrapping="Wrap" Margin="0,4,0,0"
+                                                           Visibility="{Binding Prompt, Mode=OneWay, Converter={StaticResource NotNullToVisibilityConverter}}"/>
 
-                                            <!-- 选物料按钮 -->
-                                            <Button Grid.Row="0" Grid.Column="2" Grid.RowSpan="2"
-                                                    Content="选择物料" Click="SelectItemMaterial_Click"
-                                                    Tag="{Binding}"
-                                                    Style="{StaticResource AddMaterialButtonStyle}"
-                                                    Width="100" Height="32"
-                                                    VerticalAlignment="Center"/>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
+                                                <!-- 已选物料名 / 物料类型说明 -->
+                                                <StackPanel Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
+                                                            VerticalAlignment="Center" Margin="10,0,10,0">
+                                                    <TextBlock Text="{Binding SelectedDisplay, Mode=OneWay}"
+                                                               FontSize="13"
+                                                               Foreground="{StaticResource PrimaryTextBrush}"
+                                                               TextWrapping="Wrap"/>
+                                                    <TextBlock Text="{Binding StatusText, Mode=OneWay}"
+                                                               FontSize="11" Foreground="{StaticResource HintTextBrush}"
+                                                               Margin="0,3,0,0"/>
+                                                </StackPanel>
+
+                                                <!-- 选物料按钮 -->
+                                                <Button Grid.Row="0" Grid.Column="2" Grid.RowSpan="2"
+                                                        Content="选择物料" Click="SelectItemMaterial_Click"
+                                                        Tag="{Binding}"
+                                                        Style="{StaticResource AddMaterialButtonStyle}"
+                                                        Width="100" Height="32"
+                                                        VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
 
                     <!-- 总价 -->
                     <Border Grid.Row="2" Background="{StaticResource WarmHeaderBrush}"

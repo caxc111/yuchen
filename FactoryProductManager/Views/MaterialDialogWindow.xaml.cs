@@ -1,4 +1,5 @@
 using FactoryProductManager.Models;
+using FactoryProductManager.Services;
 using System;
 using System.Windows;
 
@@ -23,6 +24,8 @@ namespace FactoryProductManager.Views
             Title = _materialDialogControl.Title;
 
             StateChanged += MaterialDialogWindow_StateChanged;
+
+            WindowPositionService.AddPositionProtection(this);
         }
 
         private void MaterialDialogWindow_StateChanged(object? sender, System.EventArgs e)

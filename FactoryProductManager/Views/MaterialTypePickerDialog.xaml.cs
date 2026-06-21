@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
+using FactoryProductManager.Services;
 
 namespace FactoryProductManager.Views
 {
@@ -20,6 +21,8 @@ namespace FactoryProductManager.Views
             {
                 TitleText.Text = "请选择物料类型（单选）";
             }
+
+            WindowPositionService.AddPositionProtection(this);
         }
 
         private void Item_Click(object sender, MouseButtonEventArgs e)

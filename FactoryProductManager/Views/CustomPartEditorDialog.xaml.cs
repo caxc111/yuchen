@@ -25,6 +25,8 @@ namespace FactoryProductManager.Views
         {
             InitializeComponent();
             BuildComponentList();
+
+            WindowPositionService.AddPositionProtection(this);
         }
 
         private void BuildComponentList()

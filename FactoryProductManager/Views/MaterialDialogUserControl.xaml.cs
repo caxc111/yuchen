@@ -250,7 +250,7 @@ namespace FactoryProductManager.Views
                 }
 
                 var filteredFactories = _allFactories
-                    .Where(factory => string.Equals(factory.FactoryType, _selectedLevel1.Name, StringComparison.Ordinal))
+                    .Where(factory => factory.FactoryTypes.Contains(_selectedLevel1.Name))
                     .OrderBy(factory => factory.FactoryCode)
                     .ToList();
 

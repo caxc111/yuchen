@@ -2,6 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using FactoryProductManager.Services;
 
 namespace FactoryProductManager.Views
 {
@@ -39,6 +40,8 @@ namespace FactoryProductManager.Views
             }
 
             LoadImage();
+
+            WindowPositionService.AddPositionProtection(this);
         }
 
         private void LoadImage()

@@ -1,4 +1,5 @@
 using FactoryProductManager.Models;
+using FactoryProductManager.Services;
 using System;
 using System.Windows;
 using System.Windows.Controls;
@@ -28,6 +29,8 @@ namespace FactoryProductManager.Views
             }
 
             DataContext = this;
+
+            WindowPositionService.AddPositionProtection(this);
         }
 
         private static ProductPart ClonePart(ProductPart source)

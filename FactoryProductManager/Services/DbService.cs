@@ -577,7 +577,7 @@ namespace FactoryProductManager.Services
                 conn.Open();
 
                 // 删除旧的柜类模板，重新插入统一模板
-                var oldCodes = new[] { "CB-001", "XYG-001", "ZDT-001" };
+                var oldCodes = new[] { "CB-001", "XYG-001", "ZDT-001", "GX-001" };
                 foreach (var code in oldCodes)
                 {
                     var delItemCmd = new SQLiteCommand("DELETE FROM MaterialGroupItems WHERE group_id IN (SELECT id FROM MaterialGroups WHERE group_code = @code)", conn);
@@ -602,7 +602,7 @@ namespace FactoryProductManager.Services
                             new MaterialGroupItem { ItemName = "柜体", ItemOrder = 1, MaterialType = "柜体木饰面", IsRequired = true },
                             new MaterialGroupItem { ItemName = "门板", ItemOrder = 2, MaterialType = "柜体木饰面", IsRequired = true },
                             new MaterialGroupItem { ItemName = "台面", ItemOrder = 3, MaterialType = "石英石,大理石,岩板", IsRequired = false, Prompt = "请选择台面材质（石英石/大理石/岩板 三选一）" },
-                            new MaterialGroupItem { ItemName = "五金", ItemOrder = 4, MaterialType = "厨卫五金", IsRequired = true }
+                            new MaterialGroupItem { ItemName = "五金", ItemOrder = 4, MaterialType = "厨卫五金", IsRequired = false }
                         }
                     }
                 };
@@ -1709,7 +1709,8 @@ namespace FactoryProductManager.Services
                                ppm.brand, ppm.specification, ppm.unit, ppm.unit_price, ppm.quantity, ppm.total_price,
                                ppm.remarks, ppm.is_composite, ppm.group_code, ppm.item_name, ppm.parent_id,
                                ppm.created_at, ppm.updated_at,
-                               f.factory_name
+                               f.factory_name,
+                               fp.image_url
                         FROM ProductPartMaterials ppm
                         LEFT JOIN FactoryProducts fp ON ppm.material_id = fp.id
                         LEFT JOIN Factories f ON fp.factory_id = f.id
@@ -1746,6 +1747,7 @@ namespace FactoryProductManager.Services
                             ItemName = reader.IsDBNull(18) ? string.Empty : Convert.ToString(reader.GetValue(18)),
                             ParentId = reader.IsDBNull(20) ? null : Convert.ToInt32(reader.GetValue(20)),
                             FactoryName = reader.IsDBNull(23) ? string.Empty : Convert.ToString(reader.GetValue(23)),
+                            ImageUrl = reader.IsDBNull(24) ? string.Empty : Convert.ToString(reader.GetValue(24)),
                             CreatedAt = reader.IsDBNull(21) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(21))),
                             UpdatedAt = reader.IsDBNull(22) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(22)))
                         });

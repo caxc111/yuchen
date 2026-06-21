@@ -75,6 +75,8 @@ namespace FactoryProductManager.Views
             CustomPartsPanel.ItemsSource = CustomParts;
             CreatePartNameOptions();
             LoadParts();
+
+            WindowPositionService.AddPositionProtection(this);
         }
 
         private void CreatePartNameOptions()

@@ -61,6 +61,7 @@ namespace FactoryProductManager.Views
             LogService.Debug("[ProductManagementDialog] 构造开始");
             InitializeComponent();
             LogService.Debug("[ProductManagementDialog] InitializeComponent 完成");
+            
             if (product == null)
             {
                 Product = new Product
@@ -104,6 +105,8 @@ namespace FactoryProductManager.Views
             {
                 ContentRendered += ProductManagementDialog_ContentRendered;
             }
+
+            WindowPositionService.AddPositionProtection(this);
         }
 
         private void ProductManagementDialog_ContentRendered(object? sender, EventArgs e)
@@ -264,8 +267,55 @@ namespace FactoryProductManager.Views
                 return;
             }
 
+            // 获取已有物料
+            List<SelectedMaterial>? existingMaterials = null;
+            if (_pendingMaterials != null && _pendingMaterials.Count > 0)
+            {
+                // 新建产品时，使用暂存的物料
+                existingMaterials = _pendingMaterials;
+                LogService.Debug($"[ProductManagementDialog] 使用暂存物料，count={existingMaterials.Count}");
+            }
+            else if (Product.Id > 0)
+            {
+                // 编辑产品时，从数据库加载已有物料
+                try
+                {
+                    LogService.Debug($"[ProductManagementDialog] Product.Id={Product.Id}，开始从数据库加载已有物料");
+                    var dbMaterials = _dbService.GetProductPartMaterials(Product.Id);
+                    LogService.Debug($"[ProductManagementDialog] 从数据库获取了 {dbMaterials.Count} 条物料");
+                    existingMaterials = dbMaterials.Select(m => new SelectedMaterial
+                    {
+                        PartName = m.PartName ?? "",
+                        ComponentName = m.ComponentName ?? "",
+                        MaterialName = m.MaterialName ?? "",
+                        MaterialTypeName = m.MaterialTypeName ?? "",
+                        Specification = m.Specification ?? "",
+                        Unit = m.Unit ?? "",
+                        UnitPrice = m.UnitPrice,
+                        Quantity = m.Quantity > 0 ? (int)m.Quantity : 1,
+                        FactoryMaterialCode = m.FactoryMaterialCode ?? "",
+                        MyMaterialCode = m.MyMaterialCode ?? "",
+                        Brand = m.Brand ?? "",
+                        IsComposite = m.IsComposite,
+                        GroupCode = m.GroupCode ?? "",
+                        ItemName = m.ItemName ?? "",
+                        FactoryMaterialId = m.MaterialId ?? 0,
+                        ImageUrl = m.ImageUrl ?? ""
+                    }).ToList();
+                    LogService.Debug($"[ProductManagementDialog] existingMaterials count={existingMaterials.Count}");
+                }
+                catch (Exception ex)
+                {
+                    LogService.Error("[ProductManagementDialog] 加载已有物料异常", ex);
+                }
+            }
+            else
+            {
+                LogService.Debug($"[ProductManagementDialog] Product.Id={Product.Id} <= 0，不加载已有物料");
+            }
+
             LogService.Debug("[ProductManagementDialog] 开始 new AddProductMaterialWindow");
-            var dialog = new AddProductMaterialWindow(Product.Id, selectedParts);
+            var dialog = new AddProductMaterialWindow(Product.Id, selectedParts, existingMaterials);
             LogService.Debug("[ProductManagementDialog] AddProductMaterialWindow 构造完成，开始 ShowDialog");
             dialog.Owner = this;
             if (dialog.ShowDialog() == true)

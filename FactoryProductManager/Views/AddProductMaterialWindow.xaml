@@ -21,6 +21,17 @@
         <Border.Effect>
             <DropShadowEffect ShadowDepth="0" BlurRadius="15" Opacity="0.25" Color="Black"/>
         </Border.Effect>
+        <Border.Resources>
+            <Style x:Key="SmallTextBoxStyle" TargetType="TextBox">
+                <Setter Property="Background" Value="{StaticResource WarmInputBrush}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}"/>
+                <Setter Property="BorderThickness" Value="0.8"/>
+                <Setter Property="Padding" Value="4,2"/>
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="TextAlignment" Value="Center"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+            </Style>
+        </Border.Resources>
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="38"/>
@@ -105,84 +116,92 @@
 
                                 <ItemsControl x:Name="SelectedMaterialsPanel">
                                     <ItemsControl.Resources>
-                                        <!-- 复合物料大模板（含子项列表、整体删除、合计价） -->
+                                        <!-- 复合物料模板（单行样式，和普通物料一样） -->
                                         <DataTemplate x:Key="CompositeMaterialTemplate">
-                                            <Border Style="{StaticResource SelectedMaterialItemStyle}" Padding="12" Margin="0,0,0,10"
-                                                    BorderBrush="#E67E22" BorderThickness="1.2">
+                                            <Border Style="{StaticResource SelectedMaterialItemStyle}" Padding="12" Margin="0,0,0,8" Loaded="CompositeBorder_Loaded">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="140"/>
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="40"/>
                                                     </Grid.ColumnDefinitions>
                                                     <Grid.RowDefinitions>
                                                         <RowDefinition Height="Auto"/>
                                                         <RowDefinition Height="Auto"/>
-                                                        <RowDefinition Height="Auto"/>
                                                     </Grid.RowDefinitions>
-
-                                                    <!-- 标题行：组合名 + 数量 + 总价 -->
-                                                    <Grid Grid.Row="0" Grid.Column="0" Margin="0,0,0,8">
+                                                    <!-- 复合物料：显示第一个子项的图片 -->
+                                                    <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"
+                                                            Width="120" Height="120" CornerRadius="6"
+                                                            Background="{StaticResource WarmPanelBrush}"
+                                                            BorderBrush="{StaticResource InputBorderBrush}" BorderThickness="0.8"
+                                                            HorizontalAlignment="Center" VerticalAlignment="Top"
+                                                            ClipToBounds="True" Margin="0,0,12,0"
+                                                            Cursor="Hand" MouseLeftButtonUp="CompositeThumbnail_Click" Tag="{Binding}">
+                                                        <Grid>
+                                                            <TextBlock Text="🧩" FontSize="32" HorizontalAlignment="Center"
+                                                                       VerticalAlignment="Center"/>
+                                                            <Image x:Name="CompositeThumb" Stretch="UniformToFill"/>
+                                                        </Grid>
+                                                    </Border>
+                                                    <TextBlock Grid.Row="0" Grid.Column="1"
+                                                               Text="{Binding MaterialName}"
+                                                               FontSize="15" FontWeight="Bold"
+                                                               Foreground="{StaticResource PrimaryTextBrush}"
+                                                               TextWrapping="Wrap"
+                                                               VerticalAlignment="Top"
+                                                               Margin="0,0,0,8"/>
+                                                    <Grid Grid.Row="1" Grid.Column="1">
                                                         <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="80"/>
                                                             <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="80"/>
+                                                            <ColumnDefinition Width="*"/>
                                                         </Grid.ColumnDefinitions>
-                                                        <TextBlock Grid.Column="0" Text="🧩" FontSize="14"
-                                                                   VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                                        <TextBlock Grid.Column="1" Text="{Binding MaterialName}"
-                                                                   FontSize="15" FontWeight="Bold"
-                                                                   Foreground="{StaticResource PrimaryTextBrush}"
-                                                                   VerticalAlignment="Center"/>
-                                                        <TextBlock Grid.Column="2" FontSize="15" FontWeight="Bold"
-                                                                   Foreground="#E67E22" VerticalAlignment="Center">
-                                                            <Run Text="合计 ¥"/><Run Text="{Binding TotalPrice, Mode=OneWay, StringFormat={}{0:F2}}"/>
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="Auto"/>
+                                                            <RowDefinition Height="Auto"/>
+                                                            <RowDefinition Height="Auto"/>
+                                                        </Grid.RowDefinitions>
+                                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="部件："
+                                                                   FontSize="12" Foreground="{StaticResource SubtleTextBrush}"
+                                                                   Margin="0,3"/>
+                                                        <TextBlock Grid.Row="0" Grid.Column="1"
+                                                                   Text="{Binding PartName}"
+                                                                   FontSize="12" Foreground="{StaticResource PrimaryTextBrush}"
+                                                                   TextWrapping="Wrap" Margin="0,3"/>
+                                                        <TextBlock Grid.Row="0" Grid.Column="2" Text="部品："
+                                                                   FontSize="12" Foreground="{StaticResource SubtleTextBrush}"
+                                                                   Margin="10,3,0,3"/>
+                                                        <TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding FullDisplayName, Mode=OneWay}"
+                                                                   FontSize="12" Foreground="{StaticResource PrimaryTextBrush}"
+                                                                   TextWrapping="Wrap" Margin="0,3"/>
+                                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="组合："
+                                                                   FontSize="12" Foreground="{StaticResource SubtleTextBrush}"
+                                                                   Margin="0,3"/>
+                                                        <TextBlock Grid.Row="1" Grid.Column="1"
+                                                                   FontSize="12" Foreground="{StaticResource PrimaryTextBrush}"
+                                                                   TextWrapping="Wrap" Margin="0,3">
+                                                            <Run Text="{Binding MaterialName, Mode=OneWay}"/>
+                                                            <Run Text=" (" Foreground="{StaticResource SubtleTextBrush}"/>
+                                                            <Run Text="{Binding Children.Count, Mode=OneWay}" Foreground="{StaticResource HintTextBrush}"/>
+                                                            <Run Text=" 项)" Foreground="{StaticResource SubtleTextBrush}"/>
+                                                        </TextBlock>
+                                                        <TextBlock Grid.Row="1" Grid.Column="2" Text="数量："
+                                                                   FontSize="12" Foreground="{StaticResource SubtleTextBrush}"
+                                                                   Margin="10,3,0,3"/>
+                                                        <TextBox Grid.Row="1" Grid.Column="3"
+                                                                 Text="{Binding Quantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                 Style="{StaticResource SmallTextBoxStyle}" Margin="0,1"/>
+                                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="合计："
+                                                                   FontSize="12" Foreground="{StaticResource SubtleTextBrush}"
+                                                                   Margin="0,3"/>
+                                                        <TextBlock Grid.Row="2" Grid.Column="1" FontSize="14" FontWeight="Bold"
+                                                                   Foreground="#E67E22" Margin="0,3">
+                                                            <Run Text="¥"/><Run Text="{Binding TotalPrice, Mode=OneWay, StringFormat={}{0:F2}}"/>
                                                         </TextBlock>
                                                     </Grid>
-
-                                                    <!-- 部件/部品 -->
-                                                    <TextBlock Grid.Row="1" Grid.Column="0" FontSize="11"
-                                                               Foreground="{StaticResource SubtleTextBrush}" Margin="0,0,0,6">
-                                                        <Run Text="部件："/><Run Text="{Binding PartName}"/>
-                                                        <Run Text="  部品："/><Run Text="{Binding ComponentName}"/>
-                                                    </TextBlock>
-
-                                                    <!-- 子项列表 -->
-                                                    <ItemsControl Grid.Row="2" Grid.Column="0" ItemsSource="{Binding Children}">
-                                                        <ItemsControl.ItemTemplate>
-                                                            <DataTemplate>
-                                                                <Border BorderBrush="{StaticResource InputBorderBrush}"
-                                                                        BorderThickness="0,1,0,0" Padding="0,6,0,6" Margin="0,0,0,0">
-                                                                    <Grid>
-                                                                        <Grid.ColumnDefinitions>
-                                                                            <ColumnDefinition Width="80"/>
-                                                                            <ColumnDefinition Width="*"/>
-                                                                            <ColumnDefinition Width="60"/>
-                                                                            <ColumnDefinition Width="90"/>
-                                                                        </Grid.ColumnDefinitions>
-                                                                        <TextBlock Grid.Column="0" Text="{Binding ItemName}"
-                                                                                   FontSize="12" FontWeight="SemiBold"
-                                                                                   Foreground="{StaticResource SubtleTextBrush}"/>
-                                                                        <TextBlock Grid.Column="1"
-                                                                                   Text="{Binding MaterialName}"
-                                                                                   FontSize="12" Foreground="{StaticResource PrimaryTextBrush}"
-                                                                                   TextWrapping="Wrap"/>
-                                                                        <TextBlock Grid.Column="2" FontSize="12"
-                                                                                   Foreground="{StaticResource PrimaryTextBrush}"
-                                                                                   TextAlignment="Right">
-                                                                            <Run Text="¥"/><Run Text="{Binding UnitPrice, Mode=OneWay, StringFormat={}{0:F2}}"/>
-                                                                        </TextBlock>
-                                                                        <TextBlock Grid.Column="3" FontSize="12" FontWeight="Bold"
-                                                                                   Foreground="#E67E22" TextAlignment="Right">
-                                                                            <Run Text="小计 ¥"/><Run Text="{Binding TotalPrice, Mode=OneWay, StringFormat={}{0:F2}}"/>
-                                                                        </TextBlock>
-                                                                    </Grid>
-                                                                </Border>
-                                                            </DataTemplate>
-                                                        </ItemsControl.ItemTemplate>
-                                                    </ItemsControl>
-
-                                                    <!-- 删除（整体删除复合物料） -->
-                                                    <Button Grid.Row="0" Grid.RowSpan="3" Grid.Column="1"
+                                                    <!-- 删除 -->
+                                                    <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="2"
                                                             Content="×" Click="DeleteMaterial_Click"
                                                             Style="{StaticResource DeleteButtonStyle}"
                                                             Tag="{Binding}"
@@ -252,7 +271,7 @@
                                                         <TextBlock Grid.Row="0" Grid.Column="2" Text="部品："
                                                                    FontSize="12" Foreground="{StaticResource SubtleTextBrush}"
                                                                    Margin="10,3,0,3"/>
-                                                        <TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding ComponentName}"
+                                                        <TextBlock Grid.Row="0" Grid.Column="3" Text="{Binding FullDisplayName, Mode=OneWay}"
                                                                    FontSize="12" Foreground="{StaticResource PrimaryTextBrush}"
                                                                    TextWrapping="Wrap" Margin="0,3"/>
                                                         <TextBlock Grid.Row="1" Grid.Column="0" Text="规格："

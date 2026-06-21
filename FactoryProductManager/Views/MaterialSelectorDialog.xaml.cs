@@ -14,6 +14,7 @@ namespace FactoryProductManager.Views
         private readonly DbService _dbService;
         private readonly string _materialType;
         public List<FactoryMaterial> SelectedMaterials { get; private set; } = new();
+        public IReadOnlyCollection<FactoryMaterial> AllMaterials => _materials;
         private ObservableCollection<FactoryMaterial> _materials = new();
 
         public MaterialSelectorDialog(string materialType, DbService dbService)
@@ -27,6 +28,8 @@ namespace FactoryProductManager.Views
             LoadMaterials();
 
             StateChanged += MaterialSelectorDialog_StateChanged;
+
+            WindowPositionService.AddPositionProtection(this);
         }
 
         private void MaterialSelectorDialog_StateChanged(object? sender, System.EventArgs e)
@@ -56,8 +59,8 @@ namespace FactoryProductManager.Views
                 dep = System.Windows.Media.VisualTreeHelper.GetParent(dep);
             if (dep is DataGridRow row && row.DataContext is FactoryMaterial material)
             {
-                LogService.Debug($"[MaterialSelectorDialog] 单击选中: {material.MaterialName}");
                 material.IsSelected = !material.IsSelected;
+                LogService.Debug($"[MaterialSelectorDialog] 单击切换: {material.MaterialName}, IsSelected={material.IsSelected}");
                 UpdateOkButtonState();
             }
         }

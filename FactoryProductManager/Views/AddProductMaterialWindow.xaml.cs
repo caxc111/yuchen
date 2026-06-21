@@ -1,4 +1,5 @@
 using FactoryProductManager.Models;
+using FactoryProductManager.Models;
 using FactoryProductManager.Services;
 using System;
 using System.Collections.Generic;
@@ -71,6 +72,78 @@ namespace FactoryProductManager.Views
             catch (Exception ex)
             {
                 LogService.Error("[AddProductMaterialWindow] 加载自定义部件失败", ex);
+            }
+        }
+
+        // 加载该产品已有的物料
+        private void LoadExistingMaterials()
+        {
+            try
+            {
+                var db = new DbService();
+                var existingMaterials = db.GetProductPartMaterials(_productId);
+
+                // 分开主行和子行
+                var parentRows = new List<(ProductPartMaterial pm, SelectedMaterial sm)>();
+                var childRows = new List<(ProductPartMaterial pm, SelectedMaterial sm)>();
+
+                foreach (var pm in existingMaterials)
+                {
+                    var sm = new SelectedMaterial
+                    {
+                        Id = pm.Id,
+                        FactoryMaterialId = pm.MaterialId ?? 0,
+                        PartName = pm.PartName ?? "",
+                        ComponentName = pm.ComponentName ?? "",
+                        MaterialName = pm.MaterialName ?? "",
+                        MaterialTypeName = pm.MaterialTypeName ?? "",
+                        Specification = pm.Specification ?? "",
+                        Unit = pm.Unit ?? "",
+                        UnitPrice = pm.UnitPrice,
+                        Quantity = pm.Quantity > 0 ? (int)pm.Quantity : 1,
+                        FactoryMaterialCode = pm.FactoryMaterialCode ?? "",
+                        MyMaterialCode = pm.MyMaterialCode ?? "",
+                        Brand = pm.Brand ?? "",
+                        IsComposite = pm.IsComposite,
+                        GroupCode = pm.GroupCode ?? "",
+                        ItemName = pm.ItemName ?? "",
+                        ParentRef = pm.ParentId,
+                        ImageUrl = pm.ImageUrl ?? ""
+                    };
+
+                    if (pm.ParentId.HasValue && pm.ParentId > 0)
+                        childRows.Add((pm, sm));
+                    else
+                        parentRows.Add((pm, sm));
+                }
+
+                // 先添加所有主行
+                foreach (var (_, sm) in parentRows)
+                {
+                    SelectedMaterials.Add(sm);
+                }
+
+                // 再把子行挂到对应父行下
+                foreach (var (pm, sm) in childRows)
+                {
+                    var parent = parentRows.FirstOrDefault(p => p.pm.Id == pm.ParentId).sm;
+                    if (parent != null)
+                    {
+                        sm.ParentRef = parent.Id;
+                        parent.Children.Add(sm);
+                    }
+                    else
+                    {
+                        // 找不到父行，当作普通物料处理
+                        SelectedMaterials.Add(sm);
+                    }
+                }
+
+                LogService.Info($"[AddProductMaterialWindow] 加载已有物料 {existingMaterials.Count} 条（主行 {parentRows.Count}，子行 {childRows.Count}）");
+            }
+            catch (Exception ex)
+            {
+                LogService.Error("[AddProductMaterialWindow] 加载已有物料失败", ex);
             }
         }
 
@@ -337,11 +410,11 @@ namespace FactoryProductManager.Views
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public AddProductMaterialWindow(int productId, List<ProductPart>? parts = null)
+        public AddProductMaterialWindow(int productId, List<ProductPart>? parts = null, List<SelectedMaterial>? existingMaterials = null)
         {
             try
             {
-                LogService.Debug($"[AddProductMaterialWindow] 开始构造，productId={productId}, parts count={parts?.Count ?? 0}");
+                LogService.Debug($"[AddProductMaterialWindow] 开始构造，productId={productId}, parts count={parts?.Count ?? 0}, existingMaterials count={existingMaterials?.Count ?? 0}");
                 InitializeComponent();
                 LogService.Debug("[AddProductMaterialWindow] InitializeComponent 完成");
                 DataContext = this;
@@ -359,13 +432,33 @@ namespace FactoryProductManager.Views
                 // 种子数据：3 个柜类模板（首次启动时插入）
                 try { new DbService().SeedDefaultMaterialGroups(); } catch { /* 已 seed 或失败，忽略 */ }
 
+                // 加载已有物料（新建产品暂存的 or 编辑时数据库的）
+                if (existingMaterials != null && existingMaterials.Count > 0)
+                {
+                    LogService.Debug($"[AddProductMaterialWindow] 添加传入的已有物料，count={existingMaterials.Count}");
+                    foreach (var m in existingMaterials)
+                    {
+                        SelectedMaterials.Add(m);
+                    }
+                    LogService.Debug($"[AddProductMaterialWindow] 添加后 SelectedMaterials.Count={SelectedMaterials.Count}");
+                }
+                else if (_productId > 0)
+                {
+                    // 从数据库加载（编辑已有产品）
+                    LoadExistingMaterials();
+                }
+
+                LogService.Debug($"[AddProductMaterialWindow] 构造完成，SelectedMaterials.Count={SelectedMaterials.Count}");
                 SelectedMaterialsPanel.ItemsSource = SelectedMaterials;
+                LogService.Debug($"[AddProductMaterialWindow] SelectedMaterialsPanel.ItemsSource 已设置");
                 SelectedMaterials.CollectionChanged += (s, e) => UpdateEmptyText();
 
                 InitializeNavPanel();
                 UpdatePartContent();
 
                 StateChanged += AddProductMaterialWindow_StateChanged;
+
+                WindowPositionService.AddPositionProtection(this);
                 LogService.Debug("[AddProductMaterialWindow] 构造完成");
             }
             catch (Exception ex)
@@ -723,6 +816,8 @@ namespace FactoryProductManager.Views
                     var currentType = materials.FirstOrDefault(m => m.Name == selectedText);
                     if (currentType == null) return;
 
+                    LogService.Info($"[监控] selectedText={selectedText}, currentType.Name={currentType.Name}, IsComposite={currentType.IsComposite}");
+
                     var dbService = new DbService();
 
                     if (currentType.IsComposite && !string.IsNullOrEmpty(currentType.GroupCode))
@@ -736,12 +831,18 @@ namespace FactoryProductManager.Views
                                 MessageBox.Show($"未找到组合模板 {currentType.GroupCode}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
                                 return;
                             }
-                            var dlg = new MaterialGroupEditorDialog(template, dbService) { Owner = this };
+                            var dlg = new MaterialGroupEditorDialog(template, dbService, selectedText) { Owner = this };
                             if (dlg.ShowDialog() == true && dlg.Result != null)
                             {
                                 var main = dlg.Result;
                                 main.PartName = SelectedPartName;
                                 main.ComponentName = componentName;
+                                LogService.Info($"[监控] 复合物料添加成功: MaterialName={main.MaterialName}, FullDisplayName={main.FullDisplayName}, PartName={main.PartName}, ComponentName={main.ComponentName}");
+                                LogService.Info($"[监控] 子项数量={main.Children.Count}");
+                                foreach (var child in main.Children)
+                                {
+                                    LogService.Info($"[监控] 子项: ItemName={child.ItemName}, MaterialName={child.MaterialName}, FullDisplayName={child.FullDisplayName}");
+                                }
                                 // 强制刷新总价通知
                                 SelectedMaterials.Add(main);
                                 UpdateEmptyText();
@@ -761,6 +862,21 @@ namespace FactoryProductManager.Views
                         Owner = this
                     };
 
+                    // 预标记当前部品类型下已选的物料
+                    var existingMaterialIds = SelectedMaterials
+                        .Where(m => m.PartName == SelectedPartName && m.ComponentName == componentName && !m.IsComposite)
+                        .Select(m => m.FactoryMaterialId)
+                        .ToHashSet();
+
+                    // 将对话框中匹配的物料设为选中状态
+                    foreach (var material in selectorDialog.AllMaterials)
+                    {
+                        if (existingMaterialIds.Contains(material.Id))
+                        {
+                            material.IsSelected = true;
+                        }
+                    }
+
                     if (selectorDialog.ShowDialog() == true && selectorDialog.SelectedMaterials.Count > 0)
                     {
                         foreach (var selectedDbMaterial in selectorDialog.SelectedMaterials)
@@ -770,7 +886,7 @@ namespace FactoryProductManager.Views
                             {
                                 FactoryMaterialId = selectedDbMaterial.Id,
                                 PartName = SelectedPartName,
-                                MaterialName = $"{componentName}-{selectedDbMaterial.MaterialName}",
+                                MaterialName = selectedDbMaterial.MaterialName,
                                 Specification = selectedDbMaterial.Specification,
                                 UnitPrice = selectedDbMaterial.CostPrice ?? 0,
                                 Quantity = 1,
@@ -800,6 +916,26 @@ namespace FactoryProductManager.Views
             }
         }
 
+        // 复合物料 Border 加载时：设置缩略图
+        private void CompositeBorder_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (sender is Border border && border.DataContext is SelectedMaterial material)
+            {
+                var grid = VisualTreeHelper.GetChild(border, 0) as Grid;
+                var image = grid?.FindName("CompositeThumb") as Image;
+                if (image != null)
+                {
+                    var firstChild = material.Children.FirstOrDefault();
+                    if (firstChild != null && !string.IsNullOrEmpty(firstChild.ImageUrl))
+                    {
+                        image.Source = CreateBitmapImage(firstChild.ImageUrl);
+                        var textBlock = grid?.Children.OfType<TextBlock>().FirstOrDefault();
+                        if (textBlock != null) textBlock.Visibility = Visibility.Collapsed;
+                    }
+                }
+            }
+        }
+
         // 已选物料行的缩略图点击 → 大图查看
         private void Thumbnail_Click(object sender, MouseButtonEventArgs e)
         {
@@ -817,6 +953,30 @@ namespace FactoryProductManager.Views
                 catch (Exception ex)
                 {
                     LogService.Error("[AddProductMaterialWindow] 打开大图失败", ex);
+                }
+            }
+        }
+
+        // 复合物料缩略图点击 → 查看第一个子项的大图
+        private void CompositeThumbnail_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Border border && border.Tag is SelectedMaterial material)
+            {
+                var firstChild = material.Children.FirstOrDefault();
+                if (firstChild != null && !string.IsNullOrWhiteSpace(firstChild.ImageUrl))
+                {
+                    try
+                    {
+                        var viewer = new ImageViewerWindow(firstChild.ImageUrl)
+                        {
+                            Owner = this
+                        };
+                        viewer.ShowDialog();
+                    }
+                    catch (Exception ex)
+                    {
+                        LogService.Error("[AddProductMaterialWindow] 打开复合物料大图失败", ex);
+                    }
                 }
             }
         }
@@ -964,6 +1124,25 @@ namespace FactoryProductManager.Views
             Close();
         }
 
+        private BitmapImage? CreateBitmapImage(string? imagePath)
+        {
+            if (string.IsNullOrWhiteSpace(imagePath)) return null;
+            try
+            {
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.UriSource = new Uri(imagePath, UriKind.Absolute);
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.DecodePixelWidth = 120;
+                bitmap.EndInit();
+                return bitmap;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -979,84 +1158,5 @@ namespace FactoryProductManager.Views
         // 复合物料标记（方案 B）
         public bool IsComposite { get; set; }
         public string GroupCode { get; set; } = "";
-    }
-
-    public class SelectedMaterial : INotifyPropertyChanged
-    {
-        private int _quantity = 1;
-
-        public int FactoryMaterialId { get; set; }
-        public string PartName { get; set; } = "";
-        public string MaterialName { get; set; } = "";
-        public string Specification { get; set; } = "";
-        public decimal UnitPrice { get; set; }
-        public string ComponentName { get; set; } = "";
-        public string MaterialTypeName { get; set; } = "";
-        public string FactoryMaterialCode { get; set; } = "";
-        public string MyMaterialCode { get; set; } = "";
-        public string Brand { get; set; } = "";
-        public string Unit { get; set; } = "";
-        public string ImageUrl { get; set; } = "";
-
-        // ===== 复合物料相关字段（方案 B） =====
-        // 1=这是一个组合的主行（如"定制橱柜"），含 Children
-        public bool IsComposite { get; set; }
-        public string GroupCode { get; set; } = "";
-        public string ItemName { get; set; } = "";  // 主行 = ""；子行 = "台面" 等
-        public int? ParentRef { get; set; }        // 内存里的父子引用（落库前用，落库后用 ParentId）
-        public ObservableCollection<SelectedMaterial> Children { get; } = new();
-
-        public int Quantity
-        {
-            get => _quantity;
-            set
-            {
-                if (_quantity != value)
-                {
-                    _quantity = value;
-                    OnPropertyChanged();
-                    OnPropertyChanged(nameof(TotalPrice));
-                    _parentForNotify?.OnPropertyChanged(nameof(TotalPrice));
-                }
-            }
-        }
-
-        public SelectedMaterial()
-        {
-            Children.CollectionChanged += (s, e) =>
-            {
-                if (e.NewItems != null)
-                    foreach (SelectedMaterial item in e.NewItems) item.AttachParent(this);
-                if (e.OldItems != null)
-                    foreach (SelectedMaterial item in e.OldItems) item.DetachParent(this);
-                OnPropertyChanged(nameof(TotalPrice));
-            };
-        }
-
-        private void AttachParent(SelectedMaterial parent) { ParentRef = null; _parentForNotify = parent; }
-        private void DetachParent(SelectedMaterial parent) { _parentForNotify = null; }
-        private SelectedMaterial? _parentForNotify;
-
-        // 复合物料：显示总价 = 主行 0 + 子项之和；普通物料：单价 × 数量
-        public decimal TotalPrice
-        {
-            get
-            {
-                if (IsComposite)
-                {
-                    decimal sum = 0;
-                    foreach (var c in Children) sum += c.TotalPrice;
-                    return sum;
-                }
-                return UnitPrice * Quantity;
-            }
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
     }
 }

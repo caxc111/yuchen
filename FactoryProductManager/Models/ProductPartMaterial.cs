@@ -26,6 +26,9 @@ namespace FactoryProductManager.Models
         public decimal UnitPrice { get; set; }
         public string Remarks { get; set; } = string.Empty;
         public string FactoryName { get; set; } = string.Empty;
+
+        // 图片路径（使用 Remarks 字段存储）
+        public string ImageUrl { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
