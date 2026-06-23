@@ -2,12 +2,13 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using FactoryProductManager.Services;
 
 namespace FactoryProductManager.Models
 {
     public class SelectedMaterial : INotifyPropertyChanged
     {
-        private int _quantity = 1;
+        private decimal _quantity = 1;
 
         public int Id { get; set; }
         public int FactoryMaterialId { get; set; }
@@ -22,6 +23,10 @@ namespace FactoryProductManager.Models
         public string Brand { get; set; } = "";
         public string Unit { get; set; } = "";
         public string ImageUrl { get; set; } = "";
+
+        // 导出时需要的额外字段（从 FactoryProducts 关联获取）
+        public string Remarks { get; set; } = "";
+        public string FactoryName { get; set; } = "";
 
         // 复合物料
         public bool IsComposite { get; set; }
@@ -49,7 +54,22 @@ namespace FactoryProductManager.Models
             }
         }
 
-        public int Quantity
+        /// <summary>
+        /// 根据单位返回数量的小数位数：米/平方米/立方米 → 2位，其他 → 0位
+        /// </summary>
+        public int QuantityDecimalPlaces
+        {
+            get
+            {
+                var u = Unit?.Trim().ToLowerInvariant() ?? "";
+                if (u == "m" || u == "米" || u == "㎡" || u == "m²" || u == "m2" ||
+                    u == "m³" || u == "m3" || u.Contains("²") || u.Contains("³") || u.Contains("3"))
+                    return 2;
+                return 0;
+            }
+        }
+
+        public decimal Quantity
         {
             get => _quantity;
             set
@@ -58,8 +78,32 @@ namespace FactoryProductManager.Models
                 {
                     _quantity = value;
                     OnPropertyChanged();
+                    OnPropertyChanged(nameof(QuantityDisplay));
                     OnPropertyChanged(nameof(TotalPrice));
                     _parentForNotify?.OnPropertyChanged(nameof(TotalPrice));
+                }
+            }
+        }
+
+        /// <summary>
+        /// 用于 TextBox 显示的数量文本（带格式化）
+        /// </summary>
+        public string QuantityDisplay
+        {
+            get => QuantityDecimalPlaces == 0
+                ? ((int)Quantity).ToString()
+                : Quantity.ToString($"F{QuantityDecimalPlaces}");
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value)) return;
+                string trimmed = value.Trim();
+                if (!decimal.TryParse(trimmed, out decimal val) || val < 0) return;
+                int decimals = QuantityDecimalPlaces;
+                decimal rounded = decimals == 0 ? Math.Round(val, 0) : Math.Round(val, decimals);
+                if (rounded != Quantity)
+                {
+                    LogService.Info($"[QuantityDisplay] MaterialName={MaterialName}, OldQuantity={Quantity}, NewQuantity={rounded}");
+                    Quantity = rounded;
                 }
             }
         }
@@ -68,10 +112,10 @@ namespace FactoryProductManager.Models
         {
             get
             {
-                // 复合物料主行：TotalPrice = 所有子项的 TotalPrice 之和
+                // 复合物料主行：TotalPrice = 主行数量 × 所有子项的小计之和
                 if (IsComposite && Children.Count > 0)
                 {
-                    return Children.Sum(c => c.TotalPrice);
+                    return Quantity * Children.Sum(c => c.UnitPrice * c.Quantity);
                 }
                 return UnitPrice * Quantity;
             }
@@ -125,7 +169,7 @@ namespace FactoryProductManager.Models
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged(string propertyName = "")
+        public void OnPropertyChanged(string propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }

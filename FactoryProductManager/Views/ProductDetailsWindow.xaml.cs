@@ -20,7 +20,7 @@ namespace FactoryProductManager.Views
         public decimal Area { get; set; }
         public decimal CostTotalPrice { get; set; }
         public string FloorPlan { get; set; } = "";
-        public bool IsActive { get; set; }
+        public new bool IsActive { get; set; }
 
         public ObservableCollection<MaterialDisplayItem> MaterialsList { get; } = new();
 
@@ -50,9 +50,16 @@ namespace FactoryProductManager.Views
                     }
 
                     // 加载所有物料详情
-                    var materials = db.GetProductPartMaterials(product.Id);
+                    var materials = db.LoadProductMaterialsFromLibrary(product.Id);
                     foreach (var m in materials)
                     {
+                        decimal compositeUnitPrice = 0;
+                        if (m.IsComposite)
+                        {
+                            // 子项小计之和（不含主行数量）
+                            compositeUnitPrice = m.Children.Sum(c => c.UnitPrice * c.Quantity);
+                        }
+
                         MaterialsList.Add(new MaterialDisplayItem
                         {
                             PartName = m.PartName ?? "",
@@ -63,7 +70,9 @@ namespace FactoryProductManager.Views
                             UnitPrice = m.UnitPrice,
                             Quantity = m.Quantity,
                             TotalPrice = m.TotalPrice,
-                            Remarks = m.Remarks ?? ""
+                            Remarks = m.Remarks ?? "",
+                            IsComposite = m.IsComposite,
+                            CompositeUnitPrice = compositeUnitPrice
                         });
                     }
                 }
@@ -122,9 +131,28 @@ namespace FactoryProductManager.Views
         public decimal Quantity { get; set; }
         public decimal TotalPrice { get; set; }
         public string Remarks { get; set; } = "";
+        public bool IsComposite { get; set; }
+        public decimal CompositeUnitPrice { get; set; }
 
-        public string DisplayText => $"{PartName}-{ComponentName}：{MaterialName}" +
-            (string.IsNullOrEmpty(Specification) ? "" : $"（{Specification}）") +
-            $" {Quantity}{Unit} × ¥{UnitPrice:F2} = ¥{TotalPrice:F2}";
+        public string DisplayText
+        {
+            get
+            {
+                if (IsComposite)
+                {
+                    // 复合物料显示：主行数量 × 子项合价 = 总价
+                    return $"{PartName}-{ComponentName}：{MaterialName}" +
+                        (string.IsNullOrEmpty(Specification) ? "" : $"（{Specification}）") +
+                        $" {Quantity}套 × 子项合价¥{CompositeUnitPrice:F2} = ¥{TotalPrice:F2}";
+                }
+                else
+                {
+                    // 普通物料显示：数量 × 单价 = 小计
+                    return $"{PartName}-{ComponentName}：{MaterialName}" +
+                        (string.IsNullOrEmpty(Specification) ? "" : $"（{Specification}）") +
+                        $" {Quantity}{Unit} × ¥{UnitPrice:F2} = ¥{TotalPrice:F2}";
+                }
+            }
+        }
     }
 }
