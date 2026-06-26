@@ -18,7 +18,7 @@ namespace FactoryProductManager.Views
         // 7 个默认部品（去重自 _partComponents）
         private static readonly string[] DefaultComponents =
         {
-            "地面", "墙面", "固装", "五金洁具", "电器", "灯具", "房门"
+            "地面", "墙面", "固装", "五金洁具", "电器", "灯具", "木门"
         };
 
         public CustomPartEditorDialog()
@@ -174,6 +174,29 @@ namespace FactoryProductManager.Views
         {
             DialogResult = false;
             Close();
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            DialogResult = false;
+            Close();
+        }
+
+        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState.Minimized;
+        }
+
+        private void MaximizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (WindowState == WindowState.Maximized)
+            {
+                WindowState = WindowState.Normal;
+            }
+            else
+            {
+                WindowState = WindowState.Maximized;
+            }
         }
     }
 }

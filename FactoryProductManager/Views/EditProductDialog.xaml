@@ -1,15 +1,21 @@
-<Window x:Class="FactoryProductManager.Views.ProductManagementDialog"
+<Window x:Class="FactoryProductManager.Views.EditProductDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FactoryProductManager.Views"
         xmlns:converters="clr-namespace:FactoryProductManager.Converters"
+        xmlns:app="clr-namespace:FactoryProductManager"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="产品信息" Width="620"
-        SizeToContent="Height"
-        MaxHeight="800"
-        WindowStartupLocation="CenterOwner">
+        Title="编辑产品" Width="620" Height="750"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="CanResize"
+        app:WindowDragBehavior.Enable="True"
+    >
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <converters:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
@@ -40,28 +46,33 @@
         </Style>
     </Window.Resources>
     <Grid>
-        <Grid Margin="5">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+        <Border Style="{StaticResource UnifiedDialogBorderStyle}" Padding="15">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-            <Border Grid.Row="0" Grid.RowSpan="3" Style="{StaticResource WarmPanelBorderStyle}" Padding="15">
-                <Border.Effect>
-                    <DropShadowEffect ShadowDepth="0" BlurRadius="15" Opacity="0.25" Color="Black"/>
-                </Border.Effect>
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
+                <!-- Header: Title + Window Buttons -->
+                <Grid Grid.Row="0" Margin="0,0,0,5">
+                    <TextBlock Text="编辑产品" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PrimaryTextBrush}" VerticalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button Style="{StaticResource WindowButtonStyle}" Click="MinimizeButton_Click" ToolTip="最小化">
+                            <materialDesign:PackIcon Kind="WindowMinimize" Width="14" Height="14"/>
+                        </Button>
+                        <Button x:Name="MaximizeButton" Style="{StaticResource WindowButtonStyle}" Click="MaximizeButton_Click" ToolTip="最大化">
+                            <materialDesign:PackIcon Kind="WindowMaximize" Width="14" Height="14"/>
+                        </Button>
+                        <Button Style="{StaticResource WindowCloseButtonStyle}" Click="CloseButton_Click" ToolTip="关闭">
+                            <materialDesign:PackIcon Kind="Close" Width="14" Height="14"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
 
-                    <TextBlock Grid.Row="0" Text="{Binding Title}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PrimaryTextBrush}"/>
-
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,10,0,0">
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                         <StackPanel>
+                            <!-- 第一行：业态 + 项目代码（项目代码只读） -->
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="120"/>
@@ -109,15 +120,16 @@
                                             </Grid>
                                         </Border>
                                     </Grid>
-                                    <!-- 项目代码输入框 -->
+                                    <!-- 项目代码输入框（只读） -->
                                     <Grid Grid.Column="4" Width="200">
-                                        <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}" Width="200">
+                                        <Border Style="{StaticResource WarmFieldBorderStyle}" Background="#E8E8E8" Width="200">
                                         </Border>
-                                        <TextBox Text="{Binding Product.ProjectCode}" Style="{StaticResource WarmInputTextBoxStyle}" Width="200" VerticalContentAlignment="Center" Background="Transparent" BorderThickness="0"/>
+                                        <TextBox Text="{Binding Product.ProjectCode, Mode=OneWay}" Style="{StaticResource WarmInputTextBoxStyle}" Width="200" VerticalContentAlignment="Center" Background="Transparent" BorderThickness="0" IsReadOnly="True" Foreground="#666666"/>
                                     </Grid>
                                 </Grid>
                             </Grid>
 
+                            <!-- 第二行：部件 -->
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="120"/>
@@ -171,6 +183,7 @@
                                 </Grid>
                             </Grid>
 
+                            <!-- 第三行：户型 + 添加物料 -->
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="120"/>
@@ -197,7 +210,7 @@
                                     <Grid Grid.Column="0" Width="260">
                                         <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}" Width="260" Height="35">
                                         </Border>
-                                        <TextBox Text="{Binding Product.HouseType, Mode=OneWay}"
+                                        <TextBox Text="{Binding HouseTypeDisplay, Mode=OneWay}"
                                                  Style="{StaticResource WarmInputTextBoxStyle}"
                                                  IsReadOnly="True"/>
                                     </Grid>
@@ -219,6 +232,7 @@
                                 </Grid>
                             </Grid>
 
+                            <!-- 第四行：产品编码（只读） -->
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="120"/>
@@ -242,11 +256,13 @@
                                         <ColumnDefinition Width="10"/>
                                         <ColumnDefinition Width="110"/>
                                     </Grid.ColumnDefinitions>
+                                    <!-- 产品编码只读 -->
                                     <Grid Grid.Column="0" Width="260">
-                                        <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}" Width="260" Height="35">
+                                        <Border Style="{StaticResource WarmFieldBorderStyle}" Background="#E8E8E8" Width="260" Height="35">
                                         </Border>
-                                        <TextBox Text="{Binding Product.ProductCode}" Style="{StaticResource WarmInputTextBoxStyle}" Height="35"/>
+                                        <TextBox Text="{Binding Product.ProductCode, Mode=OneWay}" Style="{StaticResource WarmInputTextBoxStyle}" Height="35" Background="Transparent" BorderThickness="0" IsReadOnly="True" Foreground="#666666"/>
                                     </Grid>
+                                    <!-- 删除按钮 -->
                                     <Border Grid.Column="2" Width="110" Height="35" Style="{StaticResource WarmActionBorderStyle}" Background="{StaticResource WarmSurfaceBrush}">
                                         <Grid Width="110" Height="35" ClipToBounds="False">
                                             <Border Width="110" Height="35" CornerRadius="10" ClipToBounds="False" Background="{StaticResource WarmSurfaceBrush}">
@@ -254,18 +270,20 @@
                                                     <BlurEffect Radius="20"/>
                                                 </Border.Effect>
                                             </Border>
-                                            <Button Content="生成编码"
+                                            <Button Content="删除产品"
                                                     Margin="0"
                                                     Width="110"
                                                     Height="35"
-                                                    Click="GenerateProductCodeButton_Click"
-                                                    Style="{StaticResource UnifiedDialogActionButtonStyle}"/>
+                                                    Click="DeleteProductButton_Click"
+                                                    Style="{StaticResource UnifiedDialogActionButtonStyle}"
+                                                    Foreground="#D32F2F"/>
                                         </Grid>
                                     </Border>
                                 </Grid>
                             </Grid>
 
-                            <Grid Visibility="{Binding IsAdding, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                            <!-- 第五行：面积（只读） -->
+                            <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="120"/>
                                     <ColumnDefinition Width="*"/>
@@ -289,7 +307,8 @@
                                 </Grid>
                             </Grid>
 
-                            <Grid Visibility="{Binding IsAdding, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                            <!-- 第六行：成本合价（只读） -->
+                            <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="120"/>
                                     <ColumnDefinition Width="*"/>
@@ -309,10 +328,46 @@
                                 <Grid Grid.Column="1" Margin="0,10,0,0" Width="380" Height="35">
                                     <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}" Width="380">
                                     </Border>
-                                    <TextBox Text="{Binding Product.CostTotalPrice, UpdateSourceTrigger=LostFocus}" Style="{StaticResource WarmInputTextBoxStyle}"/>
+                                    <TextBlock Text="{Binding Product.CostTotalPrice, StringFormat='￥{0:N2}'}"
+                                               VerticalAlignment="Center"
+                                               HorizontalAlignment="Left"
+                                               Margin="10,0,0,0"
+                                               FontSize="14"
+                                               Foreground="{StaticResource PrimaryTextBrush}"/>
                                 </Grid>
                             </Grid>
 
+                            <!-- 第七行：均价（只读） -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid Grid.Column="0" Margin="0,10,0,0">
+                                    <Border Width="110" Height="35" HorizontalAlignment="Center" Style="{StaticResource WarmTagBorderStyle}">
+                                        <Grid Width="110" Height="35">
+                                            <Border Width="110" Height="35" CornerRadius="10" Background="{StaticResource WarmSurfaceBrush}">
+                                                <Border.Effect>
+                                                    <BlurEffect Radius="20"/>
+                                                </Border.Effect>
+                                            </Border>
+                                            <TextBlock Text="均价（元）" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" Style="{StaticResource UnifiedDialogLabelTextStyle}"/>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                                <Grid Grid.Column="1" Margin="0,10,0,0" Width="380" Height="35">
+                                    <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}" Width="380">
+                                    </Border>
+                                    <TextBlock Text="{Binding AveragePrice, StringFormat='￥{0:N2}'}"
+                                               VerticalAlignment="Center"
+                                               HorizontalAlignment="Left"
+                                               Margin="10,0,0,0"
+                                               FontSize="14"
+                                               Foreground="{StaticResource PrimaryTextBrush}"/>
+                                </Grid>
+                            </Grid>
+
+                            <!-- 第八行：平面图 -->
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="120"/>
@@ -339,7 +394,7 @@
                                         AllowDrop="True"
                                         DragOver="FloorPlanDropZone_DragOver"
                                         Drop="FloorPlanDropZone_Drop"
-                                        MouseLeftButtonUp="FloorPlanDropZone_Click">
+                                        PreviewMouseLeftButtonDown="FloorPlanDropZone_Click">
                                     <Grid>
                                         <Image x:Name="FloorPlanPreviewImage" Stretch="Uniform" Margin="8"/>
                                         <StackPanel x:Name="FloorPlanHintPanel" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -375,6 +430,7 @@
                                 </Border>
                             </Grid>
 
+                            <!-- 第九行：是否启用 -->
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="120"/>
@@ -424,5 +480,4 @@
                 </Grid>
             </Border>
         </Grid>
-    </Grid>
 </Window>

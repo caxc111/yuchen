@@ -4,11 +4,17 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FactoryProductManager.Views"
+        xmlns:app="clr-namespace:FactoryProductManager"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
         Title="编辑部件" Height="620" Width="500"
         WindowStartupLocation="CenterOwner"
         ResizeMode="CanResize"
-        ShowInTaskbar="False">
+        ShowInTaskbar="False"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        app:WindowDragBehavior.Enable="True">
     <Window.Resources>
         <Style x:Key="UnifiedDialogActionButtonStyle" TargetType="Button" BasedOn="{StaticResource WarmActionButtonStyle}">
             <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
@@ -37,31 +43,31 @@
         </Style>
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
     </Window.Resources>
-    <Grid Margin="15">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <Border Style="{StaticResource UnifiedDialogBorderStyle}">
+        <Grid Margin="15">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <!-- Panel Border -->
-        <Border Grid.Row="0" Grid.RowSpan="4"
-                Style="{StaticResource WarmPanelBorderStyle}" Padding="15">
-            <Border.Effect>
-                <DropShadowEffect ShadowDepth="0" BlurRadius="15" Opacity="0.25" Color="Black"/>
-            </Border.Effect>
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <!-- Header -->
-                <TextBlock Grid.Row="0" Text="选择部件" FontSize="18" FontWeight="Bold"
-                           Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,10"/>
+            <!-- Header -->
+            <Grid Margin="0,0,0,10">
+                <TextBlock Text="选择部件" FontSize="18" FontWeight="Bold"
+                           Foreground="{StaticResource PrimaryTextBrush}" VerticalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button Style="{StaticResource WindowButtonStyle}" Click="MinimizeButton_Click" ToolTip="最小化">
+                        <materialDesign:PackIcon Kind="WindowMinimize" Width="14" Height="14"/>
+                    </Button>
+                    <Button x:Name="MaximizeButton" Style="{StaticResource WindowButtonStyle}" Click="MaximizeButton_Click" ToolTip="最大化">
+                        <materialDesign:PackIcon Kind="WindowMaximize" Width="14" Height="14"/>
+                    </Button>
+                    <Button Style="{StaticResource WindowCloseButtonStyle}" Click="CloseButton_Click" ToolTip="关闭">
+                        <materialDesign:PackIcon Kind="Close" Width="14" Height="14"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
 
                 <!-- Standard Parts Selection -->
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
@@ -112,8 +118,7 @@
                     <Button Content="取消" Click="CancelButton_Click"
                             Style="{StaticResource UnifiedDialogActionButtonStyle}"
                             Width="80" Height="32"/>
-                </StackPanel>
-            </Grid>
-        </Border>
-    </Grid>
+            </StackPanel>
+        </Grid>
+    </Border>
 </Window>

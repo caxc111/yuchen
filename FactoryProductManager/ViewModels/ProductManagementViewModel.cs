@@ -66,6 +66,7 @@ namespace FactoryProductManager.ViewModels
         {
             _dbService = new DbService();
             Products = new ObservableCollection<Product>();
+            InactiveProducts = new ObservableCollection<Product>();
             DisplayProducts = new ObservableCollection<Product>();
             LoadProducts();
         }
@@ -117,15 +118,23 @@ namespace FactoryProductManager.ViewModels
             var existing = Products.FirstOrDefault(item => item.Id == product.Id);
             if (existing != null)
             {
-                var index = Products.IndexOf(existing);
-                Products[index] = product;
+                existing.BusinessType = product.BusinessType;
+                existing.ProductCode = product.ProductCode;
+                existing.ProductName = product.ProductName;
+                existing.ProjectCode = product.ProjectCode;
+                existing.HouseType = product.HouseType;
+                existing.Area = product.Area;
+                existing.CostTotalPrice = product.CostTotalPrice;
+                existing.SellingTotalPrice = product.SellingTotalPrice;
+                existing.FloorPlan = product.FloorPlan;
+                existing.IsActive = product.IsActive;
+                existing.UpdatedAt = product.UpdatedAt;
             }
 
             RefreshDisplayProducts();
 
             if (materials != null && materials.Count > 0)
             {
-                _dbService.DeleteProductPartMaterialsByProduct(product.Id);
                 PersistSelectedMaterials(product.Id, parts, materials);
             }
         }
@@ -160,32 +169,8 @@ namespace FactoryProductManager.ViewModels
 
         private void PersistSelectedMaterials(int productId, IReadOnlyList<ProductPart>? parts, IReadOnlyList<SelectedMaterial> materials)
         {
-            var partMap = (parts ?? _dbService.GetProductParts(productId))
-                .ToDictionary(p => p.PartName, p => p.Id);
-
-            var entities = materials.Select(sm => new ProductPartMaterial
-            {
-                ProductId = productId,
-                PartId = partMap.TryGetValue(sm.ComponentName, out var pid) && pid > 0
-                    ? (int?)pid
-                    : null,
-                PartName = sm.ComponentName,
-                ComponentName = sm.ComponentName,
-                MaterialTypeName = sm.MaterialTypeName,
-                MaterialId = sm.FactoryMaterialId > 0 ? (int?)sm.FactoryMaterialId : null,
-                MaterialName = sm.MaterialName,
-                FactoryMaterialCode = sm.FactoryMaterialCode,
-                MyMaterialCode = sm.MyMaterialCode,
-                Brand = sm.Brand,
-                Specification = sm.Specification,
-                Unit = sm.Unit,
-                UnitPrice = sm.UnitPrice,
-                Quantity = sm.Quantity,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now
-            }).ToList();
-
-            _dbService.AddProductPartMaterials(productId, entities);
+            // 直接保存 SelectedMaterial 到 ProductMaterialLibrary 表
+            _dbService.SaveProductMaterialsToLibrary(productId, materials.ToList());
         }
 
         public void DeleteProduct(int id)
@@ -240,30 +225,31 @@ namespace FactoryProductManager.ViewModels
                 var worksheet = package.Workbook.Worksheets.Add(sheetName);
 
                 // 获取该产品的所有物料明细
-                var materials = _dbService.GetProductPartMaterials(product.Id);
+                var materials = _dbService.LoadProductMaterialsFromLibrary(product.Id);
                 var parts = _dbService.GetProductParts(product.Id);
 
                 // 列标题
                 string[] headers = {
-                    "图纸 (Drawing)",           // A
-                    "部件 (Space)",             // B
-                    "部品 (Components)",        // C
-                    "物料 (Material)",          // D
-                    "单位 (Unit)",              // E
-                    "品牌",                     // F
-                    "工厂名称",                 // G
-                    "工厂物料编码",             // H
-                    "宇辰物料编码",             // I
-                    "规格",                     // J
-                    "数量 (Quantity)",          // K
-                    "单价 (Unit price)",        // L
-                    "成本总价",                 // M
-                    "供货周期 (Supply cycle)"   // N
+                    "图纸",                      // A
+                    "物料名称",                  // B
+                    "物料缩略图",                // C
+                    "部件",                      // D
+                    "部品",                      // E
+                    "单位",                      // F
+                    "品牌",                      // G
+                    "工厂名称",                  // H
+                    "工厂物料编码",              // I
+                    "宇辰物料编码",              // J
+                    "规格",                      // K
+                    "数量",                      // L
+                    "单价",                      // M
+                    "成本总价",                  // N
+                    "供货周期"                   // O
                 };
 
                 // 设置表头（第1行）
                 worksheet.Cells[1, 1].Value = $"硬装一级产品明细 - {product.ProductName}";
-                worksheet.Cells[1, 1, 1, 14].Merge = true;
+                worksheet.Cells[1, 1, 1, 15].Merge = true;
                 worksheet.Cells[1, 1].Style.Font.Bold = true;
                 worksheet.Cells[1, 1].Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
 
@@ -283,43 +269,70 @@ namespace FactoryProductManager.ViewModels
                 if (materials.Count == 0)
                 {
                     // 如果没有物料明细，输出产品基本信息
-                    worksheet.Cells[dataRow, 2].Value = "";                                         // B: 部件（无物料时留空）
-                    worksheet.Cells[dataRow, 3].Value = "";                                         // C: 部品
-                    worksheet.Cells[dataRow, 4].Value = "（无物料明细）";                           // D: 物料
-                    worksheet.Cells[dataRow, 5].Value = "";                                         // E: 单位
-                    worksheet.Cells[dataRow, 6].Value = "";                                         // F: 品牌
-                    worksheet.Cells[dataRow, 7].Value = "";                                         // G: 工厂名称
-                    worksheet.Cells[dataRow, 8].Value = product.ProductCode;                         // H: 工厂物料编码
-                    worksheet.Cells[dataRow, 9].Value = "";                                         // I: 宇辰物料编码
-                    worksheet.Cells[dataRow, 10].Value = "";                                        // J: 规格
-                    worksheet.Cells[dataRow, 11].Value = product.Area;                               // K: 数量
-                    worksheet.Cells[dataRow, 12].Value = "";                                         // L: 单价
-                    worksheet.Cells[dataRow, 13].Value = product.CostTotalPrice;                    // M: 成本总价
-                    worksheet.Cells[dataRow, 14].Value = "";                                        // N: 供货周期
+                    worksheet.Cells[dataRow, 2].Value = "";                                         // B: 物料名称
+                    worksheet.Cells[dataRow, 3].Value = "";                                         // C: 物料缩略图
+                    worksheet.Cells[dataRow, 4].Value = "";                                         // D: 部件
+                    worksheet.Cells[dataRow, 5].Value = "";                                         // E: 部品
+                    worksheet.Cells[dataRow, 6].Value = "（无物料明细）";                           // F: 物料
+                    worksheet.Cells[dataRow, 7].Value = "";                                         // G: 单位
+                    worksheet.Cells[dataRow, 8].Value = "";                                         // H: 品牌
+                    worksheet.Cells[dataRow, 9].Value = "";                                         // I: 工厂名称
+                    worksheet.Cells[dataRow, 10].Value = product.ProductCode;                        // J: 工厂物料编码
+                    worksheet.Cells[dataRow, 11].Value = "";                                        // K: 宇辰物料编码
+                    worksheet.Cells[dataRow, 12].Value = "";                                         // L: 规格
+                    worksheet.Cells[dataRow, 13].Value = product.Area;                              // M: 数量
+                    worksheet.Cells[dataRow, 14].Value = "";                                        // N: 单价
+                    worksheet.Cells[dataRow, 15].Value = product.CostTotalPrice;                   // O: 成本总价
                 }
                 else
                 {
                     // 输出所有物料明细
                     foreach (var mat in materials)
                     {
-                        worksheet.Cells[dataRow, 2].Value = mat.PartName;                            // B: 部件（空间）
-                        worksheet.Cells[dataRow, 3].Value = mat.ComponentName;                      // C: 部品（物料分类）
-                        worksheet.Cells[dataRow, 4].Value = mat.MaterialName;                        // D: 物料（具体材料）
-                        worksheet.Cells[dataRow, 5].Value = mat.Unit;                               // E: 单位
-                        worksheet.Cells[dataRow, 6].Value = mat.Brand;                              // F: 品牌
-                        worksheet.Cells[dataRow, 7].Value = mat.FactoryName;                       // G: 工厂名称
-                        worksheet.Cells[dataRow, 8].Value = mat.FactoryMaterialCode;                 // H: 工厂物料编码
-                        worksheet.Cells[dataRow, 9].Value = mat.MyMaterialCode;                     // I: 宇辰物料编码
-                        worksheet.Cells[dataRow, 10].Value = mat.Specification;                     // J: 规格
-                        worksheet.Cells[dataRow, 11].Value = mat.Quantity;                          // K: 数量
-                        worksheet.Cells[dataRow, 12].Value = mat.UnitPrice;                         // L: 单价
-                        worksheet.Cells[dataRow, 13].Value = mat.TotalPrice;                        // M: 成本总价
-                        worksheet.Cells[dataRow, 14].Value = mat.Remarks;                           // N: 供货周期
-                        dataRow++;
+                        // 如果是复合物料，输出子项；否则输出主行
+                        if (mat.IsComposite && mat.Children.Count > 0)
+                        {
+                            // 复合物料：输出所有子项
+                            foreach (var child in mat.Children)
+                            {
+                                worksheet.Cells[dataRow, 2].Value = child.MaterialName;                        // B: 物料名称
+                                worksheet.Cells[dataRow, 4].Value = child.PartName;                            // D: 部件
+                                worksheet.Cells[dataRow, 5].Value = child.ComponentName;                      // E: 部品
+                                worksheet.Cells[dataRow, 6].Value = child.Unit;                              // F: 单位
+                                worksheet.Cells[dataRow, 7].Value = child.Brand;                              // G: 品牌
+                                worksheet.Cells[dataRow, 8].Value = child.FactoryName;                        // H: 工厂名称
+                                worksheet.Cells[dataRow, 9].Value = child.FactoryMaterialCode;                 // I: 工厂物料编码
+                                worksheet.Cells[dataRow, 10].Value = child.MyMaterialCode;                    // J: 宇辰物料编码
+                                worksheet.Cells[dataRow, 11].Value = child.Specification;                     // K: 规格
+                                worksheet.Cells[dataRow, 12].Value = child.Quantity;                         // L: 数量
+                                worksheet.Cells[dataRow, 13].Value = child.UnitPrice;                         // M: 单价
+                                worksheet.Cells[dataRow, 14].Value = child.TotalPrice;                       // N: 成本总价
+                                worksheet.Cells[dataRow, 15].Value = child.Remarks;                          // O: 供货周期
+                                dataRow++;
+                            }
+                        }
+                        else
+                        {
+                            // 普通物料：输出主行
+                            worksheet.Cells[dataRow, 2].Value = mat.MaterialName;                            // B: 物料名称
+                            worksheet.Cells[dataRow, 4].Value = mat.PartName;                                // D: 部件
+                            worksheet.Cells[dataRow, 5].Value = mat.ComponentName;                           // E: 部品
+                            worksheet.Cells[dataRow, 6].Value = mat.Unit;                                   // F: 单位
+                            worksheet.Cells[dataRow, 7].Value = mat.Brand;                                  // G: 品牌
+                            worksheet.Cells[dataRow, 8].Value = mat.FactoryName;                             // H: 工厂名称
+                            worksheet.Cells[dataRow, 9].Value = mat.FactoryMaterialCode;                     // I: 工厂物料编码
+                            worksheet.Cells[dataRow, 10].Value = mat.MyMaterialCode;                         // J: 宇辰物料编码
+                            worksheet.Cells[dataRow, 11].Value = mat.Specification;                          // K: 规格
+                            worksheet.Cells[dataRow, 12].Value = mat.Quantity;                               // L: 数量
+                            worksheet.Cells[dataRow, 13].Value = mat.UnitPrice;                             // M: 单价
+                            worksheet.Cells[dataRow, 14].Value = mat.TotalPrice;                           // N: 成本总价
+                            worksheet.Cells[dataRow, 15].Value = mat.SupplyCycle;                           // O: 供货周期
+                            dataRow++;
+                        }
                     }
                 }
 
-                // 合并A列（第3行到数据最后一行），用于放置图片
+                // 合并A列（第3行到数据最后一行），用于放置图纸图片
                 int startRow = 3;
                 int endRow = dataRow - 1;
                 if (endRow >= startRow)
@@ -327,25 +340,51 @@ namespace FactoryProductManager.ViewModels
                     // 合并A列的起始行到结束行
                     worksheet.Cells[startRow, 1, endRow, 1].Merge = true;
 
-                    // 在合并的单元格中放置图片
+                    // 在合并的单元格中放置图纸图片
                     EmbedFloorPlanImage(worksheet, product.FloorPlan, startRow, endRow);
+
+                    // 设置行高（统一高度，确保图纸和缩略图显示一致）
+                    for (int r = startRow; r <= endRow; r++)
+                    {
+                        worksheet.Row(r).Height = 60;
+                    }
+
+                    // 为每行添加物料缩略图（C列，每行单独一个图片）
+                    int thumbnailRow = startRow;
+                    foreach (var mat in materials)
+                    {
+                        if (mat.IsComposite && mat.Children.Count > 0)
+                        {
+                            foreach (var child in mat.Children)
+                            {
+                                EmbedMaterialThumbnail(worksheet, child.ImageUrl, thumbnailRow, 3);
+                                thumbnailRow++;
+                            }
+                        }
+                        else
+                        {
+                            EmbedMaterialThumbnail(worksheet, mat.ImageUrl, thumbnailRow, 3);
+                            thumbnailRow++;
+                        }
+                    }
                 }
 
                 // 设置所有列宽（固定值，确保文字完整显示）
                 worksheet.Column(1).Width = 18;    // A: 图纸
-                worksheet.Column(2).Width = 20;    // B: 部件
-                worksheet.Column(3).Width = 20;    // C: 部品
-                worksheet.Column(4).Width = 25;    // D: 物料
-                worksheet.Column(5).Width = 8;     // E: 单位
-                worksheet.Column(6).Width = 18;    // F: 品牌
-                worksheet.Column(7).Width = 22;    // G: 工厂名称
-                worksheet.Column(8).Width = 22;    // H: 工厂物料编码
-                worksheet.Column(9).Width = 18;    // I: 宇辰物料编码
-                worksheet.Column(10).Width = 25;   // J: 规格
-                worksheet.Column(11).Width = 20;   // K: 数量
-                worksheet.Column(12).Width = 20;   // L: 单价
-                worksheet.Column(13).Width = 20;   // M: 成本总价
-                worksheet.Column(14).Width = 25;   // N: 供货周期
+                worksheet.Column(2).Width = 22;    // B: 物料名称
+                worksheet.Column(3).Width = 10;    // C: 物料缩略图
+                worksheet.Column(4).Width = 18;    // D: 部件
+                worksheet.Column(5).Width = 18;    // E: 部品
+                worksheet.Column(6).Width = 8;     // F: 单位
+                worksheet.Column(7).Width = 18;   // G: 品牌
+                worksheet.Column(8).Width = 22;    // H: 工厂名称
+                worksheet.Column(9).Width = 22;    // I: 工厂物料编码
+                worksheet.Column(10).Width = 18;   // J: 宇辰物料编码
+                worksheet.Column(11).Width = 25;   // K: 规格
+                worksheet.Column(12).Width = 10;  // L: 数量
+                worksheet.Column(13).Width = 12;  // M: 单价
+                worksheet.Column(14).Width = 15;   // N: 成本总价
+                worksheet.Column(15).Width = 15;  // O: 供货周期
             }
 
             package.SaveAs(new FileInfo(saveDialog.FileName));
@@ -468,6 +507,82 @@ namespace FactoryProductManager.ViewModels
             {
                 System.Diagnostics.Debug.WriteLine($"嵌入图片失败: {ex.Message}");
                 return (0, 0);
+            }
+        }
+
+        /// <summary>
+        /// 将物料缩略图嵌入到指定单元格的B列（不合并单元格，每行独立图片）
+        /// </summary>
+        /// <param name="imagePath">图片路径</param>
+        /// <param name="row">行号</param>
+        /// <param name="column">列号（默认2，即B列）</param>
+        private void EmbedMaterialThumbnail(ExcelWorksheet worksheet, string? imagePath, int row, int column = 2)
+        {
+            if (string.IsNullOrEmpty(imagePath))
+            {
+                return;
+            }
+
+            try
+            {
+                var fullPath = imagePath;
+                // 如果是相对路径，转换为绝对路径
+                if (!Path.IsPathRooted(imagePath))
+                {
+                    fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, imagePath);
+                }
+
+                if (!File.Exists(fullPath))
+                    return;
+
+                // 获取图片原始尺寸
+                using var image = System.Drawing.Image.FromFile(fullPath);
+                var originalWidth = image.Width;
+                var originalHeight = image.Height;
+
+                // 列宽约等于 7 像素/单位，列宽12 = 84像素宽度
+                int cellWidth = 12 * 7;   // 84像素
+                // 行高约等于 0.75 像素/单位，行高60 = 45像素高度
+                int cellHeight = 60;       // 像素（行高60）
+
+                // 计算缩放比例，使图片适应单元格
+                var displayWidth = originalWidth;
+                var displayHeight = originalHeight;
+
+                // 宽度限制
+                if (displayWidth > cellWidth)
+                {
+                    var ratio = (double)cellWidth / displayWidth;
+                    displayWidth = cellWidth;
+                    displayHeight = (int)(displayHeight * ratio);
+                }
+
+                // 高度限制
+                if (displayHeight > cellHeight)
+                {
+                    var ratio = (double)cellHeight / displayHeight;
+                    displayHeight = cellHeight;
+                    displayWidth = (int)(displayWidth * ratio);
+                }
+
+                // EPPlus 7+ 使用 FileInfo 方式添加图片
+                var fileInfo = new FileInfo(fullPath);
+                var pic = worksheet.Drawings.AddPicture($"Thumb_{row}_{column}_{Guid.NewGuid():N}", fileInfo);
+
+                // 设置图片缩放后的尺寸
+                pic.SetSize(displayWidth, displayHeight);
+
+                // 设置图片位置：居中于单元格
+                // 行偏移 = (单元格高度 - 图片高度) / 2
+                int rowOffset = Math.Max(0, (cellHeight - displayHeight) / 2);
+                // 列偏移 = (单元格宽度 - 图片宽度) / 2
+                int colOffset = Math.Max(0, (cellWidth - displayWidth) / 2);
+
+                pic.SetPosition(row - 1, rowOffset, column - 1, colOffset);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"嵌入物料缩略图失败: {ex.Message}");
             }
         }
     }

@@ -25,11 +25,7 @@ namespace FactoryProductManager.Views
                 var material = border?.DataContext as FactoryMaterial;
                 if (material != null && !string.IsNullOrWhiteSpace(material.ImageUrl))
                 {
-                    var imageViewer = new ImageViewerWindow(
-                        material.ImageUrl,
-                        material.MaterialName,
-                        material.MyMaterialCode,
-                        material.Specification);
+                    var imageViewer = new ImageViewerWindow(material.ImageUrl, material.MaterialName);
                     imageViewer.Owner = Window.GetWindow(this);
                     imageViewer.ShowDialog();
                 }

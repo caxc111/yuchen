@@ -191,7 +191,7 @@ namespace FactoryProductManager.ViewModels
 
                         string[] headers = new string[]
                         {
-                            "工厂物料编码", "宇辰物料编码", "物料名称", "类别", "工厂名称",
+                            "类别", "工厂名称", "物料名称", "工厂物料编码", "宇辰物料编码",
                             "品牌", "规格", "纹理", "工艺", "单位", "成本价格",
                             "适用场景", "认证情况", "供货周期", "图片"
                         };
@@ -208,11 +208,11 @@ namespace FactoryProductManager.ViewModels
                         int row = 2;
                         foreach (var material in Materials)
                         {
-                            worksheet.Cells[row, 1].Value = material.FactoryMaterialCode;
-                            worksheet.Cells[row, 2].Value = material.MyMaterialCode;
+                            worksheet.Cells[row, 1].Value = material.CategoryDisplay;
+                            worksheet.Cells[row, 2].Value = material.FactoryName;
                             worksheet.Cells[row, 3].Value = material.MaterialName;
-                            worksheet.Cells[row, 4].Value = material.CategoryDisplay;
-                            worksheet.Cells[row, 5].Value = material.FactoryName;
+                            worksheet.Cells[row, 4].Value = material.FactoryMaterialCode;
+                            worksheet.Cells[row, 5].Value = material.MyMaterialCode;
                             worksheet.Cells[row, 6].Value = material.Brand;
                             worksheet.Cells[row, 7].Value = material.Specification;
                             worksheet.Cells[row, 8].Value = material.Texture;

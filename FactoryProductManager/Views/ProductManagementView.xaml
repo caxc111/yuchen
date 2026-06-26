@@ -82,14 +82,24 @@
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="业态" Binding="{Binding BusinessType}" Width="80" HeaderStyle="{StaticResource GlobalFirstDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
                         <DataGridTextColumn Header="产品编码" Binding="{Binding ProductCode}" Width="180" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
-                        <DataGridTextColumn Header="项目代码" Binding="{Binding ProjectCode}" Width="150" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
+                        <DataGridTextColumn Header="项目代码" Binding="{Binding ProjectCode}" Width="120" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
                         <DataGridTextColumn Header="户型" Binding="{Binding HouseType}" Width="*" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
                         <DataGridTextColumn Header="面积（㎡）" Binding="{Binding Area}" Width="90" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
-                        <DataGridTextColumn Header="成本合价（元）" Binding="{Binding CostTotalPrice, StringFormat=F2}" Width="120" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
+                        <DataGridTextColumn Header="成本合价（元）" Binding="{Binding CostTotalPrice, StringFormat=F2}" Width="140" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
+                        <DataGridTextColumn Header="成本均价" Binding="{Binding CostAveragePrice, StringFormat=F2}" Width="100" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
                         <DataGridTemplateColumn Header="平面图" Width="80" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Border Width="44" Height="44" CornerRadius="8" BorderThickness="0" Background="{StaticResource WarmInputBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="True">
+                                    <Border Width="44" Height="44" CornerRadius="8" BorderThickness="0" Background="{StaticResource WarmInputBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="True" Cursor="Hand" MouseLeftButtonDown="FloorPlanImage_Click">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Opacity" Value="0.8"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
                                         <Grid>
                                             <Image Source="{Binding FloorPlan}" Stretch="UniformToFill"/>
                                             <TextBlock Text="无图" FontSize="11" Foreground="{StaticResource HintTextBrush}" HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -148,16 +158,16 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <Button ToolTip="详情" Click="DetailsButton_Click" Tag="{Binding}" Margin="0,0,5,0"
-                                                Style="{StaticResource WarmIconButtonStyle}">
+                                        <Button ToolTip="详情" Tag="{Binding}" Margin="0,0,5,0"
+                                                Style="{StaticResource WarmIconButtonStyle}" Click="DetailsButton_Click">
                                             <Image Source="/Resources/Icons/icon_expand.png" Width="14" Height="14" Stretch="Uniform"/>
                                         </Button>
-                                        <Button ToolTip="编辑" Click="EditButton_Click" Tag="{Binding}" Margin="0,0,5,0"
-                                                Style="{StaticResource WarmIconButtonStyle}">
+                                        <Button ToolTip="编辑" Tag="{Binding}" Margin="0,0,5,0"
+                                                Style="{StaticResource WarmIconButtonStyle}" Click="EditButton_Click">
                                             <Image Source="/Resources/Icons/icon_edit.png" Width="14" Height="14" Stretch="Uniform"/>
                                         </Button>
-                                        <Button ToolTip="删除" Click="DeleteButton_Click" Tag="{Binding}"
-                                                Style="{StaticResource WarmIconButtonStyle}">
+                                        <Button ToolTip="删除" Tag="{Binding}"
+                                                Style="{StaticResource WarmIconButtonStyle}" Click="DeleteButton_Click">
                                             <Image Source="/Resources/Icons/icon_delete.png" Width="14" Height="14" Stretch="Uniform"/>
                                         </Button>
                                     </StackPanel>

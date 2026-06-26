@@ -1,28 +1,54 @@
 <Window x:Class="FactoryProductManager.Views.MaterialTypePickerDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="选择物料类型" Height="280" Width="380"
+        xmlns:local="clr-namespace:FactoryProductManager"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Title="选择物料类型" Height="400" Width="380"
         WindowStartupLocation="CenterOwner"
         Background="Transparent"
         AllowsTransparency="True"
         WindowStyle="None"
         ShowInTaskbar="False"
         ResizeMode="NoResize">
-    <Border Background="{StaticResource WarmSurfaceBrush}"
-            CornerRadius="12"
-            BorderBrush="{StaticResource ActionBorderBrush}"
-            BorderThickness="1"
-            Margin="8">
-        <Border.Effect>
-            <DropShadowEffect ShadowDepth="0" BlurRadius="15" Opacity="0.25" Color="Black"/>
-        </Border.Effect>
+    <Border Style="{StaticResource UnifiedDialogBorderStyle}">
         <Grid>
             <Grid.RowDefinitions>
+                <RowDefinition Height="38"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="0" Margin="20">
+            <!-- 标题栏（可拖拽） -->
+            <Border Grid.Row="0" Background="{StaticResource WarmHeaderBrush}"
+                    CornerRadius="12,12,0,0"
+                    local:WindowDragBehavior.Enable="True">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="选择物料类型"
+                               FontSize="14" FontWeight="Bold"
+                               Foreground="{StaticResource PrimaryTextBrush}"
+                               VerticalAlignment="Center"
+                               Margin="15,0,0,0"/>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button Style="{StaticResource WindowButtonStyle}" Click="MinimizeButton_Click" ToolTip="最小化">
+                            <materialDesign:PackIcon Kind="WindowMinimize" Width="14" Height="14"/>
+                        </Button>
+                        <Button x:Name="MaximizeButton" Style="{StaticResource WindowButtonStyle}" Click="MaximizeButton_Click" ToolTip="最大化">
+                            <materialDesign:PackIcon Kind="WindowMaximize" Width="14" Height="14"/>
+                        </Button>
+                        <Button Style="{StaticResource WindowCloseButtonStyle}" Click="CloseButton_Click" ToolTip="关闭">
+                            <materialDesign:PackIcon Kind="Close" Width="14" Height="14"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <StackPanel Grid.Row="1" Margin="20">
                 <TextBlock x:Name="TitleText" Text="请选择物料类型"
                            FontSize="14" FontWeight="Bold"
                            Foreground="{StaticResource PrimaryTextBrush}"
@@ -36,7 +62,7 @@
                                     BorderThickness="0.8"
                                     Padding="12,10"
                                     Cursor="Hand"
-                                    MouseLeftButtonUp="Item_Click"
+                                    PreviewMouseLeftButtonDown="Item_Click"
                                     Tag="{Binding}">
                                 <TextBlock Text="{Binding}" FontSize="13"
                                            Foreground="{StaticResource PrimaryTextBrush}"
@@ -47,7 +73,7 @@
                 </ItemsControl>
             </StackPanel>
 
-            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,20,15">
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,20,15">
                 <Button Content="取消" Click="CancelButton_Click"
                         Width="80" Height="32" Margin="0,0,10,0"
                         Style="{StaticResource AddMaterialButtonStyle}"/>

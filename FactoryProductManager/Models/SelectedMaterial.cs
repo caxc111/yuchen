@@ -27,6 +27,7 @@ namespace FactoryProductManager.Models
         // 导出时需要的额外字段（从 FactoryProducts 关联获取）
         public string Remarks { get; set; } = "";
         public string FactoryName { get; set; } = "";
+        public string SupplyCycle { get; set; } = "";
 
         // 复合物料
         public bool IsComposite { get; set; }
@@ -36,6 +37,21 @@ namespace FactoryProductManager.Models
 
         // 柜子名称（如"电视柜"、"玄关柜"），用于组合显示名
         public string CabinetName { get; set; } = "";
+
+        // 图纸编号（用于关联 CAD 图纸）
+        private string _drawingNumber = "";
+        public string DrawingNumber
+        {
+            get => _drawingNumber;
+            set
+            {
+                if (_drawingNumber != value)
+                {
+                    _drawingNumber = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
         public ObservableCollection<SelectedMaterial> Children { get; } = new();
         // 归属的组合物料名称（如五金属于"定制橱柜"）

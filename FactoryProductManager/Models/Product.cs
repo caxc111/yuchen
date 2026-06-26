@@ -66,8 +66,10 @@ namespace FactoryProductManager.Models
         public decimal CostTotalPrice
         {
             get => _costTotalPrice;
-            set { _costTotalPrice = value; OnPropertyChanged(nameof(CostTotalPrice)); }
+            set { _costTotalPrice = value; OnPropertyChanged(nameof(CostTotalPrice)); OnPropertyChanged(nameof(CostAveragePrice)); }
         }
+
+        public decimal CostAveragePrice => Area > 0 ? CostTotalPrice / Area : 0;
 
         public decimal? SellingTotalPrice
         {

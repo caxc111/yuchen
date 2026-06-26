@@ -258,6 +258,7 @@ namespace FactoryProductManager.Models
                         new ProductCategory { Name = "微波炉" },
                         new ProductCategory { Name = "蒸烤箱" },
                         new ProductCategory { Name = "热水器" },
+                        new ProductCategory { Name = "冰箱" },
                         new ProductCategory { Name = "中央空调/新风/地暖设备" }
                     }
                 }

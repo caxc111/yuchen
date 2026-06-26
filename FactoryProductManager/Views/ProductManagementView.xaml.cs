@@ -1,4 +1,5 @@
 using FactoryProductManager.Models;
+using FactoryProductManager.Services;
 using FactoryProductManager.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
@@ -33,6 +34,7 @@ namespace FactoryProductManager.Views
 
         private void StatusToggle_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
+            LogService.Debug($"[ProductManagementView] StatusToggle_Click: ClickCount={e.ClickCount}");
             if (sender is not FrameworkElement element || element.Tag is not Product product)
             {
                 return;
@@ -58,12 +60,12 @@ namespace FactoryProductManager.Views
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new ProductManagementDialog();
+            var dialog = new AddProductDialog();
             dialog.Owner = Window.GetWindow(this);
             dialog.ShowDialog();
             if (dialog.IsSaved)
             {
-                _viewModel.AddProduct(dialog.Product, dialog.PendingParts, dialog.PendingMaterials);
+                _viewModel.Refresh();
             }
         }
 
@@ -74,17 +76,18 @@ namespace FactoryProductManager.Views
                 return;
             }
 
-            var dialog = new ProductManagementDialog(product);
+            var dialog = new EditProductDialog(product);
             dialog.Owner = Window.GetWindow(this);
             dialog.ShowDialog();
-            if (dialog.IsSaved)
+            if (dialog.IsSaved || dialog.IsDeleted)
             {
-                _viewModel.UpdateProduct(dialog.Product, dialog.PendingParts, dialog.PendingMaterials);
+                _viewModel.Refresh();
             }
         }
 
         private void DetailsButton_Click(object sender, RoutedEventArgs e)
         {
+            LogService.Debug("[ProductManagementView] DetailsButton_Click 开始");
             if (sender is not Button button || button.Tag is not Product product)
             {
                 return;
@@ -107,6 +110,24 @@ namespace FactoryProductManager.Views
             {
                 _viewModel.DeleteProduct(product.Id);
             }
+        }
+
+        private void FloorPlanImage_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (sender is not FrameworkElement element || element.DataContext is not Product product)
+            {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(product.FloorPlan))
+            {
+                MessageBox.Show("该产品没有平面图", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var viewer = new ImageViewerWindow(product.FloorPlan, product.ProductCode + " - 平面图");
+            viewer.Owner = Window.GetWindow(this);
+            viewer.ShowDialog();
         }
     }
 }

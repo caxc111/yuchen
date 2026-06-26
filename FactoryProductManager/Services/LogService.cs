@@ -20,7 +20,7 @@ namespace FactoryProductManager.Services
         private static bool _debugEnabled = true;
 
         public static string LogDirectory => _logDirectory;
-        public static string CurrentLogFilePath => Path.Combine(LogDirectory, $"Log_{DateTime.Now:yyyyMMdd}.txt");
+        public static string CurrentLogFilePath => Path.Combine(LogDirectory, $"监控日志_{DateTime.Now:yyyyMMdd}.txt");
         public static string RootDebugLogPath
         {
             get
@@ -274,7 +274,7 @@ namespace FactoryProductManager.Services
                     return;
                 }
 
-                foreach (var file in directoryInfo.GetFiles("Log_*.txt"))
+                foreach (var file in directoryInfo.GetFiles("监控日志_*.txt"))
                 {
                     if (file.LastWriteTime < DateTime.Now.AddDays(-RetentionDays))
                     {

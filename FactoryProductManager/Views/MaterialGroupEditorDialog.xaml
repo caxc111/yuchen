@@ -1,7 +1,9 @@
 <Window x:Class="FactoryProductManager.Views.MaterialGroupEditorDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:FactoryProductManager"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Closing="Window_Closing"
         Title="配置柜类物料" Height="650" Width="900"
         WindowStartupLocation="CenterOwner"
         Background="Transparent"
@@ -9,52 +11,53 @@
         WindowStyle="None"
         ShowInTaskbar="False"
         ResizeMode="CanResize">
-    <Border Background="{StaticResource WarmSurfaceBrush}"
-            CornerRadius="12"
-            BorderBrush="{StaticResource ActionBorderBrush}"
-            BorderThickness="1"
-            Margin="8">
-        <Border.Effect>
-            <DropShadowEffect ShadowDepth="0" BlurRadius="15" Opacity="0.25" Color="Black"/>
-        </Border.Effect>
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="38"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+        <Border Style="{StaticResource UnifiedDialogBorderStyle}">
+            <Border.Resources>
+                <Style x:Key="SmallTextBoxStyle" TargetType="TextBox">
+                    <Setter Property="Background" Value="{StaticResource WarmInputBrush}"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}"/>
+                    <Setter Property="BorderThickness" Value="0.8"/>
+                    <Setter Property="Padding" Value="4,2"/>
+                    <Setter Property="FontSize" Value="13"/>
+                    <Setter Property="TextAlignment" Value="Center"/>
+                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                </Style>
+            </Border.Resources>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="38"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-            <!-- 标题栏 -->
-            <Grid Grid.Row="0" Background="{StaticResource WarmHeaderBrush}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock x:Name="TitleText" Grid.Column="0" Text="配置柜类物料"
-                           FontSize="14" FontWeight="Bold"
-                           Foreground="{StaticResource PrimaryTextBrush}"
-                           VerticalAlignment="Center" Margin="15,0,0,0"/>
-                <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button Style="{StaticResource WindowButtonStyle}" Click="MinimizeButton_Click" ToolTip="最小化">
-                        <materialDesign:PackIcon Kind="WindowMinimize" Width="14" Height="14"/>
-                    </Button>
-                    <Button x:Name="MaximizeButton" Style="{StaticResource WindowButtonStyle}" Click="MaximizeButton_Click" ToolTip="最大化">
-                        <materialDesign:PackIcon Kind="WindowMaximize" Width="14" Height="14"/>
-                    </Button>
-                    <Button Style="{StaticResource WindowCloseButtonStyle}" Click="CloseButton_Click" ToolTip="关闭">
-                        <materialDesign:PackIcon Kind="Close" Width="14" Height="14"/>
-                    </Button>
-                </StackPanel>
-            </Grid>
+                <!-- 标题栏（可拖拽） -->
+                <Border Grid.Row="0" Background="{StaticResource WarmHeaderBrush}"
+                        CornerRadius="12,12,0,0"
+                        local:WindowDragBehavior.Enable="True">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="TitleText" Grid.Column="0" Text="配置柜类物料"
+                                   FontSize="14" FontWeight="Bold"
+                                   Foreground="{StaticResource PrimaryTextBrush}"
+                                   VerticalAlignment="Center" Margin="15,0,0,0"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <Button Style="{StaticResource WindowButtonStyle}" Click="MinimizeButton_Click" ToolTip="最小化">
+                                <materialDesign:PackIcon Kind="WindowMinimize" Width="14" Height="14"/>
+                            </Button>
+                            <Button x:Name="MaximizeButton" Style="{StaticResource WindowButtonStyle}" Click="MaximizeButton_Click" ToolTip="最大化">
+                                <materialDesign:PackIcon Kind="WindowMaximize" Width="14" Height="14"/>
+                            </Button>
+                            <Button Style="{StaticResource WindowCloseButtonStyle}" Click="CloseButton_Click" ToolTip="关闭">
+                                <materialDesign:PackIcon Kind="Close" Width="14" Height="14"/>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
 
-            <!-- 主内容 -->
-            <Border Grid.Row="1" Style="{StaticResource WarmPanelBorderStyle}" Margin="10">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
+                <!-- 主内容 -->
 
                     <TextBlock x:Name="SubtitleText" Grid.Row="0"
                                Text="请为每个子项选择具体物料（带 * 为必选项）"
@@ -129,18 +132,16 @@
                                        Foreground="#E67E22"/>
                         </StackPanel>
                     </Border>
-                </Grid>
-            </Border>
 
-            <!-- 底部按钮 -->
-            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,20,12">
-                <Button Content="取消" Click="CancelButton_Click"
-                        Width="90" Height="35" Margin="0,0,10,0"
-                        Style="{StaticResource AddMaterialButtonStyle}"/>
-                <Button x:Name="OkButton" Content="确定添加" Click="OkButton_Click"
-                        Width="100" Height="35"
-                        Style="{StaticResource AddMaterialButtonStyle}"/>
-            </StackPanel>
-        </Grid>
-    </Border>
+                    <!-- 底部按钮 -->
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,20,12">
+                        <Button Content="取消" Click="CancelButton_Click"
+                                Width="90" Height="35" Margin="0,0,10,0"
+                                Style="{StaticResource AddMaterialButtonStyle}"/>
+                        <Button x:Name="OkButton" Content="确定添加" Click="OkButton_Click"
+                                Width="100" Height="35"
+                                Style="{StaticResource AddMaterialButtonStyle}"/>
+                    </StackPanel>
+                </Grid>
+        </Border>
 </Window>

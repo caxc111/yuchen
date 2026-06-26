@@ -3,11 +3,18 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:app="clr-namespace:FactoryProductManager"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
         Title="自定义部件" Height="220" Width="400"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
-        ResizeMode="NoResize">
+        ResizeMode="NoResize"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        app:WindowDragBehavior.Enable="True"
+    >
     <Window.Resources>
         <Style x:Key="UnifiedDialogActionButtonStyle" TargetType="Button" BasedOn="{StaticResource WarmActionButtonStyle}">
             <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
@@ -26,10 +33,7 @@
         </Style>
     </Window.Resources>
     <Grid>
-        <Border Style="{StaticResource WarmPanelBorderStyle}" Padding="15">
-            <Border.Effect>
-                <DropShadowEffect ShadowDepth="0" BlurRadius="15" Opacity="0.25" Color="Black"/>
-            </Border.Effect>
+        <Border Style="{StaticResource UnifiedDialogBorderStyle}" Padding="15">
             <Grid Margin="5">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -38,8 +42,21 @@
                 </Grid.RowDefinitions>
 
                 <!-- Header -->
-                <TextBlock Grid.Row="0" Text="自定义部件" FontSize="16" FontWeight="Bold"
-                           Foreground="{StaticResource PrimaryTextBrush}" Margin="0,0,0,15"/>
+                <Grid>
+                    <TextBlock Text="自定义部件" FontSize="16" FontWeight="Bold"
+                               Foreground="{StaticResource PrimaryTextBrush}" VerticalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button Style="{StaticResource WindowButtonStyle}" Click="MinimizeButton_Click" ToolTip="最小化">
+                            <materialDesign:PackIcon Kind="WindowMinimize" Width="14" Height="14"/>
+                        </Button>
+                        <Button x:Name="MaximizeButton" Style="{StaticResource WindowButtonStyle}" Click="MaximizeButton_Click" ToolTip="最大化">
+                            <materialDesign:PackIcon Kind="WindowMaximize" Width="14" Height="14"/>
+                        </Button>
+                        <Button Style="{StaticResource WindowCloseButtonStyle}" Click="CloseButton_Click" ToolTip="关闭">
+                            <materialDesign:PackIcon Kind="Close" Width="14" Height="14"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
 
                 <!-- Form -->
                 <StackPanel Grid.Row="1">

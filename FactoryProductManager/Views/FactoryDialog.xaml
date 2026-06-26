@@ -4,9 +4,15 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:app="clr-namespace:FactoryProductManager"
         mc:Ignorable="d"
         Title="工厂信息" Height="550" Width="620"
-        WindowStartupLocation="CenterOwner">
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        app:WindowDragBehavior.Enable="True"
+    >
     <Window.Resources>
         <Style x:Key="UnifiedDialogLabelTextStyle" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
@@ -44,19 +50,13 @@
         </Style>
     </Window.Resources>
     <Grid>
-        <!-- 内容层 -->
-        <Grid Margin="5">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-
-        <Border Grid.Row="0" Grid.RowSpan="3" Style="{StaticResource WarmPanelBorderStyle}" Padding="15">
-            <Border.Effect>
-                <DropShadowEffect ShadowDepth="0" BlurRadius="15" Opacity="0.25" Color="Black"/>
-            </Border.Effect>
+        <Border Grid.Row="0" Grid.RowSpan="3" Style="{StaticResource UnifiedDialogBorderStyle}" Padding="15">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -64,7 +64,26 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Grid.Row="0" Text="{Binding Title}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PrimaryTextBrush}"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Text="{Binding Title}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PrimaryTextBrush}" VerticalAlignment="Center"/>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button Style="{StaticResource WindowButtonStyle}" Click="MinimizeButton_Click" ToolTip="最小化">
+                            <materialDesign:PackIcon Kind="WindowMinimize" Width="14" Height="14"/>
+                        </Button>
+                        <Button x:Name="MaximizeButton" Style="{StaticResource WindowButtonStyle}" Click="MaximizeButton_Click" ToolTip="最大化">
+                            <materialDesign:PackIcon Kind="WindowMaximize" Width="14" Height="14"/>
+                        </Button>
+                        <Button Style="{StaticResource WindowCloseButtonStyle}" Click="CloseButton_Click" ToolTip="关闭">
+                            <materialDesign:PackIcon Kind="Close" Width="14" Height="14"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
 
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,10,0,0">
                     <StackPanel>
@@ -279,6 +298,5 @@
                 </StackPanel>
             </Grid>
         </Border>
-        </Grid>
     </Grid>
 </Window>

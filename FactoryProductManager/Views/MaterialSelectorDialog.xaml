@@ -6,66 +6,63 @@
         xmlns:local="clr-namespace:FactoryProductManager.Views"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="选择材料" Height="600" Width="800"
+        Title="选择材料" Height="720" Width="1100"
         WindowStartupLocation="CenterOwner"
         Background="Transparent"
         AllowsTransparency="True"
         WindowStyle="None"
         ShowInTaskbar="False"
         ResizeMode="CanResize">
-    <Border Background="{StaticResource WarmSurfaceBrush}"
-            CornerRadius="12"
-            BorderBrush="{StaticResource ActionBorderBrush}"
-            BorderThickness="1"
-            Margin="8">
-        <Border.Effect>
-            <DropShadowEffect ShadowDepth="0" BlurRadius="15" Opacity="0.25" Color="Black"/>
-        </Border.Effect>
+    <Border Style="{StaticResource UnifiedDialogBorderStyle}">
         <Grid Background="Transparent"
-              xmlns:local="clr-namespace:FactoryProductManager"
-              local:WindowDragBehavior.Enable="True">
+              xmlns:local="clr-namespace:FactoryProductManager">
             <Grid.RowDefinitions>
                 <RowDefinition Height="38"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- 标题栏 -->
-            <Grid Grid.Row="0" Background="{StaticResource WarmHeaderBrush}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+            <!-- 标题栏（可拖拽） -->
+            <Border Grid.Row="0" Background="{StaticResource WarmHeaderBrush}"
+                    CornerRadius="12,12,0,0"
+                    local:WindowDragBehavior.Enable="True">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Column="0" x:Name="TitleText" Text="选择材料"
-                           FontSize="14" FontWeight="Bold"
-                           Foreground="{StaticResource PrimaryTextBrush}"
-                           VerticalAlignment="Center"
-                           Margin="15,0,0,0"/>
+                    <TextBlock Grid.Column="0" x:Name="TitleText" Text="选择材料"
+                               FontSize="14" FontWeight="Bold"
+                               Foreground="{StaticResource PrimaryTextBrush}"
+                               VerticalAlignment="Center"
+                               Margin="15,0,0,0"/>
 
-                <!-- 窗口按钮 -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button Style="{StaticResource WindowButtonStyle}" Click="MinimizeButton_Click" ToolTip="最小化">
-                        <materialDesign:PackIcon Kind="WindowMinimize" Width="14" Height="14"/>
-                    </Button>
-                    <Button x:Name="MaximizeButton" Style="{StaticResource WindowButtonStyle}" Click="MaximizeButton_Click" ToolTip="最大化">
-                        <materialDesign:PackIcon Kind="WindowMaximize" Width="14" Height="14"/>
-                    </Button>
-                    <Button Style="{StaticResource WindowCloseButtonStyle}" Click="CloseButton_Click" ToolTip="关闭">
-                        <materialDesign:PackIcon Kind="Close" Width="14" Height="14"/>
-                    </Button>
-                </StackPanel>
-            </Grid>
+                    <!-- 窗口按钮 -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button Style="{StaticResource WindowButtonStyle}" Click="MinimizeButton_Click" ToolTip="最小化">
+                            <materialDesign:PackIcon Kind="WindowMinimize" Width="14" Height="14"/>
+                        </Button>
+                        <Button x:Name="MaximizeButton" Style="{StaticResource WindowButtonStyle}" Click="MaximizeButton_Click" ToolTip="最大化">
+                            <materialDesign:PackIcon Kind="WindowMaximize" Width="14" Height="14"/>
+                        </Button>
+                        <Button Style="{StaticResource WindowCloseButtonStyle}" Click="CloseButton_Click" ToolTip="关闭">
+                            <materialDesign:PackIcon Kind="Close" Width="14" Height="14"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
 
             <!-- 材料列表 -->
-            <Border Grid.Row="1" Margin="10,10,10,0"
+            <Border Grid.Row="1" Margin="0"
                     Background="{StaticResource WarmPanelBrush}"
                     CornerRadius="10"
                     BorderBrush="{StaticResource InputBorderBrush}"
                     BorderThickness="1">
                 <DataGrid x:Name="MaterialsDataGrid"
                           AutoGenerateColumns="False"
-                          IsReadOnly="True"
+                          IsReadOnly="False"
+                          CanUserAddRows="False"
                           SelectionMode="Single"
                           GridLinesVisibility="None"
                           Background="Transparent"
@@ -78,7 +75,9 @@
                           MouseDoubleClick="MaterialsDataGrid_MouseDoubleClick"
                           HeadersVisibility="Column"
                           CanUserResizeRows="False"
-                          SelectionUnit="FullRow">
+                          SelectionUnit="FullRow"
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                          ScrollViewer.VerticalScrollBarVisibility="Auto">
                     <DataGrid.ColumnHeaderStyle>
                         <Style TargetType="DataGridColumnHeader">
                             <Setter Property="Background" Value="{StaticResource WarmHeaderBrush}"/>
@@ -146,14 +145,24 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTextColumn Header="物料名称" Binding="{Binding MaterialName}" Width="*">
+                        <DataGridTextColumn Header="物料名称" Binding="{Binding MaterialName}" Width="*" MinWidth="140">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="VerticalAlignment" Value="Center"/>
                                     <Setter Property="Margin" Value="8,0"/>
+                                    <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
+                        <DataGridTemplateColumn Header="图纸编号" Width="100">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border Margin="0" Padding="4">
+                                        <TextBlock Text="{Binding DrawingNumber}" VerticalAlignment="Center" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <DataGridTextColumn Header="品牌" Binding="{Binding Brand}" Width="100">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
@@ -175,12 +184,12 @@
                         <DataGridTemplateColumn Header="缩略图" Width="80">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Border x:Name="ImageBorder" Width="60" Height="34" CornerRadius="4"
+                                    <Border x:Name="ImageBorder" Width="70" Height="32" CornerRadius="4"
                                             Background="{StaticResource WarmPanelBrush}" Cursor="Hand"
                                             BorderBrush="{StaticResource InputBorderBrush}" BorderThickness="1"
-                                            MouseLeftButtonUp="Thumbnail_Click" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            PreviewMouseLeftButtonDown="Thumbnail_Click" HorizontalAlignment="Center" VerticalAlignment="Center">
                                         <Grid>
-                                            <TextBlock Text="无图片" FontSize="10" HorizontalAlignment="Center"
+                                            <TextBlock Text="无图片" FontSize="9" HorizontalAlignment="Center"
                                                        VerticalAlignment="Center" Foreground="{StaticResource HintTextBrush}"
                                                        Visibility="{Binding ImageUrl, Converter={StaticResource NullToVisibilityConverter}}"/>
                                             <Image Source="{Binding ImageUrl}" Stretch="UniformToFill"
@@ -190,7 +199,42 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-                        <DataGridTextColumn Header="单价" Binding="{Binding CostPrice, StringFormat={}{0:F2}}" Width="80">
+                        <DataGridTextColumn Header="单价" Binding="{Binding CostPrice, StringFormat={}{0:F2}}" Width="90">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    <Setter Property="Margin" Value="4,0,8,0"/>
+                                    <Setter Property="Foreground" Value="#E67E22"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="单位" Binding="{Binding Unit}" Width="55">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                    <Setter Property="Margin" Value="4,0"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTemplateColumn Header="数量" Width="70">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBox Text="{Binding QuantityDisplay, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                             HorizontalContentAlignment="Right"
+                                             VerticalContentAlignment="Center"
+                                             Margin="4,0,8,0"
+                                             Padding="4,0"
+                                             BorderThickness="1"
+                                             BorderBrush="{StaticResource InputBorderBrush}"
+                                             PreviewTextInput="QuantityTextBox_PreviewTextInput"
+                                             TextChanged="QuantityTextBox_TextChanged"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="小计" Binding="{Binding Subtotal, StringFormat={}{0:F2}}" Width="70">
                             <DataGridTextColumn.ElementStyle>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="VerticalAlignment" Value="Center"/>

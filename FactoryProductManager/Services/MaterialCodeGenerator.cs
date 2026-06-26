@@ -78,6 +78,7 @@ namespace FactoryProductManager.Services
             ["微波炉"] = "WB",
             ["蒸烤箱"] = "ZK",
             ["热水器"] = "RS",
+            ["冰箱"] = "BX",
             ["中央空调/新风/地暖设备"] = "ZN"
         };
 

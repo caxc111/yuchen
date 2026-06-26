@@ -190,7 +190,7 @@
                                 <Grid Grid.Column="1" Margin="10,10,0,0" Width="420" Height="35">
                                     <Border Style="{StaticResource WarmFieldBorderStyle}" Background="{StaticResource WarmInputBrush}">
                                     </Border>
-                                    <TextBox Text="{Binding Material.FactoryMaterialCode}"
+                                    <TextBox Text="{Binding Material.FactoryMaterialCode, UpdateSourceTrigger=PropertyChanged}"
                                              Style="{StaticResource WarmInputTextBoxStyle}"/>
                                 </Grid>
                             </Grid>

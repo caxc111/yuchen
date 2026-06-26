@@ -1,7 +1,8 @@
 <Application x:Class="FactoryProductManager.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:converters="clr-namespace:FactoryProductManager.Converters">
+             xmlns:converters="clr-namespace:FactoryProductManager.Converters"
+             xmlns:app="clr-namespace:FactoryProductManager">
     <Application.Resources>
         <ResourceDictionary>
             <converters:PageToBackgroundConverter x:Key="PageToBackgroundConverter"/>
@@ -37,6 +38,15 @@
                 <Setter Property="BorderThickness" Value="0"/>
                 <Setter Property="CornerRadius" Value="10"/>
                 <Setter Property="Background" Value="{StaticResource WarmPanelBrush}"/>
+            </Style>
+
+            <!-- 统一弹窗内容边框样式（用于 AllowsTransparency=True 的弹窗） -->
+            <Style x:Key="UnifiedDialogBorderStyle" TargetType="Border">
+                <Setter Property="Background" Value="{StaticResource WarmSurfaceBrush}"/>
+                <Setter Property="CornerRadius" Value="12"/>
+                <Setter Property="BorderBrush" Value="{StaticResource ActionBorderBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Margin" Value="0"/>
             </Style>
 
             <Style x:Key="MaterialPanelBorderStyle" TargetType="Border">
@@ -124,13 +134,16 @@
                                     CornerRadius="{StaticResource UnifiedMediumCornerRadius}"
                                     SnapsToDevicePixels="True">
                                     <Grid>
+                                        <ScrollViewer x:Name="PART_ContentHost" Focusable="False" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"/>
                                         <ContentPresenter
+                                            x:Name="ContentSite"
                                             Margin="{TemplateBinding Padding}"
                                             VerticalAlignment="Center"
                                             HorizontalAlignment="Left"
                                             Content="{TemplateBinding SelectionBoxItem}"
                                             ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
-                                            ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"/>
+                                            ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                            Visibility="Visible"/>
                                         <ToggleButton
                                             Focusable="False"
                                             IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
@@ -170,6 +183,92 @@
                                     </Border>
                                 </Popup>
                             </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- 可编辑模式 ComboBox 样式 -->
+            <Style x:Key="WarmInputEditableComboBoxStyle" TargetType="ComboBox">
+                <Setter Property="Background" Value="{StaticResource WarmInputBrush}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}"/>
+                <Setter Property="BorderThickness" Value="{StaticResource UnifiedBorderThickness}"/>
+                <Setter Property="Padding" Value="8,0,30,0"/>
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ComboBox">
+                            <Grid>
+                                <Border
+                                    x:Name="Border"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="{StaticResource UnifiedMediumCornerRadius}"
+                                    SnapsToDevicePixels="True">
+                                    <Grid>
+                                        <!-- 可编辑模式的 TextBox -->
+                                        <TextBox x:Name="PART_EditableTextBox"
+                                                 Visibility="Collapsed"
+                                                 Background="Transparent"
+                                                 BorderThickness="0"
+                                                 Margin="{TemplateBinding Padding}"
+                                                 VerticalContentAlignment="Center"
+                                                 HorizontalContentAlignment="Left"
+                                                 FontSize="{TemplateBinding FontSize}"
+                                                 Foreground="{TemplateBinding Foreground}"
+                                                 CaretBrush="{TemplateBinding Foreground}"
+                                                 SelectionBrush="{StaticResource EditAccentBrush}"/>
+                                        <!-- 非编辑模式的内容 -->
+                                        <ScrollViewer x:Name="PART_ContentHost" Focusable="False" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"
+                                                      Margin="{TemplateBinding Padding}"/>
+                                        <ToggleButton
+                                            Focusable="False"
+                                            IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                            ClickMode="Press"
+                                            HorizontalAlignment="Right"
+                                            Width="28"
+                                            Background="{StaticResource WarmInputBrush}"
+                                            BorderThickness="0"
+                                            Template="{StaticResource ComboBoxArrowToggleButtonTemplate}">
+                                            <Path
+                                                Width="10"
+                                                Height="6"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Data="M0,0 L10,0 L5,6 Z"
+                                                Fill="{StaticResource PrimaryTextBrush}"
+                                                Stretch="Fill"/>
+                                        </ToggleButton>
+                                    </Grid>
+                                </Border>
+                                <Popup
+                                    Name="Popup"
+                                    Placement="Bottom"
+                                    IsOpen="{TemplateBinding IsDropDownOpen}"
+                                    AllowsTransparency="True"
+                                    Focusable="False"
+                                    PopupAnimation="Slide">
+                                    <Border
+                                        Margin="0,4,0,0"
+                                        Background="{StaticResource WarmRowBrush}"
+                                        BorderBrush="{StaticResource InputBorderBrush}"
+                                        BorderThickness="{StaticResource UnifiedBorderThickness}"
+                                        CornerRadius="{StaticResource UnifiedMediumCornerRadius}">
+                                        <ScrollViewer SnapsToDevicePixels="True">
+                                            <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                        </ScrollViewer>
+                                    </Border>
+                                </Popup>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <!-- 可编辑模式 -->
+                                <Trigger Property="IsEditable" Value="True">
+                                    <Setter TargetName="PART_EditableTextBox" Property="Visibility" Value="Visible"/>
+                                    <Setter TargetName="PART_ContentHost" Property="Visibility" Value="Collapsed"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
@@ -409,6 +508,26 @@
                 </Setter>
             </Style>
 
+            <Style x:Key="EditButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="Foreground" Value="{StaticResource EditAccentBrush}"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Width" Value="28"/>
+                <Setter Property="Height" Value="28"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"
+                                    CornerRadius="4">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
             <Style x:Key="AddMaterialButtonStyle" TargetType="Button">
                 <Setter Property="Background" Value="{StaticResource EditAccentBrush}"/>
                 <Setter Property="BorderThickness" Value="0"/>
@@ -506,6 +625,39 @@
                 </Setter>
             </Style>
 
+            <!-- 图纸编号弹窗输入框样式 -->
+            <Style x:Key="DrawingNumberInputStyle" TargetType="TextBox">
+                <Setter Property="Background" Value="{StaticResource WarmInputBrush}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Padding" Value="10,0"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+                <Setter Property="CaretBrush" Value="{StaticResource PrimaryTextBrush}"/>
+            </Style>
+
+            <!-- 图纸编号输入框样式 -->
+            <Style x:Key="DrawingNumberTextBoxStyle" TargetType="TextBox">
+                <Setter Property="Background" Value="{StaticResource WarmInputBrush}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource InputBorderBrush}"/>
+                <Setter Property="BorderThickness" Value="0.8"/>
+                <Setter Property="Padding" Value="6,4"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="Width" Value="100"/>
+                <Setter Property="Height" Value="28"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="Foreground" Value="#333333"/>
+                <Style.Triggers>
+                    <Trigger Property="Text" Value="">
+                        <Setter Property="Background" Value="#F5F5F5"/>
+                    </Trigger>
+                    <Trigger Property="IsFocused" Value="True">
+                        <Setter Property="BorderBrush" Value="{StaticResource PrimaryTextBrush}"/>
+                        <Setter Property="FontWeight" Value="Bold"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
             <!-- 全局窗口样式：支持鼠标拖动 -->
             <Style x:Key="WindowButtonStyle" TargetType="Button">
                 <Setter Property="Width" Value="36"/>
@@ -553,9 +705,6 @@
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
-            </Style>
-
-            <Style TargetType="Window">
             </Style>
 
             <ResourceDictionary.MergedDictionaries>

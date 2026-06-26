@@ -18,7 +18,31 @@ namespace FactoryProductManager
 
             try
             {
-                LogService.LogApplicationStart();
+                // 强制初始化日志服务并验证
+                var logDir = LogService.LogDirectory;
+                var logPath = LogService.CurrentLogFilePath;
+                try
+                {
+                    System.IO.Directory.CreateDirectory(logDir); // 确保目录存在
+                    System.IO.File.AppendAllText(logPath,
+                        $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} [BOOT] 日志目录={logDir}{Environment.NewLine}" +
+                        $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} [BOOT] 日志文件={logPath}{Environment.NewLine}",
+                        System.Text.Encoding.UTF8);
+                }
+                catch (Exception initEx)
+                {
+                    // 备用：写到项目根目录 debug.log
+                    var fallbackLog = System.IO.Path.Combine(
+                        System.IO.Path.GetDirectoryName(
+                            System.Reflection.Assembly.GetExecutingAssembly().Location)!,
+                        "..", "..", "..", "..", "..", "debug.log");
+                    fallbackLog = System.IO.Path.GetFullPath(fallbackLog);
+                    System.IO.File.AppendAllText(fallbackLog,
+                        $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} [BOOT-FALLBACK] 日志目录={logDir}, 错误={initEx.Message}{Environment.NewLine}",
+                        System.Text.Encoding.UTF8);
+                }
+
+                LogService.Info("========== 应用程序启动 ==========");
                 LogService.Info("开始初始化应用程序组件...");
 
                 base.OnStartup(e);

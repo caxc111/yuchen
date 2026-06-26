@@ -45,14 +45,20 @@
                         <DataGridTextColumn Header="单位" Binding="{Binding Unit}" Width="80" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
                         <DataGridTextColumn Header="单价" Binding="{Binding UnitPrice, StringFormat=F2}" Width="120" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
                         <DataGridTextColumn Header="小计" Binding="{Binding Amount, StringFormat=F2}" Width="120" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}" ElementStyle="{StaticResource GlobalDataGridTextElementStyle}"/>
-                        <DataGridTemplateColumn Header="操作" Width="110">
+                        <DataGridTemplateColumn Header="操作" Width="130" HeaderStyle="{StaticResource GlobalDataGridHeaderStyle}">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                        <Button ToolTip="编辑" Margin="0,0,5,0" Style="{StaticResource WarmIconButtonStyle}">
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Button ToolTip="详情" Tag="{Binding}" Margin="0,0,5,0"
+                                                Style="{StaticResource WarmIconButtonStyle}">
+                                            <Image Source="/Resources/Icons/icon_expand.png" Width="14" Height="14" Stretch="Uniform"/>
+                                        </Button>
+                                        <Button ToolTip="编辑" Tag="{Binding}" Margin="0,0,5,0"
+                                                Style="{StaticResource WarmIconButtonStyle}">
                                             <Image Source="/Resources/Icons/icon_edit.png" Width="14" Height="14" Stretch="Uniform"/>
                                         </Button>
-                                        <Button ToolTip="删除" Style="{StaticResource WarmIconButtonStyle}">
+                                        <Button ToolTip="删除" Tag="{Binding}"
+                                                Style="{StaticResource WarmIconButtonStyle}">
                                             <Image Source="/Resources/Icons/icon_delete.png" Width="14" Height="14" Stretch="Uniform"/>
                                         </Button>
                                     </StackPanel>

@@ -56,7 +56,6 @@ namespace FactoryProductManager.ViewModels
                         (f.Description?.ToLower().Contains(keyword) ?? false) ||
                         (f.Scale?.ToLower().Contains(keyword) ?? false) ||
                         (f.ProductionCapacity?.ToLower().Contains(keyword) ?? false) ||
-                        (f.ControllingPerson?.ToLower().Contains(keyword) ?? false) ||
                         (f.ContactPerson?.ToLower().Contains(keyword) ?? false) ||
                         (f.ContactInfo?.ToLower().Contains(keyword) ?? false) ||
                         (f.EmployeeCount?.ToString().Contains(keyword) ?? false)

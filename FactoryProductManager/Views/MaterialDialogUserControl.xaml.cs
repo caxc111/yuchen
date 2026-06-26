@@ -20,7 +20,7 @@ namespace FactoryProductManager.Views
         private const string FactoryEmptyPlaceholder = "暂无匹配工厂";
         private const string BrandPlaceholder = "请选择品牌";
         private const string BrandEmptyPlaceholder = "暂无品牌";
-        private static readonly string[] PresetUnits = { "m", "㎡", "m³", "个", "张", "片", "樘", "套", "副" };
+        private static readonly string[] PresetUnits = { "m", "㎡", "m³", "个", "张", "片", "樘", "套", "副", "项", "盏" };
 
         private readonly DbService _dbService = new DbService();
         private readonly Brush _factoryDefaultBorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#CCCCCC"));
@@ -204,6 +204,7 @@ namespace FactoryProductManager.Views
 
         private void ResetBrandComboBoxItems(IEnumerable<Factory> factories)
         {
+            LogService.Debug($"[ResetBrandComboBoxItems] START - factories count={factories.Count()}");
             var brandOptions = factories
                 .SelectMany(factory => (factory.Brand ?? string.Empty)
                     .Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries)
@@ -221,6 +222,7 @@ namespace FactoryProductManager.Views
             {
                 brandOptions.Count == 0 ? BrandEmptyPlaceholder : BrandPlaceholder
             }.Concat(brandOptions).ToList();
+            LogService.Debug($"[ResetBrandComboBoxItems] ItemsSource set, Count={BrandComboBox.Items.Count}");
 
             int targetIndex = FindItemIndex(BrandComboBox, brandToSelect);
             LogService.Debug($"[ResetBrandComboBoxItems] targetIndex={targetIndex}");
@@ -235,6 +237,7 @@ namespace FactoryProductManager.Views
                 LogService.Debug($"[ResetBrandComboBoxItems] brand not found in options ('{brandToSelect}'), do NOT clear Material.Brand");
             }
             BrandComboBox.SelectedIndex = targetIndex >= 0 ? targetIndex : 0;
+            LogService.Debug($"[ResetBrandComboBoxItems] END - SelectedIndex set to {BrandComboBox.SelectedIndex}");
         }
 
         private void UpdateFactoryOptionsByLevel1(bool skipReset = false)
@@ -399,6 +402,7 @@ namespace FactoryProductManager.Views
 
         private void FactoryNameComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            LogService.Debug($"[FactoryNameComboBox_SelectionChanged] START - SelectedIndex={FactoryNameComboBox.SelectedIndex}");
             if (FactoryNameComboBox.SelectedItem is not FactoryOption option || !option.IsSelectable || option.Id == null)
             {
                 LogService.Debug($"[SelectionChanged] UNSELECTED branch");
@@ -406,6 +410,7 @@ namespace FactoryProductManager.Views
                 Material.FactoryId = null;
                 Material.FactoryName = string.Empty;
                 ResetBrandComboBoxItems(Enumerable.Empty<Factory>());
+                LogService.Debug($"[FactoryNameComboBox_SelectionChanged] END - UNSELECTED");
                 return;
             }
 
@@ -420,6 +425,7 @@ namespace FactoryProductManager.Views
                 ResetBrandComboBoxItems(new[] { _selectedFactory });
                 LogService.Debug($"[SelectionChanged] AFTER ResetBrandComboBoxItems: Material.Brand='{Material.Brand}', SelectedItem='{BrandComboBox.SelectedItem?.ToString()}'");
             }
+            LogService.Debug($"[FactoryNameComboBox_SelectionChanged] END - SELECTED");
         }
 
         private void BrandComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -447,15 +453,18 @@ namespace FactoryProductManager.Views
 
         private void UnitComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            LogService.Debug($"[UnitComboBox_SelectionChanged] START - SelectedIndex={UnitComboBox.SelectedIndex}");
             if (UnitComboBox.SelectedItem is not string selectedUnit)
             {
                 Material.Unit = string.Empty;
                 RefreshCostPriceDisplay();
+                LogService.Debug($"[UnitComboBox_SelectionChanged] END - no selection");
                 return;
             }
 
             Material.Unit = selectedUnit;
             RefreshCostPriceDisplay();
+            LogService.Debug($"[UnitComboBox_SelectionChanged] END - Unit set to '{selectedUnit}'");
         }
 
         private void SetCurrentCategory(string categoryPath)
@@ -627,9 +636,20 @@ namespace FactoryProductManager.Views
 
         private void OkButton_Click(object sender, RoutedEventArgs e)
         {
+            LogService.Debug($"[OkButton_Click] START - FactoryMaterialCode='{Material.FactoryMaterialCode}', Material.Id={Material.Id}");
+
             if (string.IsNullOrEmpty(Material.FactoryMaterialCode))
             {
                 MessageBox.Show("请输入工厂物料编码");
+                return;
+            }
+
+            var exists = _dbService.ExistsFactoryMaterialCode(Material.FactoryMaterialCode, Material.Id > 0 ? Material.Id : null);
+            LogService.Debug($"[OkButton_Click] ExistsFactoryMaterialCode check: code='{Material.FactoryMaterialCode}', exists={exists}");
+
+            if (exists)
+            {
+                MessageBox.Show($"工厂物料编码「{Material.FactoryMaterialCode}」已存在，请使用其他编码。", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -657,6 +677,12 @@ namespace FactoryProductManager.Views
             if (_selectedFactory == null)
             {
                 MessageBox.Show("请先选择工厂后再生成编码", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (_dbService.ExistsFactoryMaterialCode(Material.FactoryMaterialCode, Material.Id > 0 ? Material.Id : null))
+            {
+                MessageBox.Show($"工厂物料编码「{Material.FactoryMaterialCode}」已被使用，请使用其他编码。", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
