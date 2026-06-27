@@ -135,7 +135,7 @@
                                                         <Grid>
                                                             <TextBlock Text="🧩" FontSize="32" HorizontalAlignment="Center"
                                                                        VerticalAlignment="Center"/>
-                                                            <Image x:Name="CompositeThumb" Stretch="UniformToFill"/>
+                                                            <Image x:Name="CompositeThumb" Stretch="Uniform"/>
                                                         </Grid>
                                                     </Border>
                                                     <TextBlock Grid.Row="0" Grid.Column="1"
@@ -237,8 +237,8 @@
                                                             <TextBlock Text="无图片" FontSize="11" HorizontalAlignment="Center"
                                                                        VerticalAlignment="Center" Foreground="{StaticResource HintTextBrush}"
                                                                        Visibility="{Binding ImageUrl, Converter={StaticResource NullToVisibilityConverter}}"/>
-                                                            <Image Source="{Binding ImageUrl}" Stretch="UniformToFill"
-                                                                   Visibility="{Binding ImageUrl, Converter={StaticResource NotNullToVisibilityConverter}}"/>
+<Image Source="{Binding ImageUrl}" Stretch="Uniform"
+                                                               Visibility="{Binding ImageUrl, Converter={StaticResource NotNullToVisibilityConverter}}"/>
                                                         </Grid>
                                                     </Border>
                                                     <TextBlock Grid.Row="0" Grid.Column="1"

@@ -57,7 +57,7 @@ namespace FactoryProductManager.Services
             ["壁灯"] = "BD",
             ["开关插座面板"] = "KZ",
             ["浴霸/排气扇"] = "YF",
-            ["坐厕类"] = "ZC",
+            ["座便器"] = "ZB",
             ["台盆类"] = "TP",
             ["水槽类"] = "SK",
             ["拖把池"] = "DM",
@@ -95,7 +95,7 @@ namespace FactoryProductManager.Services
             ["无机基石英石"] = "SY",
             ["人造大理石（岗石）"] = "GS",
             ["微晶石"] = "WJ",
-            // 厨卫陶瓷 > 坐厕类
+            // 厨卫陶瓷 > 座便器
             ["连体马桶"] = "LT",
             ["分体马桶"] = "FT",
             ["壁挂马桶"] = "BG",

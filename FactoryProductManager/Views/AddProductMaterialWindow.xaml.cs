@@ -53,7 +53,7 @@ namespace FactoryProductManager.Views
             ["次卫生间"] = new List<string> { "地面", "墙面", "固装", "五金洁具", "灯具", "木门" },
             ["洗衣房"] = new List<string> { "地面", "固装", "五金洁具", "灯具", "木门" },
             ["书房"]   = new List<string> { "地面", "固装", "灯具", "木门" },
-            ["阳台"]   = new List<string> { "地面", "墙面", "灯具" }
+            ["阳台"]   = new List<string> { "地面", "墙面", "灯具", "五金洁具" }
         };
 
         // 从数据库加载自定义部件并合并到 _partComponents
@@ -117,9 +117,11 @@ namespace FactoryProductManager.Views
             },
             ["门厅-灯具"] = new List<MaterialType>
             {
-                new MaterialType { Name = "筒灯", Unit = "元/盏", DefaultPrice = 78 },
-                new MaterialType { Name = "射灯", Unit = "元/盏", DefaultPrice = 78 },
-                new MaterialType { Name = "灯带", Unit = "元/m", DefaultPrice = 8 }
+                new MaterialType { Name = "筒灯/射灯", Unit = "元/盏", DefaultPrice = 78 },
+                new MaterialType { Name = "灯带", Unit = "元/m", DefaultPrice = 8 },
+                new MaterialType { Name = "吊灯", Unit = "元/盏", DefaultPrice = 500 },
+                new MaterialType { Name = "壁灯", Unit = "元/盏", DefaultPrice = 200 },
+                new MaterialType { Name = "开关插座", Unit = "元/个", DefaultPrice = 30 }
             },
 
             ["洗衣房-地面"] = new List<MaterialType>
@@ -135,11 +137,19 @@ namespace FactoryProductManager.Views
             ["洗衣房-五金洁具"] = new List<MaterialType>
             {
                 new MaterialType { Name = "台盆", Unit = "元/只", DefaultPrice = 600 },
-                new MaterialType { Name = "龙头", Unit = "元/只", DefaultPrice = 350 }
+                new MaterialType { Name = "水槽", Unit = "元/个", DefaultPrice = 800 },
+                new MaterialType { Name = "龙头", Unit = "元/只", DefaultPrice = 350 },
+                new MaterialType { Name = "收纳架", Unit = "元/个", DefaultPrice = 200 },
+                new MaterialType { Name = "拖把池", Unit = "元/个", DefaultPrice = 300 },
+                new MaterialType { Name = "地漏/角阀/软管等", Unit = "元/套", DefaultPrice = 150 }
             },
             ["洗衣房-灯具"] = new List<MaterialType>
             {
-                new MaterialType { Name = "筒灯", Unit = "元/盏", DefaultPrice = 78 }
+                new MaterialType { Name = "筒灯/射灯", Unit = "元/盏", DefaultPrice = 78 },
+                new MaterialType { Name = "灯带", Unit = "元/m", DefaultPrice = 8 },
+                new MaterialType { Name = "壁灯", Unit = "元/盏", DefaultPrice = 200 },
+                new MaterialType { Name = "开关插座", Unit = "元/个", DefaultPrice = 30 },
+                new MaterialType { Name = "浴霸/排气扇", Unit = "元/台", DefaultPrice = 800 }
             },
             ["洗衣房-木门"] = new List<MaterialType>
             {
@@ -167,7 +177,8 @@ namespace FactoryProductManager.Views
             ["客餐厨-五金洁具"] = new List<MaterialType>
             {
                 new MaterialType { Name = "水槽", Unit = "元/个", DefaultPrice = 800 },
-                new MaterialType { Name = "龙头", Unit = "元/个", DefaultPrice = 350 }
+                new MaterialType { Name = "厨房龙头", Unit = "元/个", DefaultPrice = 350 },
+                new MaterialType { Name = "其他龙头", Unit = "元/个", DefaultPrice = 350 }
             },
             ["客餐厨-电器"] = new List<MaterialType>
             {
@@ -183,9 +194,11 @@ namespace FactoryProductManager.Views
             },
             ["客餐厨-灯具"] = new List<MaterialType>
             {
-                new MaterialType { Name = "筒灯", Unit = "元/盏", DefaultPrice = 78 },
-                new MaterialType { Name = "射灯", Unit = "元/盏", DefaultPrice = 78 },
-                new MaterialType { Name = "灯带", Unit = "元/m", DefaultPrice = 8 }
+                new MaterialType { Name = "筒灯/射灯", Unit = "元/盏", DefaultPrice = 78 },
+                new MaterialType { Name = "灯带", Unit = "元/m", DefaultPrice = 8 },
+                new MaterialType { Name = "吊灯", Unit = "元/盏", DefaultPrice = 500 },
+                new MaterialType { Name = "壁灯", Unit = "元/盏", DefaultPrice = 200 },
+                new MaterialType { Name = "开关插座", Unit = "元/个", DefaultPrice = 30 }
             },
 
             ["主卧室-地面"] = new List<MaterialType>
@@ -200,9 +213,11 @@ namespace FactoryProductManager.Views
             },
             ["主卧室-灯具"] = new List<MaterialType>
             {
-                new MaterialType { Name = "筒灯", Unit = "元/盏", DefaultPrice = 78 },
-                new MaterialType { Name = "射灯", Unit = "元/盏", DefaultPrice = 78 },
-                new MaterialType { Name = "灯带", Unit = "元/m", DefaultPrice = 8 }
+                new MaterialType { Name = "筒灯/射灯", Unit = "元/盏", DefaultPrice = 78 },
+                new MaterialType { Name = "灯带", Unit = "元/m", DefaultPrice = 8 },
+                new MaterialType { Name = "吊灯", Unit = "元/盏", DefaultPrice = 500 },
+                new MaterialType { Name = "壁灯", Unit = "元/盏", DefaultPrice = 200 },
+                new MaterialType { Name = "开关插座", Unit = "元/个", DefaultPrice = 30 }
             },
             ["主卧室-木门"] = new List<MaterialType>
             {
@@ -227,20 +242,21 @@ namespace FactoryProductManager.Views
             ["主卫生间-五金洁具"] = new List<MaterialType>
             {
                 new MaterialType { Name = "台盆", Unit = "元/个", DefaultPrice = 600 },
-                new MaterialType { Name = "龙头", Unit = "元/个", DefaultPrice = 350 },
-                new MaterialType { Name = "坐便器", Unit = "元/个", DefaultPrice = 1800 },
-                new MaterialType { Name = "花洒", Unit = "元/个", DefaultPrice = 800 },
-                new MaterialType { Name = "毛巾架", Unit = "元/个", DefaultPrice = 200 },
-                new MaterialType { Name = "卫生纸架", Unit = "元/个", DefaultPrice = 100 },
+                new MaterialType { Name = "面盆龙头", Unit = "元/个", DefaultPrice = 350 },
+                new MaterialType { Name = "座便器", Unit = "元/个", DefaultPrice = 1800 },
+                new MaterialType { Name = "淋浴龙头", Unit = "元/个", DefaultPrice = 800 },
+                new MaterialType { Name = "收纳架", Unit = "元/个", DefaultPrice = 200 },
+                new MaterialType { Name = "淋浴屏风", Unit = "元/m²", DefaultPrice = 1200 },
                 new MaterialType { Name = "浴缸", Unit = "元/个", DefaultPrice = 4500 },
-                new MaterialType { Name = "浴巾杆", Unit = "元/个", DefaultPrice = 150 },
-                new MaterialType { Name = "淋浴屏", Unit = "元/m²", DefaultPrice = 1200 }
+                new MaterialType { Name = "地漏/角阀/软管等", Unit = "元/套", DefaultPrice = 150 }
             },
             ["主卫生间-灯具"] = new List<MaterialType>
             {
-                new MaterialType { Name = "筒灯", Unit = "元/盏", DefaultPrice = 78 },
-                new MaterialType { Name = "射灯", Unit = "元/盏", DefaultPrice = 78 },
-                new MaterialType { Name = "灯带", Unit = "元/m", DefaultPrice = 8 }
+                new MaterialType { Name = "筒灯/射灯", Unit = "元/盏", DefaultPrice = 78 },
+                new MaterialType { Name = "灯带", Unit = "元/m", DefaultPrice = 8 },
+                new MaterialType { Name = "壁灯", Unit = "元/盏", DefaultPrice = 200 },
+                new MaterialType { Name = "开关插座", Unit = "元/个", DefaultPrice = 30 },
+                new MaterialType { Name = "浴霸/排气扇", Unit = "元/台", DefaultPrice = 800 }
             },
             ["主卫生间-木门"] = new List<MaterialType>
             {
@@ -259,9 +275,11 @@ namespace FactoryProductManager.Views
             },
             ["次卧室-灯具"] = new List<MaterialType>
             {
-                new MaterialType { Name = "筒灯", Unit = "元/盏", DefaultPrice = 78 },
-                new MaterialType { Name = "射灯", Unit = "元/盏", DefaultPrice = 78 },
-                new MaterialType { Name = "灯带", Unit = "元/m", DefaultPrice = 8 }
+                new MaterialType { Name = "筒灯/射灯", Unit = "元/盏", DefaultPrice = 78 },
+                new MaterialType { Name = "灯带", Unit = "元/m", DefaultPrice = 8 },
+                new MaterialType { Name = "吊灯", Unit = "元/盏", DefaultPrice = 500 },
+                new MaterialType { Name = "壁灯", Unit = "元/盏", DefaultPrice = 200 },
+                new MaterialType { Name = "开关插座", Unit = "元/个", DefaultPrice = 30 }
             },
             ["次卧室-木门"] = new List<MaterialType>
             {
@@ -286,19 +304,20 @@ namespace FactoryProductManager.Views
             ["次卫生间-五金洁具"] = new List<MaterialType>
             {
                 new MaterialType { Name = "台盆", Unit = "元/个", DefaultPrice = 600 },
-                new MaterialType { Name = "龙头", Unit = "元/个", DefaultPrice = 350 },
-                new MaterialType { Name = "坐便器", Unit = "元/个", DefaultPrice = 1800 },
-                new MaterialType { Name = "花洒", Unit = "元/个", DefaultPrice = 800 },
-                new MaterialType { Name = "毛巾架", Unit = "元/个", DefaultPrice = 200 },
-                new MaterialType { Name = "卫生纸架", Unit = "元/个", DefaultPrice = 100 },
-                new MaterialType { Name = "浴巾杆", Unit = "元/个", DefaultPrice = 150 },
-                new MaterialType { Name = "淋浴屏", Unit = "元/m²", DefaultPrice = 1200 }
+                new MaterialType { Name = "面盆龙头", Unit = "元/个", DefaultPrice = 350 },
+                new MaterialType { Name = "座便器", Unit = "元/个", DefaultPrice = 1800 },
+                new MaterialType { Name = "淋浴龙头", Unit = "元/个", DefaultPrice = 800 },
+                new MaterialType { Name = "收纳架", Unit = "元/个", DefaultPrice = 200 },
+                new MaterialType { Name = "淋浴屏风", Unit = "元/m²", DefaultPrice = 1200 },
+                new MaterialType { Name = "地漏/角阀/软管等", Unit = "元/套", DefaultPrice = 150 }
             },
             ["次卫生间-灯具"] = new List<MaterialType>
             {
-                new MaterialType { Name = "筒灯", Unit = "元/盏", DefaultPrice = 78 },
-                new MaterialType { Name = "射灯", Unit = "元/盏", DefaultPrice = 78 },
-                new MaterialType { Name = "灯带", Unit = "元/m", DefaultPrice = 8 }
+                new MaterialType { Name = "筒灯/射灯", Unit = "元/盏", DefaultPrice = 78 },
+                new MaterialType { Name = "灯带", Unit = "元/m", DefaultPrice = 8 },
+                new MaterialType { Name = "壁灯", Unit = "元/盏", DefaultPrice = 200 },
+                new MaterialType { Name = "开关插座", Unit = "元/个", DefaultPrice = 30 },
+                new MaterialType { Name = "浴霸/排气扇", Unit = "元/台", DefaultPrice = 800 }
             },
             ["次卫生间-木门"] = new List<MaterialType>
             {
@@ -316,9 +335,11 @@ namespace FactoryProductManager.Views
             },
             ["书房-灯具"] = new List<MaterialType>
             {
-                new MaterialType { Name = "筒灯", Unit = "元/盏", DefaultPrice = 78 },
-                new MaterialType { Name = "射灯", Unit = "元/盏", DefaultPrice = 78 },
-                new MaterialType { Name = "灯带", Unit = "元/m", DefaultPrice = 8 }
+                new MaterialType { Name = "筒灯/射灯", Unit = "元/盏", DefaultPrice = 78 },
+                new MaterialType { Name = "灯带", Unit = "元/m", DefaultPrice = 8 },
+                new MaterialType { Name = "吊灯", Unit = "元/盏", DefaultPrice = 500 },
+                new MaterialType { Name = "壁灯", Unit = "元/盏", DefaultPrice = 200 },
+                new MaterialType { Name = "开关插座", Unit = "元/个", DefaultPrice = 30 }
             },
             ["书房-木门"] = new List<MaterialType>
             {
@@ -337,9 +358,17 @@ namespace FactoryProductManager.Views
             },
             ["阳台-灯具"] = new List<MaterialType>
             {
-                new MaterialType { Name = "筒灯", Unit = "元/盏", DefaultPrice = 78 },
-                new MaterialType { Name = "射灯", Unit = "元/盏", DefaultPrice = 78 },
-                new MaterialType { Name = "灯带", Unit = "元/m", DefaultPrice = 8 }
+                new MaterialType { Name = "筒灯/射灯", Unit = "元/盏", DefaultPrice = 78 },
+                new MaterialType { Name = "灯带", Unit = "元/m", DefaultPrice = 8 },
+                new MaterialType { Name = "吊灯", Unit = "元/盏", DefaultPrice = 500 },
+                new MaterialType { Name = "壁灯", Unit = "元/盏", DefaultPrice = 200 },
+                new MaterialType { Name = "开关插座", Unit = "元/个", DefaultPrice = 30 }
+            },
+            ["阳台-五金洁具"] = new List<MaterialType>
+            {
+                new MaterialType { Name = "龙头", Unit = "元/个", DefaultPrice = 350 },
+                new MaterialType { Name = "拖把池", Unit = "元/个", DefaultPrice = 300 },
+                new MaterialType { Name = "地漏/角阀/软管等", Unit = "元/套", DefaultPrice = 150 }
             }
         };
 

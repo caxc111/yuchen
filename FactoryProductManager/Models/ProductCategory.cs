@@ -136,7 +136,7 @@ namespace FactoryProductManager.Models
                     {
                         new ProductCategory
                         {
-                            Name = "坐厕类",
+                            Name = "座便器",
                             Children = new List<ProductCategory>
                             {
                                 new ProductCategory { Name = "连体马桶" },
@@ -148,7 +148,7 @@ namespace FactoryProductManager.Models
                         },
                         new ProductCategory
                         {
-                            Name = "台盆类",
+                            Name = "台盆",
                             Children = new List<ProductCategory>
                             {
                                 new ProductCategory { Name = "台上盆" },
@@ -160,7 +160,7 @@ namespace FactoryProductManager.Models
                         },
                         new ProductCategory
                         {
-                            Name = "水槽类",
+                            Name = "水槽",
                             Children = new List<ProductCategory>
                             {
                                 new ProductCategory { Name = "单槽洗菜盆" },
@@ -194,10 +194,17 @@ namespace FactoryProductManager.Models
                     Name = "厨卫五金",
                     Children = new List<ProductCategory>
                     {
-                        new ProductCategory { Name = "面盆龙头" },
-                        new ProductCategory { Name = "厨房龙头" },
-                        new ProductCategory { Name = "淋浴龙头" },
-                        new ProductCategory { Name = "其他龙头" },
+                        new ProductCategory
+                        {
+                            Name = "龙头",
+                            Children = new List<ProductCategory>
+                            {
+                                new ProductCategory { Name = "面盆龙头" },
+                                new ProductCategory { Name = "厨房龙头" },
+                                new ProductCategory { Name = "淋浴龙头" },
+                                new ProductCategory { Name = "其他龙头" }
+                            }
+                        },
                         new ProductCategory
                         {
                             Name = "淋浴屏风",
@@ -209,8 +216,17 @@ namespace FactoryProductManager.Models
                                 new ProductCategory { Name = "淋浴房底座" }
                             }
                         },
-                        new ProductCategory { Name = "毛巾架" },
-                        new ProductCategory { Name = "置物架" },
+                        new ProductCategory
+                        {
+                            Name = "收纳架",
+                            Children = new List<ProductCategory>
+                            {
+                                new ProductCategory { Name = "毛巾架" },
+                                new ProductCategory { Name = "厕纸架" },
+                                new ProductCategory { Name = "浴巾架" },
+                                new ProductCategory { Name = "置物架" }
+                            }
+                        },
                         new ProductCategory { Name = "地漏/角阀/软管等" }
                     }
                 },
@@ -239,10 +255,11 @@ namespace FactoryProductManager.Models
                     Name = "灯具开关",
                     Children = new List<ProductCategory>
                     {
-                        new ProductCategory { Name = "筒灯/射灯/灯带" },
+                        new ProductCategory { Name = "筒灯/射灯" },
+                        new ProductCategory { Name = "灯带" },
                         new ProductCategory { Name = "吊灯" },
                         new ProductCategory { Name = "壁灯" },
-                        new ProductCategory { Name = "开关插座面板" },
+                        new ProductCategory { Name = "开关插座" },
                         new ProductCategory { Name = "浴霸/排气扇" }
                     }
                 },
