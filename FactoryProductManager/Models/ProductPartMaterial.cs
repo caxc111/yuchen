@@ -32,7 +32,8 @@ namespace FactoryProductManager.Models
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
-        // ===== 复合物料相关字段（方案 B） =====
+        // 复合物料主行的图纸列表（多图，用竖线分隔存储）
+        public string Images { get; set; } = string.Empty;
         // 1=主行（代表"定制橱柜"这种整体）；0=普通行或子行
         public bool IsComposite { get; set; }
         // 组合编码（如 CB-001），与 MaterialGroups.group_code 关联
@@ -41,6 +42,8 @@ namespace FactoryProductManager.Models
         public string ItemName { get; set; } = string.Empty;
         // 子行指向主行 id；主行此字段为 null
         public int? ParentId { get; set; }
+        // 图纸编号
+        public string DrawingNumber { get; set; } = string.Empty;
 
         public decimal Quantity
         {

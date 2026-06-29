@@ -64,7 +64,7 @@ namespace FactoryProductManager.ViewModels
 
         public ProductManagementViewModel()
         {
-            _dbService = new DbService();
+            _dbService = new DbService(DatabaseType.Project);
             Products = new ObservableCollection<Product>();
             InactiveProducts = new ObservableCollection<Product>();
             DisplayProducts = new ObservableCollection<Product>();

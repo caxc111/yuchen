@@ -53,6 +53,15 @@ namespace FactoryProductManager
                 LogService.Info("显示主窗口...");
                 mainWindow.Show();
 
+                // 初始化系统托盘
+                TrayService.Instance.Initialize(mainWindow);
+                TrayService.Instance.ShowMainWindowRequested += (s, e) =>
+                {
+                    mainWindow.Show();
+                    mainWindow.WindowState = WindowState.Normal;
+                    mainWindow.Activate();
+                };
+
                 LogService.Info("应用程序启动完成");
             }
             catch (Exception ex)
@@ -69,6 +78,7 @@ namespace FactoryProductManager
             {
                 LogService.Info("应用程序开始退出...");
                 base.OnExit(e);
+                TrayService.Instance.Dispose();
                 LogService.LogApplicationExit();
             }
             catch (Exception ex)
@@ -155,6 +165,7 @@ namespace FactoryProductManager
 
         private static void Element_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+            if (e.LeftButton != MouseButtonState.Pressed) return;
             if (e.ClickCount != 1 || sender is not UIElement element) return;
 
             var hit = e.OriginalSource as DependencyObject;

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
+using FactoryProductManager.Helpers;
 using FactoryProductManager.Services;
 
 namespace FactoryProductManager.Views
@@ -23,6 +24,7 @@ namespace FactoryProductManager.Views
             }
 
             WindowPositionService.AddPositionProtection(this);
+            this.EnableTrayMinimize();
         }
 
         private void Item_Click(object sender, MouseButtonEventArgs e)

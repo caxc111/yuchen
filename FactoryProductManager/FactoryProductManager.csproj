@@ -9,6 +9,8 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <!-- System.Drawing.Common 兼容模式 -->
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <!-- 禁用无意义的代码风格和空引用警告 -->
+    <NoWarn>$(NoWarn);CA1822;IDE0063;IDE0090;IDE0028;IDE0057;CA1846;CS8601;CS8602;CS8603;CS8604;CS8618;CS8619;CS8625</NoWarn>
   </PropertyGroup>
   
   <ItemGroup>

@@ -1,3 +1,4 @@
+using FactoryProductManager.Helpers;
 using FactoryProductManager.Models;
 using FactoryProductManager.Services;
 using System.Collections.Generic;
@@ -32,6 +33,7 @@ namespace FactoryProductManager.Views
 
             Loaded += FactoryDialog_Loaded;
             WindowPositionService.AddPositionProtection(this);
+            this.EnableTrayMinimize();
         }
 
         private void FactoryDialog_Loaded(object sender, RoutedEventArgs e)

@@ -1,3 +1,4 @@
+using FactoryProductManager.Helpers;
 using FactoryProductManager.Models;
 using FactoryProductManager.Services;
 using System;
@@ -69,7 +70,7 @@ namespace FactoryProductManager.Views
             _productId = productId;
             _isNewProduct = isNewProduct;
             _existingParts = existingParts;
-            _dbService = new DbService();
+            _dbService = new DbService(DatabaseType.Project);
             DataContext = this;
 
             CustomPartsPanel.ItemsSource = CustomParts;
@@ -77,6 +78,7 @@ namespace FactoryProductManager.Views
             LoadParts();
 
             WindowPositionService.AddPositionProtection(this);
+            this.EnableTrayMinimize();
         }
 
         private void CreatePartNameOptions()

@@ -9,7 +9,7 @@ namespace FactoryProductManager.Views
 {
     public partial class FactoryDialogUserControl : UserControl
     {
-        private readonly DbService _dbService = new DbService();
+        private readonly DbService _dbService = new DbService(DatabaseType.GlobalMaterial);
         public Factory Factory { get; set; }
         public bool IsSaved { get; private set; }
         public string Title { get; set; }

@@ -1,3 +1,4 @@
+using FactoryProductManager.Helpers;
 using FactoryProductManager.Models;
 using FactoryProductManager.Services;
 using System;
@@ -42,7 +43,7 @@ namespace FactoryProductManager.Views
             {
                 try
                 {
-                    var db = new DbService();
+                    var db = new DbService(DatabaseType.Project);
                     var parts = db.GetProductParts(product.Id);
                     if (parts.Count > 0)
                     {
@@ -83,6 +84,7 @@ namespace FactoryProductManager.Views
             StateChanged += ProductDetailsWindow_StateChanged;
 
             WindowPositionService.AddPositionProtection(this);
+            this.EnableTrayMinimize();
         }
 
         private void ProductDetailsWindow_StateChanged(object? sender, System.EventArgs e)

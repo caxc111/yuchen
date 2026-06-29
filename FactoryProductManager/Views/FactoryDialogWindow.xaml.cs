@@ -1,3 +1,4 @@
+using FactoryProductManager.Helpers;
 using FactoryProductManager.Models;
 using FactoryProductManager.Services;
 using System.Windows;
@@ -33,6 +34,7 @@ namespace FactoryProductManager.Views
             StateChanged += FactoryDialogWindow_StateChanged;
 
             WindowPositionService.AddPositionProtection(this);
+            this.EnableTrayMinimize();
         }
 
         private void FactoryDialogWindow_StateChanged(object? sender, System.EventArgs e)

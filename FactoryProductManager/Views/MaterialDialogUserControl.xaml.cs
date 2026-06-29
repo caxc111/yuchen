@@ -22,7 +22,7 @@ namespace FactoryProductManager.Views
         private const string BrandEmptyPlaceholder = "暂无品牌";
         private static readonly string[] PresetUnits = { "m", "㎡", "m³", "个", "张", "片", "樘", "套", "副", "项", "盏" };
 
-        private readonly DbService _dbService = new DbService();
+        private readonly DbService _dbService = new DbService(DatabaseType.GlobalMaterial);
         private readonly Brush _factoryDefaultBorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#CCCCCC"));
         private readonly Brush _factoryWarningBorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F2B366"));
         private List<Factory> _allFactories = new();

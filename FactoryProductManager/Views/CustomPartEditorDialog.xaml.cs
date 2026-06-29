@@ -1,3 +1,4 @@
+using FactoryProductManager.Helpers;
 using FactoryProductManager.Models;
 using FactoryProductManager.Services;
 using System;
@@ -12,7 +13,7 @@ namespace FactoryProductManager.Views
 {
     public partial class CustomPartEditorDialog : Window
     {
-        private readonly DbService _dbService = new();
+        private readonly DbService _dbService = new DbService(DatabaseType.GlobalMaterial);
         public CustomPart? Result { get; private set; }
 
         // 7 个默认部品（去重自 _partComponents）
@@ -27,6 +28,7 @@ namespace FactoryProductManager.Views
             BuildComponentList();
 
             WindowPositionService.AddPositionProtection(this);
+            this.EnableTrayMinimize();
         }
 
         private void BuildComponentList()

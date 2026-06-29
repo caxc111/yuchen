@@ -270,13 +270,13 @@
                                                     <BlurEffect Radius="20"/>
                                                 </Border.Effect>
                                             </Border>
-                                            <Button Content="删除产品"
+                                            <Button Content="编辑序号"
                                                     Margin="0"
                                                     Width="110"
                                                     Height="35"
-                                                    Click="DeleteProductButton_Click"
+                                                    Click="EditSequenceNumber_Click"
                                                     Style="{StaticResource UnifiedDialogActionButtonStyle}"
-                                                    Foreground="#D32F2F"/>
+                                                    Foreground="#666666"/>
                                         </Grid>
                                     </Border>
                                 </Grid>

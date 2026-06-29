@@ -1,6 +1,7 @@
 ﻿using FactoryProductManager.Models;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data.SQLite;
 using System.Globalization;
 using System.IO;
@@ -21,6 +22,21 @@ namespace FactoryProductManager.Services
                 string projectDirectory = Path.GetFullPath(Path.Combine(appDirectory, "..", "..", "..", ".."));
                 databasePath = Path.Combine(projectDirectory, "FactoryProductManager", "FactoryProductDB.db");
             }
+            _connectionString = $"Data Source={databasePath};Version=3;BusyTimeout=3000;";
+            CreateTables();
+        }
+
+        public DbService(DatabaseType databaseType)
+        {
+            string appDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            string projectDirectory = Path.GetFullPath(Path.Combine(appDirectory, "..", "..", "..", ".."));
+            string databaseName = databaseType switch
+            {
+                DatabaseType.Project => "FactoryProductDB.db",
+                DatabaseType.GlobalMaterial => "GlobalMaterialDB.db",
+                _ => "FactoryProductDB.db"
+            };
+            string databasePath = Path.Combine(projectDirectory, "FactoryProductManager", databaseName);
             _connectionString = $"Data Source={databasePath};Version=3;BusyTimeout=3000;";
             CreateTables();
         }
@@ -114,7 +130,7 @@ namespace FactoryProductManager.Services
                 EnsureProductPartsSchema(conn);
                 EnsureCustomPartsSchema(conn);
                 EnsureMaterialGroupsSchema(conn);
-                EnsureProductMaterialsSchema(conn);
+                EnsureProductMaterialLibrarySchema(conn);
             }
         }
 
@@ -400,6 +416,69 @@ namespace FactoryProductManager.Services
             }
         }
 
+        private void EnsureProductMaterialLibrarySchema(SQLiteConnection conn)
+        {
+            string createTable = @"
+                CREATE TABLE IF NOT EXISTS ProductMaterialLibrary (
+                    pml_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    product_id INTEGER NOT NULL,
+                    is_composite_main INTEGER DEFAULT 0,
+                    parent_pml_id INTEGER,
+                    group_code TEXT,
+                    cabinet_name TEXT,
+                    item_name TEXT,
+                    part_name TEXT,
+                    component_name TEXT,
+                    material_type_name TEXT,
+                    material_id INTEGER,
+                    material_name TEXT NOT NULL,
+                    factory_material_code TEXT,
+                    my_material_code TEXT,
+                    brand TEXT,
+                    specification TEXT,
+                    unit TEXT,
+                    unit_price REAL DEFAULT 0,
+                    quantity REAL DEFAULT 1,
+                    total_price REAL DEFAULT 0,
+                    image_url TEXT,
+                    created_at TEXT,
+                    updated_at TEXT,
+                    FOREIGN KEY (product_id) REFERENCES Products(id) ON DELETE CASCADE
+                )";
+
+            using (var cmd = new SQLiteCommand(createTable, conn))
+            {
+                cmd.ExecuteNonQuery();
+            }
+
+            // 迁移：如果 quantity 列不存在，添加它
+            if (!ColumnExists(conn, "ProductMaterialLibrary", "quantity"))
+            {
+                using var alterCmd = new SQLiteCommand("ALTER TABLE ProductMaterialLibrary ADD COLUMN quantity REAL DEFAULT 1", conn);
+                alterCmd.ExecuteNonQuery();
+                LogService.Info("[ProductMaterialLibrary] 迁移：添加 quantity 列");
+            }
+
+            // 迁移：如果 drawing_number 列不存在，添加它
+            if (!ColumnExists(conn, "ProductMaterialLibrary", "drawing_number"))
+            {
+                using var alterCmd = new SQLiteCommand("ALTER TABLE ProductMaterialLibrary ADD COLUMN drawing_number TEXT", conn);
+                alterCmd.ExecuteNonQuery();
+                LogService.Info("[ProductMaterialLibrary] 迁移：添加 drawing_number 列");
+            }
+
+            if (!IndexExists(conn, "ProductMaterialLibrary", "idx_pml_product_id"))
+            {
+                using var idxCmd = new SQLiteCommand("CREATE INDEX idx_pml_product_id ON ProductMaterialLibrary(product_id)", conn);
+                idxCmd.ExecuteNonQuery();
+            }
+            if (!IndexExists(conn, "ProductMaterialLibrary", "idx_pml_parent"))
+            {
+                using var idxCmd = new SQLiteCommand("CREATE INDEX idx_pml_parent ON ProductMaterialLibrary(parent_pml_id)", conn);
+                idxCmd.ExecuteNonQuery();
+            }
+        }
+
         public List<MaterialGroup> GetMaterialGroups()
         {
             var list = new List<MaterialGroup>();
@@ -415,13 +494,13 @@ namespace FactoryProductManager.Services
                     list.Add(new MaterialGroup
                     {
                         Id = Convert.ToInt32(reader.GetValue(0)),
-                        GroupCode = Convert.ToString(reader.GetValue(1))!,
-                        GroupName = Convert.ToString(reader.GetValue(2))!,
-                        Category = reader.IsDBNull(3) ? string.Empty : Convert.ToString(reader.GetValue(3))!,
-                        Description = reader.IsDBNull(4) ? string.Empty : Convert.ToString(reader.GetValue(4))!,
+                        GroupCode = Convert.ToString(reader.GetValue(1)),
+                        GroupName = Convert.ToString(reader.GetValue(2)),
+                        Category = reader.IsDBNull(3) ? string.Empty : Convert.ToString(reader.GetValue(3)),
+                        Description = reader.IsDBNull(4) ? string.Empty : Convert.ToString(reader.GetValue(4)),
                         IsActive = !reader.IsDBNull(5) && Convert.ToInt32(reader.GetValue(5)) == 1,
-                        CreatedAt = reader.IsDBNull(6) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(6))!),
-                        UpdatedAt = reader.IsDBNull(7) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(7))!)
+                        CreatedAt = reader.IsDBNull(6) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(6))),
+                        UpdatedAt = reader.IsDBNull(7) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(7)))
                     });
                 }
 
@@ -441,12 +520,12 @@ namespace FactoryProductManager.Services
                             {
                                 Id = Convert.ToInt32(itemReader.GetValue(0)),
                                 GroupId = gid,
-                                ItemName = Convert.ToString(itemReader.GetValue(2))!,
+                                ItemName = Convert.ToString(itemReader.GetValue(2)),
                                 ItemOrder = Convert.ToInt32(itemReader.GetValue(3)),
-                                MaterialType = itemReader.IsDBNull(4) ? string.Empty : Convert.ToString(itemReader.GetValue(4))!,
-                                SelectionRule = itemReader.IsDBNull(5) ? SelectionRuleType.Single : Convert.ToString(itemReader.GetValue(5))!,
+                                MaterialType = itemReader.IsDBNull(4) ? string.Empty : Convert.ToString(itemReader.GetValue(4)),
+                                SelectionRule = itemReader.IsDBNull(5) ? SelectionRuleType.Single : Convert.ToString(itemReader.GetValue(5)),
                                 IsRequired = !itemReader.IsDBNull(6) && Convert.ToInt32(itemReader.GetValue(6)) == 1,
-                                Prompt = itemReader.IsDBNull(7) ? string.Empty : Convert.ToString(itemReader.GetValue(7))!
+                                Prompt = itemReader.IsDBNull(7) ? string.Empty : Convert.ToString(itemReader.GetValue(7))
                             });
                         }
                     }
@@ -477,13 +556,13 @@ namespace FactoryProductManager.Services
                 var g = new MaterialGroup
                 {
                     Id = Convert.ToInt32(reader.GetValue(0)),
-                    GroupCode = Convert.ToString(reader.GetValue(1))!,
-                    GroupName = Convert.ToString(reader.GetValue(2))!,
-                    Category = reader.IsDBNull(3) ? string.Empty : Convert.ToString(reader.GetValue(3))!,
-                    Description = reader.IsDBNull(4) ? string.Empty : Convert.ToString(reader.GetValue(4))!,
+                    GroupCode = Convert.ToString(reader.GetValue(1)),
+                    GroupName = Convert.ToString(reader.GetValue(2)),
+                    Category = reader.IsDBNull(3) ? string.Empty : Convert.ToString(reader.GetValue(3)),
+                    Description = reader.IsDBNull(4) ? string.Empty : Convert.ToString(reader.GetValue(4)),
                     IsActive = !reader.IsDBNull(5) && Convert.ToInt32(reader.GetValue(5)) == 1,
-                    CreatedAt = reader.IsDBNull(6) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(6))!),
-                    UpdatedAt = reader.IsDBNull(7) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(7))!)
+                    CreatedAt = reader.IsDBNull(6) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(6))),
+                    UpdatedAt = reader.IsDBNull(7) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(7)))
                 };
                 reader.Close();
 
@@ -497,12 +576,12 @@ namespace FactoryProductManager.Services
                     {
                         Id = Convert.ToInt32(itemReader.GetValue(0)),
                         GroupId = g.Id,
-                        ItemName = Convert.ToString(itemReader.GetValue(2))!,
+                        ItemName = Convert.ToString(itemReader.GetValue(2)),
                         ItemOrder = Convert.ToInt32(itemReader.GetValue(3)),
-                        MaterialType = itemReader.IsDBNull(4) ? string.Empty : Convert.ToString(itemReader.GetValue(4))!,
-                        SelectionRule = itemReader.IsDBNull(5) ? SelectionRuleType.Single : Convert.ToString(itemReader.GetValue(5))!,
+                        MaterialType = itemReader.IsDBNull(4) ? string.Empty : Convert.ToString(itemReader.GetValue(4)),
+                        SelectionRule = itemReader.IsDBNull(5) ? SelectionRuleType.Single : Convert.ToString(itemReader.GetValue(5)),
                         IsRequired = !itemReader.IsDBNull(6) && Convert.ToInt32(itemReader.GetValue(6)) == 1,
-                        Prompt = itemReader.IsDBNull(7) ? string.Empty : Convert.ToString(itemReader.GetValue(7))!
+                        Prompt = itemReader.IsDBNull(7) ? string.Empty : Convert.ToString(itemReader.GetValue(7))
                     });
                 }
                 return g;
@@ -597,12 +676,12 @@ namespace FactoryProductManager.Services
                     new MaterialGroup
                     {
                         GroupCode = "GX-001", GroupName = "柜类", Category = "柜类",
-                        Description = "柜类通用：柜体+门板+台面(可选项)+五金",
+                        Description = "柜类通用：柜体+门板(可选)+台面(可选)+五金",
                         Items = new List<MaterialGroupItem>
                         {
-                            new MaterialGroupItem { ItemName = "柜体", ItemOrder = 1, MaterialType = "柜体木饰面", IsRequired = true },
-                            new MaterialGroupItem { ItemName = "门板", ItemOrder = 2, MaterialType = "柜体木饰面", IsRequired = true },
-                            new MaterialGroupItem { ItemName = "台面", ItemOrder = 3, MaterialType = "石英石,大理石,岩板", IsRequired = false, Prompt = "请选择台面材质（石英石/大理石/岩板 三选一）" },
+                            new MaterialGroupItem { ItemName = "柜体", ItemOrder = 1, MaterialType = "柜体木饰面", IsRequired = true, SelectionRule = SelectionRuleType.Multiple },
+                            new MaterialGroupItem { ItemName = "门板", ItemOrder = 2, MaterialType = "柜体木饰面", IsRequired = false, SelectionRule = SelectionRuleType.Multiple },
+                            new MaterialGroupItem { ItemName = "台面", ItemOrder = 3, MaterialType = "石英石,大理石,岩板", IsRequired = false, SelectionRule = SelectionRuleType.Single, Prompt = "请选择台面材质（石英石/大理石/岩板 三选一）" },
                             new MaterialGroupItem { ItemName = "五金", ItemOrder = 4, MaterialType = "厨卫五金", IsRequired = false }
                         }
                     }
@@ -670,21 +749,21 @@ namespace FactoryProductManager.Services
                                 factories.Add(new Factory
                                 {
                                     Id = Convert.ToInt32(reader.GetValue(reader.GetOrdinal("id"))),
-                                    FactoryCode = Convert.ToString(reader.GetValue(reader.GetOrdinal("factory_code")))!,
-                                    FactoryName = Convert.ToString(reader.GetValue(reader.GetOrdinal("factory_name")))!,
-                                    Brand = reader.IsDBNull(reader.GetOrdinal("brand")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("brand")))!,
-                                    FactoryType = reader.IsDBNull(reader.GetOrdinal("factory_type")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("factory_type")))!,
-                                    Address = reader.IsDBNull(reader.GetOrdinal("address")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("address")))!,
-                                    Certifications = reader.IsDBNull(reader.GetOrdinal("certifications")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("certifications")))!,
-                                    Description = reader.IsDBNull(reader.GetOrdinal("description")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("description")))!,
-                                    Scale = reader.IsDBNull(reader.GetOrdinal("scale")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("scale")))!,
-                                    EmployeeCount = reader.IsDBNull(reader.GetOrdinal("employee_count")) ? null : Convert.ToInt32(reader.GetValue(reader.GetOrdinal("employee_count"))),
-                                    ProductionCapacity = reader.IsDBNull(reader.GetOrdinal("production_capacity")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("production_capacity")))!,
-                                    ControllingPerson = reader.IsDBNull(reader.GetOrdinal("controlling_person")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("controlling_person")))!,
-                                    ContactPerson = reader.IsDBNull(reader.GetOrdinal("contact_person")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("contact_person")))!,
-                                    ContactInfo = reader.IsDBNull(reader.GetOrdinal("contact_info")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("contact_info")))!,
-                                    CreatedAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(reader.GetOrdinal("created_at")))!),
-                                    UpdatedAt = reader.IsDBNull(reader.GetOrdinal("updated_at")) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(reader.GetOrdinal("updated_at")))!)
+                                    FactoryCode = Convert.ToString(reader.GetValue(reader.GetOrdinal("factory_code"))),
+                                    FactoryName = Convert.ToString(reader.GetValue(reader.GetOrdinal("factory_name"))),
+                                    Brand = reader.IsDBNull(reader.GetOrdinal("brand")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("brand"))),
+                                    FactoryType = reader.IsDBNull(reader.GetOrdinal("factory_type")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("factory_type"))),
+                                    Address = reader.IsDBNull(reader.GetOrdinal("address")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("address"))),
+                                    Certifications = reader.IsDBNull(reader.GetOrdinal("certifications")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("certifications"))),
+                                    Description = reader.IsDBNull(reader.GetOrdinal("description")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("description"))),
+                                    Scale = reader.IsDBNull(reader.GetOrdinal("scale")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("scale"))),
+                                    EmployeeCount = reader.IsDBNull(reader.GetOrdinal("employee_count")) ? null : (int?)Convert.ToInt32(reader.GetValue(reader.GetOrdinal("employee_count"))),
+                                    ProductionCapacity = reader.IsDBNull(reader.GetOrdinal("production_capacity")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("production_capacity"))),
+                                    ControllingPerson = reader.IsDBNull(reader.GetOrdinal("controlling_person")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("controlling_person"))),
+                                    ContactPerson = reader.IsDBNull(reader.GetOrdinal("contact_person")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("contact_person"))),
+                                    ContactInfo = reader.IsDBNull(reader.GetOrdinal("contact_info")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("contact_info"))),
+                                    CreatedAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(reader.GetOrdinal("created_at")))),
+                                    UpdatedAt = reader.IsDBNull(reader.GetOrdinal("updated_at")) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(reader.GetOrdinal("updated_at"))))
                                 });
                             }
                             catch (Exception ex)
@@ -759,24 +838,24 @@ namespace FactoryProductManager.Services
                             materials.Add(new FactoryMaterial
                             {
                                 Id = Convert.ToInt32(reader.GetValue(reader.GetOrdinal("id"))),
-                                FactoryMaterialCode = Convert.ToString(reader.GetValue(reader.GetOrdinal("factory_product_code")))!,
-                                MyMaterialCode = reader.IsDBNull(reader.GetOrdinal("my_product_code")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("my_product_code")))!,
-                                MaterialName = Convert.ToString(reader.GetValue(reader.GetOrdinal("product_name")))!,
-                                Brand = reader.IsDBNull(reader.GetOrdinal("brand")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("brand")))!,
-                                Specification = reader.IsDBNull(reader.GetOrdinal("specification")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("specification")))!,
-                                Texture = reader.IsDBNull(reader.GetOrdinal("texture")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("texture")))!,
-                                Process = reader.IsDBNull(reader.GetOrdinal("process")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("process")))!,
-                                Unit = reader.IsDBNull(reader.GetOrdinal("unit")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("unit")))!,
+                                FactoryMaterialCode = Convert.ToString(reader.GetValue(reader.GetOrdinal("factory_product_code"))),
+                                MyMaterialCode = reader.IsDBNull(reader.GetOrdinal("my_product_code")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("my_product_code"))),
+                                MaterialName = Convert.ToString(reader.GetValue(reader.GetOrdinal("product_name"))),
+                                Brand = reader.IsDBNull(reader.GetOrdinal("brand")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("brand"))),
+                                Specification = reader.IsDBNull(reader.GetOrdinal("specification")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("specification"))),
+                                Texture = reader.IsDBNull(reader.GetOrdinal("texture")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("texture"))),
+                                Process = reader.IsDBNull(reader.GetOrdinal("process")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("process"))),
+                                Unit = reader.IsDBNull(reader.GetOrdinal("unit")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("unit"))),
                                 CostPrice = reader.IsDBNull(reader.GetOrdinal("cost_price")) ? null : Convert.ToDecimal(reader.GetValue(reader.GetOrdinal("cost_price"))),
-                                UsageScenario = reader.IsDBNull(reader.GetOrdinal("usage_scenario")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("usage_scenario")))!,
-                                Certifications = reader.IsDBNull(reader.GetOrdinal("certifications")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("certifications")))!,
-                                SupplyCycle = reader.IsDBNull(reader.GetOrdinal("supply_cycle")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("supply_cycle")))!,
-                                Category = reader.IsDBNull(reader.GetOrdinal("category")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("category")))!,
-                                ImageUrl = reader.IsDBNull(reader.GetOrdinal("image_url")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("image_url")))!,
+                                UsageScenario = reader.IsDBNull(reader.GetOrdinal("usage_scenario")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("usage_scenario"))),
+                                Certifications = reader.IsDBNull(reader.GetOrdinal("certifications")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("certifications"))),
+                                SupplyCycle = reader.IsDBNull(reader.GetOrdinal("supply_cycle")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("supply_cycle"))),
+                                Category = reader.IsDBNull(reader.GetOrdinal("category")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("category"))),
+                                ImageUrl = reader.IsDBNull(reader.GetOrdinal("image_url")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("image_url"))),
                                 FactoryId = reader.IsDBNull(reader.GetOrdinal("factory_id")) ? null : Convert.ToInt32(reader.GetValue(reader.GetOrdinal("factory_id"))),
-                                FactoryName = reader.IsDBNull(reader.GetOrdinal("factory_name")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("factory_name")))!,
-                                CreatedAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(reader.GetOrdinal("created_at")))!),
-                                UpdatedAt = reader.IsDBNull(reader.GetOrdinal("updated_at")) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(reader.GetOrdinal("updated_at")))!)
+                                FactoryName = reader.IsDBNull(reader.GetOrdinal("factory_name")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("factory_name"))),
+                                CreatedAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(reader.GetOrdinal("created_at")))),
+                                UpdatedAt = reader.IsDBNull(reader.GetOrdinal("updated_at")) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(reader.GetOrdinal("updated_at"))))
                             });
                         }
                     }
@@ -817,24 +896,24 @@ namespace FactoryProductManager.Services
                             materials.Add(new FactoryMaterial
                             {
                                 Id = Convert.ToInt32(reader.GetValue(reader.GetOrdinal("id"))),
-                                FactoryMaterialCode = Convert.ToString(reader.GetValue(reader.GetOrdinal("factory_product_code")))!,
-                                MyMaterialCode = reader.IsDBNull(reader.GetOrdinal("my_product_code")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("my_product_code")))!,
-                                MaterialName = Convert.ToString(reader.GetValue(reader.GetOrdinal("product_name")))!,
-                                Brand = reader.IsDBNull(reader.GetOrdinal("brand")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("brand")))!,
-                                Specification = reader.IsDBNull(reader.GetOrdinal("specification")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("specification")))!,
-                                Texture = reader.IsDBNull(reader.GetOrdinal("texture")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("texture")))!,
-                                Process = reader.IsDBNull(reader.GetOrdinal("process")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("process")))!,
-                                Unit = reader.IsDBNull(reader.GetOrdinal("unit")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("unit")))!,
+                                FactoryMaterialCode = Convert.ToString(reader.GetValue(reader.GetOrdinal("factory_product_code"))),
+                                MyMaterialCode = reader.IsDBNull(reader.GetOrdinal("my_product_code")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("my_product_code"))),
+                                MaterialName = Convert.ToString(reader.GetValue(reader.GetOrdinal("product_name"))),
+                                Brand = reader.IsDBNull(reader.GetOrdinal("brand")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("brand"))),
+                                Specification = reader.IsDBNull(reader.GetOrdinal("specification")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("specification"))),
+                                Texture = reader.IsDBNull(reader.GetOrdinal("texture")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("texture"))),
+                                Process = reader.IsDBNull(reader.GetOrdinal("process")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("process"))),
+                                Unit = reader.IsDBNull(reader.GetOrdinal("unit")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("unit"))),
                                 CostPrice = reader.IsDBNull(reader.GetOrdinal("cost_price")) ? null : Convert.ToDecimal(reader.GetValue(reader.GetOrdinal("cost_price"))),
-                                UsageScenario = reader.IsDBNull(reader.GetOrdinal("usage_scenario")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("usage_scenario")))!,
-                                Certifications = reader.IsDBNull(reader.GetOrdinal("certifications")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("certifications")))!,
-                                SupplyCycle = reader.IsDBNull(reader.GetOrdinal("supply_cycle")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("supply_cycle")))!,
-                                Category = reader.IsDBNull(reader.GetOrdinal("category")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("category")))!,
-                                ImageUrl = reader.IsDBNull(reader.GetOrdinal("image_url")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("image_url")))!,
+                                UsageScenario = reader.IsDBNull(reader.GetOrdinal("usage_scenario")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("usage_scenario"))),
+                                Certifications = reader.IsDBNull(reader.GetOrdinal("certifications")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("certifications"))),
+                                SupplyCycle = reader.IsDBNull(reader.GetOrdinal("supply_cycle")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("supply_cycle"))),
+                                Category = reader.IsDBNull(reader.GetOrdinal("category")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("category"))),
+                                ImageUrl = reader.IsDBNull(reader.GetOrdinal("image_url")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("image_url"))),
                                 FactoryId = reader.IsDBNull(reader.GetOrdinal("factory_id")) ? null : Convert.ToInt32(reader.GetValue(reader.GetOrdinal("factory_id"))),
-                                FactoryName = reader.IsDBNull(reader.GetOrdinal("factory_name")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("factory_name")))!,
-                                CreatedAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(reader.GetOrdinal("created_at")))!),
-                                UpdatedAt = reader.IsDBNull(reader.GetOrdinal("updated_at")) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(reader.GetOrdinal("updated_at")))!)
+                                FactoryName = reader.IsDBNull(reader.GetOrdinal("factory_name")) ? string.Empty : Convert.ToString(reader.GetValue(reader.GetOrdinal("factory_name"))),
+                                CreatedAt = reader.IsDBNull(reader.GetOrdinal("created_at")) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(reader.GetOrdinal("created_at")))),
+                                UpdatedAt = reader.IsDBNull(reader.GetOrdinal("updated_at")) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(reader.GetOrdinal("updated_at"))))
                             });
                         }
                     }
@@ -883,18 +962,18 @@ namespace FactoryProductManager.Services
                             products.Add(new Product
                             {
                                 Id = Convert.ToInt32(reader.GetValue(0)),
-                                BusinessType = reader.IsDBNull(1) ? string.Empty : Convert.ToString(reader.GetValue(1))!,
-                                ProductCode = Convert.ToString(reader.GetValue(2))!,
-                                ProductName = reader.IsDBNull(3) ? string.Empty : Convert.ToString(reader.GetValue(3))!,
-                                ProjectCode = reader.IsDBNull(4) ? string.Empty : Convert.ToString(reader.GetValue(4))!,
-                                HouseType = reader.IsDBNull(5) ? string.Empty : Convert.ToString(reader.GetValue(5))!,
+                                BusinessType = reader.IsDBNull(1) ? string.Empty : Convert.ToString(reader.GetValue(1)),
+                                ProductCode = Convert.ToString(reader.GetValue(2)),
+                                ProductName = reader.IsDBNull(3) ? string.Empty : Convert.ToString(reader.GetValue(3)),
+                                ProjectCode = reader.IsDBNull(4) ? string.Empty : Convert.ToString(reader.GetValue(4)),
+                                HouseType = reader.IsDBNull(5) ? string.Empty : Convert.ToString(reader.GetValue(5)),
                                 Area = reader.IsDBNull(6) ? 0 : Convert.ToDecimal(reader.GetValue(6)),
                                 CostTotalPrice = reader.IsDBNull(7) ? 0 : Convert.ToDecimal(reader.GetValue(7)),
                                 SellingTotalPrice = reader.IsDBNull(8) ? null : Convert.ToDecimal(reader.GetValue(8)),
-                                FloorPlan = reader.IsDBNull(9) ? string.Empty : Convert.ToString(reader.GetValue(9))!,
+                                FloorPlan = reader.IsDBNull(9) ? string.Empty : Convert.ToString(reader.GetValue(9)),
                                 IsActive = !reader.IsDBNull(10) && Convert.ToInt32(reader.GetValue(10)) == 1,
-                                CreatedAt = reader.IsDBNull(11) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(11))!),
-                                UpdatedAt = reader.IsDBNull(12) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(12))!)
+                                CreatedAt = reader.IsDBNull(11) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(11))),
+                                UpdatedAt = reader.IsDBNull(12) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(12)))
                             });
                         }
                     }
@@ -1410,6 +1489,9 @@ namespace FactoryProductManager.Services
         {
             try
             {
+                // 先删除产品物料库（级联）
+                DeleteProductMaterialsLibrary(id);
+
                 using (var conn = GetConnection())
                 {
                     conn.Open();
@@ -1423,6 +1505,268 @@ namespace FactoryProductManager.Services
             catch (Exception ex)
             {
                 LogService.Error($"删除产品失败: ID={id}", ex);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 保存产品物料到产品物料库（分配 PmlId）
+        /// </summary>
+        /// <param name="productId">产品ID</param>
+        /// <param name="materials">物料列表（包含普通物料和复合物料主行）</param>
+        /// <returns>保存的记录数</returns>
+        public int SaveProductMaterialsToLibrary(int productId, List<SelectedMaterial> materials)
+        {
+            try
+            {
+                using var conn = GetConnection();
+                conn.Open();
+                using var transaction = conn.BeginTransaction();
+
+                // 1. 先删除该产品的所有现有记录
+                var deleteCmd = new SQLiteCommand("DELETE FROM ProductMaterialLibrary WHERE product_id = @productId", conn, transaction);
+                deleteCmd.Parameters.AddWithValue("@productId", productId);
+                deleteCmd.ExecuteNonQuery();
+
+                int savedCount = 0;
+                var now = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+                foreach (var mat in materials)
+                {
+                    LogService.Debug($"[SaveProductMaterialsToLibrary] 物料: material_id={mat.FactoryMaterialId}, material_name={mat.MaterialName}, drawing_number={mat.DrawingNumber ?? ""}, quantity={mat.Quantity}");
+                    if (mat.IsComposite)
+                    {
+                        // 复合物料主行
+                        var mainCmd = new SQLiteCommand(@"
+                            INSERT INTO ProductMaterialLibrary 
+                            (product_id, is_composite_main, group_code, cabinet_name, item_name, part_name, component_name, 
+                             material_type_name, material_id, material_name, factory_material_code, my_material_code, 
+                             brand, specification, unit, unit_price, quantity, total_price, image_url, drawing_number, created_at, updated_at)
+                            VALUES 
+                            (@product_id, 1, @group_code, @cabinet_name, @item_name, @part_name, @component_name,
+                             @material_type_name, @material_id, @material_name, @factory_material_code, @my_material_code,
+                             @brand, @specification, @unit, @unit_price, @quantity, @total_price, @image_url, @drawing_number, @created_at, @updated_at);
+                            SELECT last_insert_rowid();", conn, transaction);
+
+                        mainCmd.Parameters.AddWithValue("@product_id", productId);
+                        mainCmd.Parameters.AddWithValue("@group_code", mat.GroupCode ?? "");
+                        mainCmd.Parameters.AddWithValue("@cabinet_name", mat.CabinetName ?? "");
+                        mainCmd.Parameters.AddWithValue("@item_name", "");
+                        mainCmd.Parameters.AddWithValue("@part_name", mat.PartName ?? "");
+                        mainCmd.Parameters.AddWithValue("@component_name", mat.ComponentName ?? "");
+                        mainCmd.Parameters.AddWithValue("@material_type_name", mat.MaterialTypeName ?? "");
+                        mainCmd.Parameters.AddWithValue("@material_id", mat.FactoryMaterialId);
+                        mainCmd.Parameters.AddWithValue("@material_name", mat.MaterialName ?? "");
+                        mainCmd.Parameters.AddWithValue("@factory_material_code", mat.FactoryMaterialCode ?? "");
+                        mainCmd.Parameters.AddWithValue("@my_material_code", mat.MyMaterialCode ?? "");
+                        mainCmd.Parameters.AddWithValue("@brand", mat.Brand ?? "");
+                        mainCmd.Parameters.AddWithValue("@specification", mat.Specification ?? "");
+                        mainCmd.Parameters.AddWithValue("@unit", mat.Unit ?? "");
+                        mainCmd.Parameters.AddWithValue("@unit_price", mat.UnitPrice);
+                        mainCmd.Parameters.AddWithValue("@quantity", mat.Quantity);
+                        mainCmd.Parameters.AddWithValue("@total_price", mat.TotalPrice);
+                        mainCmd.Parameters.AddWithValue("@image_url", mat.ImageUrl ?? "");
+                        mainCmd.Parameters.AddWithValue("@drawing_number", mat.DrawingNumber ?? "");
+                        mainCmd.Parameters.AddWithValue("@created_at", now);
+                        mainCmd.Parameters.AddWithValue("@updated_at", now);
+
+                        var parentPmlId = Convert.ToInt32(mainCmd.ExecuteScalar());
+                        mat.Id = parentPmlId; // 回写内存中的 Id
+                        savedCount++;
+
+                        // 子行
+                        foreach (var child in mat.Children)
+                        {
+                            var childCmd = new SQLiteCommand(@"
+                                INSERT INTO ProductMaterialLibrary 
+                                (product_id, is_composite_main, parent_pml_id, group_code, cabinet_name, item_name, 
+                                 part_name, component_name, material_type_name, material_id, material_name, 
+                                 factory_material_code, my_material_code, brand, specification, unit, 
+                                 unit_price, quantity, total_price, image_url, drawing_number, created_at, updated_at)
+                                VALUES 
+                                (@product_id, 0, @parent_pml_id, @group_code, @cabinet_name, @item_name,
+                                 @part_name, @component_name, @material_type_name, @material_id, @material_name,
+                                 @factory_material_code, @my_material_code, @brand, @specification, @unit,
+                                 @unit_price, @quantity, @total_price, @image_url, @drawing_number, @created_at, @updated_at)", conn, transaction);
+
+                            childCmd.Parameters.AddWithValue("@product_id", productId);
+                            childCmd.Parameters.AddWithValue("@parent_pml_id", parentPmlId);
+                            childCmd.Parameters.AddWithValue("@group_code", mat.GroupCode ?? "");
+                            childCmd.Parameters.AddWithValue("@cabinet_name", mat.CabinetName ?? "");
+                            childCmd.Parameters.AddWithValue("@item_name", child.ItemName ?? "");
+                            childCmd.Parameters.AddWithValue("@part_name", mat.PartName ?? "");
+                            childCmd.Parameters.AddWithValue("@component_name", mat.ComponentName ?? "");
+                            childCmd.Parameters.AddWithValue("@material_type_name", child.MaterialTypeName ?? "");
+                            childCmd.Parameters.AddWithValue("@material_id", child.FactoryMaterialId);
+                            childCmd.Parameters.AddWithValue("@material_name", child.MaterialName ?? "");
+                            childCmd.Parameters.AddWithValue("@factory_material_code", child.FactoryMaterialCode ?? "");
+                            childCmd.Parameters.AddWithValue("@my_material_code", child.MyMaterialCode ?? "");
+                            childCmd.Parameters.AddWithValue("@brand", child.Brand ?? "");
+                            childCmd.Parameters.AddWithValue("@specification", child.Specification ?? "");
+                            childCmd.Parameters.AddWithValue("@unit", child.Unit ?? "");
+                            childCmd.Parameters.AddWithValue("@unit_price", child.UnitPrice);
+                            childCmd.Parameters.AddWithValue("@quantity", child.Quantity);
+                            childCmd.Parameters.AddWithValue("@total_price", child.TotalPrice);
+                            childCmd.Parameters.AddWithValue("@image_url", child.ImageUrl ?? "");
+                            childCmd.Parameters.AddWithValue("@drawing_number", child.DrawingNumber ?? "");
+                            childCmd.Parameters.AddWithValue("@created_at", now);
+                            childCmd.Parameters.AddWithValue("@updated_at", now);
+
+                            childCmd.ExecuteNonQuery();
+                            savedCount++;
+                        }
+                    }
+                    else
+                    {
+                        // 普通物料
+                        var cmd = new SQLiteCommand(@"
+                            INSERT INTO ProductMaterialLibrary 
+                            (product_id, is_composite_main, group_code, item_name, part_name, component_name, 
+                             material_type_name, material_id, material_name, factory_material_code, my_material_code, 
+                             brand, specification, unit, unit_price, quantity, total_price, image_url, drawing_number, created_at, updated_at)
+                            VALUES 
+                            (@product_id, 0, @group_code, @item_name, @part_name, @component_name,
+                             @material_type_name, @material_id, @material_name, @factory_material_code, @my_material_code,
+                             @brand, @specification, @unit, @unit_price, @quantity, @total_price, @image_url, @drawing_number, @created_at, @updated_at)", conn, transaction);
+
+                        cmd.Parameters.AddWithValue("@product_id", productId);
+                        cmd.Parameters.AddWithValue("@group_code", "");
+                        cmd.Parameters.AddWithValue("@item_name", "");
+                        cmd.Parameters.AddWithValue("@part_name", mat.PartName ?? "");
+                        cmd.Parameters.AddWithValue("@component_name", mat.ComponentName ?? "");
+                        cmd.Parameters.AddWithValue("@material_type_name", mat.MaterialTypeName ?? "");
+                        cmd.Parameters.AddWithValue("@material_id", mat.FactoryMaterialId);
+                        cmd.Parameters.AddWithValue("@material_name", mat.MaterialName ?? "");
+                        cmd.Parameters.AddWithValue("@factory_material_code", mat.FactoryMaterialCode ?? "");
+                        cmd.Parameters.AddWithValue("@my_material_code", mat.MyMaterialCode ?? "");
+                        cmd.Parameters.AddWithValue("@brand", mat.Brand ?? "");
+                        cmd.Parameters.AddWithValue("@specification", mat.Specification ?? "");
+                        cmd.Parameters.AddWithValue("@unit", mat.Unit ?? "");
+                        cmd.Parameters.AddWithValue("@unit_price", mat.UnitPrice);
+                        cmd.Parameters.AddWithValue("@quantity", mat.Quantity);
+                        cmd.Parameters.AddWithValue("@total_price", mat.TotalPrice);
+                        cmd.Parameters.AddWithValue("@image_url", mat.ImageUrl ?? "");
+                        cmd.Parameters.AddWithValue("@drawing_number", mat.DrawingNumber ?? "");
+                        cmd.Parameters.AddWithValue("@created_at", now);
+                        cmd.Parameters.AddWithValue("@updated_at", now);
+
+                        cmd.ExecuteNonQuery();
+                        savedCount++;
+                    }
+                }
+
+                transaction.Commit();
+                LogService.Info($"[ProductMaterialLibrary] 保存完成: productId={productId}, 记录数={savedCount}");
+                return savedCount;
+            }
+            catch (Exception ex)
+            {
+                LogService.Error($"[ProductMaterialLibrary] 保存失败: productId={productId}", ex);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 从产品物料库加载物料
+        /// </summary>
+        public List<SelectedMaterial> LoadProductMaterialsFromLibrary(int productId)
+        {
+            try
+            {
+                using var conn = GetConnection();
+                conn.Open();
+
+                var result = new List<SelectedMaterial>();
+                var childrenMap = new Dictionary<int, ObservableCollection<SelectedMaterial>>();
+
+                // 先加载所有记录（关联 FactoryProducts 获取工厂名）
+                var cmd = new SQLiteCommand(@"
+                    SELECT pml.pml_id, pml.product_id, pml.is_composite_main, pml.parent_pml_id, pml.group_code, pml.cabinet_name, pml.item_name,
+                           pml.part_name, pml.component_name, pml.material_type_name, pml.material_id, pml.material_name,
+                           pml.factory_material_code, pml.my_material_code, pml.brand, pml.specification, pml.unit,
+                           pml.unit_price, pml.quantity, pml.total_price, pml.image_url, pml.drawing_number,
+                           COALESCE(f.factory_name, '') as factory_name
+                    FROM ProductMaterialLibrary pml
+                    LEFT JOIN FactoryProducts fp ON pml.material_id = fp.id
+                    LEFT JOIN Factories f ON fp.factory_id = f.id
+                    WHERE pml.product_id = @productId
+                    ORDER BY pml.pml_id", conn);
+                cmd.Parameters.AddWithValue("@productId", productId);
+
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    var mat = new SelectedMaterial
+                    {
+                        Id = Convert.ToInt32(reader.GetValue(0)),
+                        FactoryMaterialId = Convert.ToInt32(reader.GetValue(10)),
+                        MaterialName = Convert.ToString(reader.GetValue(11)) ?? "",
+                        FactoryMaterialCode = reader.IsDBNull(12) ? "" : Convert.ToString(reader.GetValue(12)),
+                        MyMaterialCode = reader.IsDBNull(13) ? "" : Convert.ToString(reader.GetValue(13)),
+                        Brand = reader.IsDBNull(14) ? "" : Convert.ToString(reader.GetValue(14)),
+                        Specification = reader.IsDBNull(15) ? "" : Convert.ToString(reader.GetValue(15)),
+                        Unit = reader.IsDBNull(16) ? "" : Convert.ToString(reader.GetValue(16)),
+                        UnitPrice = Convert.ToDecimal(reader.GetValue(17)),
+                        Quantity = Convert.ToDecimal(reader.GetValue(18)),
+                        ImageUrl = reader.IsDBNull(20) ? "" : Convert.ToString(reader.GetValue(20)),
+                        DrawingNumber = reader.IsDBNull(21) ? "" : Convert.ToString(reader.GetValue(21)),
+                        PartName = reader.IsDBNull(7) ? "" : Convert.ToString(reader.GetValue(7)),
+                        ComponentName = reader.IsDBNull(8) ? "" : Convert.ToString(reader.GetValue(8)),
+                        MaterialTypeName = reader.IsDBNull(9) ? "" : Convert.ToString(reader.GetValue(9)),
+                        IsComposite = Convert.ToInt32(reader.GetValue(2)) == 1,
+                        GroupCode = reader.IsDBNull(4) ? "" : Convert.ToString(reader.GetValue(4)),
+                        CabinetName = reader.IsDBNull(5) ? "" : Convert.ToString(reader.GetValue(5)),
+                        ItemName = reader.IsDBNull(6) ? "" : Convert.ToString(reader.GetValue(6)),
+                        FactoryName = reader.IsDBNull(22) ? "" : Convert.ToString(reader.GetValue(22))
+                    };
+
+                    if (mat.IsComposite)
+                    {
+                        mat.Children.Clear();
+                        childrenMap[mat.Id] = mat.Children;
+                        result.Add(mat);
+                    }
+                    else
+                    {
+                        var parentPmlId = reader.IsDBNull(3) ? 0 : Convert.ToInt32(reader.GetValue(3));
+                        if (parentPmlId > 0 && childrenMap.TryGetValue(parentPmlId, out var children))
+                        {
+                            children.Add(mat);
+                        }
+                        else
+                        {
+                            result.Add(mat);
+                        }
+                    }
+                }
+
+                LogService.Info($"[ProductMaterialLibrary] 加载完成: productId={productId}, 物料数={result.Count}");
+                return result;
+            }
+            catch (Exception ex)
+            {
+                LogService.Error($"[ProductMaterialLibrary] 加载失败: productId={productId}", ex);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 级联删除产品物料库（删除产品时调用）
+        /// </summary>
+        public void DeleteProductMaterialsLibrary(int productId)
+        {
+            try
+            {
+                using var conn = GetConnection();
+                conn.Open();
+                var cmd = new SQLiteCommand("DELETE FROM ProductMaterialLibrary WHERE product_id = @productId", conn);
+                cmd.Parameters.AddWithValue("@productId", productId);
+                var count = cmd.ExecuteNonQuery();
+                LogService.Info($"[ProductMaterialLibrary] 级联删除完成: productId={productId}, 删除记录数={count}");
+            }
+            catch (Exception ex)
+            {
+                LogService.Error($"[ProductMaterialLibrary] 级联删除失败: productId={productId}", ex);
                 throw;
             }
         }
@@ -1471,19 +1815,19 @@ namespace FactoryProductManager.Services
                             {
                                 Id = Convert.ToInt32(reader.GetValue(0)),
                                 ProductId = Convert.ToInt32(reader.GetValue(1)),
-                                PartName = reader.IsDBNull(2) ? string.Empty : Convert.ToString(reader.GetValue(2))!,
-                                PartCode = reader.IsDBNull(3) ? string.Empty : Convert.ToString(reader.GetValue(3))!,
-                                PartType = reader.IsDBNull(4) ? string.Empty : Convert.ToString(reader.GetValue(4))!,
-                                Material = reader.IsDBNull(5) ? string.Empty : Convert.ToString(reader.GetValue(5))!,
-                                Specification = reader.IsDBNull(6) ? string.Empty : Convert.ToString(reader.GetValue(6))!,
+                                PartName = reader.IsDBNull(2) ? string.Empty : Convert.ToString(reader.GetValue(2)),
+                                PartCode = reader.IsDBNull(3) ? string.Empty : Convert.ToString(reader.GetValue(3)),
+                                PartType = reader.IsDBNull(4) ? string.Empty : Convert.ToString(reader.GetValue(4)),
+                                Material = reader.IsDBNull(5) ? string.Empty : Convert.ToString(reader.GetValue(5)),
+                                Specification = reader.IsDBNull(6) ? string.Empty : Convert.ToString(reader.GetValue(6)),
                                 Quantity = reader.IsDBNull(7) ? 0 : Convert.ToDecimal(reader.GetValue(7)),
-                                Unit = reader.IsDBNull(8) ? string.Empty : Convert.ToString(reader.GetValue(8))!,
+                                Unit = reader.IsDBNull(8) ? string.Empty : Convert.ToString(reader.GetValue(8)),
                                 UnitPrice = reader.IsDBNull(9) ? 0 : Convert.ToDecimal(reader.GetValue(9)),
                                 TotalPrice = reader.IsDBNull(10) ? 0 : Convert.ToDecimal(reader.GetValue(10)),
-                                Remarks = reader.IsDBNull(11) ? string.Empty : Convert.ToString(reader.GetValue(11))!,
+                                Remarks = reader.IsDBNull(11) ? string.Empty : Convert.ToString(reader.GetValue(11)),
                                 IsActive = !reader.IsDBNull(12) && Convert.ToInt32(reader.GetValue(12)) == 1,
-                                CreatedAt = reader.IsDBNull(13) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(13))!),
-                                UpdatedAt = reader.IsDBNull(14) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(14))!)
+                                CreatedAt = reader.IsDBNull(13) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(13))),
+                                UpdatedAt = reader.IsDBNull(14) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(14)))
                             });
                         }
                     }
@@ -1657,6 +2001,7 @@ namespace FactoryProductManager.Services
                         int count = 0;
                         foreach (var m in materials)
                         {
+                            LogService.Info($"[AddProductPartMaterials] 插入行: MaterialName={m.MaterialName}, IsComposite={m.IsComposite}, ItemName={m.ItemName}, ParentId={m.ParentId}, GroupCode={m.GroupCode}");
                             cmd.Parameters["@productId"].Value = productId;
                             cmd.Parameters["@partId"].Value = m.PartId.HasValue ? (object)m.PartId.Value : DBNull.Value;
                             cmd.Parameters["@partName"].Value = m.PartName ?? string.Empty;
@@ -1679,7 +2024,9 @@ namespace FactoryProductManager.Services
                             cmd.Parameters["@parentId"].Value = m.ParentId.HasValue ? (object)m.ParentId.Value : DBNull.Value;
                             cmd.Parameters["@createdAt"].Value = m.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss");
                             cmd.Parameters["@updatedAt"].Value = m.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss");
-                            Convert.ToInt32(cmd.ExecuteScalar());
+                            var insertedId = Convert.ToInt32(cmd.ExecuteScalar());
+                            m.Id = insertedId;
+                            LogService.Info($"[AddProductPartMaterials] 插入完成: MaterialName={m.MaterialName}, DB_Id={insertedId}");
                             count++;
                         }
 
@@ -1692,6 +2039,71 @@ namespace FactoryProductManager.Services
             catch (Exception ex)
             {
                 LogService.Error($"新增产品部件物料失败: productId={productId}", ex);
+                throw;
+            }
+        }
+
+        public bool UpdateProductPartMaterial(ProductPartMaterial m)
+        {
+            try
+            {
+                using var conn = GetConnection();
+                conn.Open();
+                var cmd = new SQLiteCommand(@"
+                    UPDATE ProductPartMaterials
+                    SET part_id=@partId, part_name=@partName, component_name=@componentName, material_type_name=@materialTypeName,
+                        material_id=@materialId, material_name=@materialName, factory_material_code=@factoryMaterialCode,
+                        my_material_code=@myMaterialCode, brand=@brand, specification=@specification, unit=@unit,
+                        unit_price=@unitPrice, quantity=@quantity, total_price=@totalPrice, remarks=@remarks,
+                        is_composite=@isComposite, group_code=@groupCode, item_name=@itemName, parent_id=@parentId,
+                        updated_at=@updatedAt
+                    WHERE id=@id", conn);
+                cmd.Parameters.AddWithValue("@id", m.Id);
+                cmd.Parameters.AddWithValue("@partId", m.PartId.HasValue ? (object)m.PartId.Value : DBNull.Value);
+                cmd.Parameters.AddWithValue("@partName", m.PartName ?? string.Empty);
+                cmd.Parameters.AddWithValue("@componentName", m.ComponentName ?? string.Empty);
+                cmd.Parameters.AddWithValue("@materialTypeName", ToDbValue(m.MaterialTypeName));
+                cmd.Parameters.AddWithValue("@materialId", m.MaterialId.HasValue ? (object)m.MaterialId.Value : DBNull.Value);
+                cmd.Parameters.AddWithValue("@materialName", m.MaterialName ?? string.Empty);
+                cmd.Parameters.AddWithValue("@factoryMaterialCode", ToDbValue(m.FactoryMaterialCode));
+                cmd.Parameters.AddWithValue("@myMaterialCode", ToDbValue(m.MyMaterialCode));
+                cmd.Parameters.AddWithValue("@brand", ToDbValue(m.Brand));
+                cmd.Parameters.AddWithValue("@specification", ToDbValue(m.Specification));
+                cmd.Parameters.AddWithValue("@unit", ToDbValue(m.Unit));
+                cmd.Parameters.AddWithValue("@unitPrice", m.UnitPrice);
+                cmd.Parameters.AddWithValue("@quantity", m.Quantity);
+                cmd.Parameters.AddWithValue("@totalPrice", m.TotalPrice);
+                cmd.Parameters.AddWithValue("@remarks", ToDbValue(m.Remarks));
+                cmd.Parameters.AddWithValue("@isComposite", m.IsComposite ? 1 : 0);
+                cmd.Parameters.AddWithValue("@groupCode", ToDbValue(m.GroupCode));
+                cmd.Parameters.AddWithValue("@itemName", ToDbValue(m.ItemName));
+                cmd.Parameters.AddWithValue("@parentId", m.ParentId.HasValue ? (object)m.ParentId.Value : DBNull.Value);
+                cmd.Parameters.AddWithValue("@updatedAt", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+
+                int rows = cmd.ExecuteNonQuery();
+                return rows > 0;
+            }
+            catch (Exception ex)
+            {
+                LogService.Error($"更新产品部件物料失败: id={m?.Id}", ex);
+                throw;
+            }
+        }
+
+        public bool DeleteProductPartMaterial(int id)
+        {
+            try
+            {
+                using var conn = GetConnection();
+                conn.Open();
+                using var cmd = new SQLiteCommand("DELETE FROM ProductPartMaterials WHERE id=@id", conn);
+                cmd.Parameters.AddWithValue("@id", id);
+                int rows = cmd.ExecuteNonQuery();
+                return rows > 0;
+            }
+            catch (Exception ex)
+            {
+                LogService.Error($"删除产品部件物料失败: id={id}", ex);
                 throw;
             }
         }
@@ -1730,27 +2142,27 @@ namespace FactoryProductManager.Services
                             Id = Convert.ToInt32(reader.GetValue(0)),
                             ProductId = Convert.ToInt32(reader.GetValue(1)),
                             PartId = reader.IsDBNull(2) ? null : Convert.ToInt32(reader.GetValue(2)),
-                            PartName = reader.IsDBNull(3) ? string.Empty : Convert.ToString(reader.GetValue(3))!,
-                            ComponentName = reader.IsDBNull(4) ? string.Empty : Convert.ToString(reader.GetValue(4))!,
-                            MaterialTypeName = reader.IsDBNull(5) ? string.Empty : Convert.ToString(reader.GetValue(5))!,
+                            PartName = reader.IsDBNull(3) ? string.Empty : Convert.ToString(reader.GetValue(3)),
+                            ComponentName = reader.IsDBNull(4) ? string.Empty : Convert.ToString(reader.GetValue(4)),
+                            MaterialTypeName = reader.IsDBNull(5) ? string.Empty : Convert.ToString(reader.GetValue(5)),
                             MaterialId = reader.IsDBNull(6) ? null : Convert.ToInt32(reader.GetValue(6)),
-                            MaterialName = reader.IsDBNull(7) ? string.Empty : Convert.ToString(reader.GetValue(7))!,
-                            FactoryMaterialCode = reader.IsDBNull(8) ? string.Empty : Convert.ToString(reader.GetValue(8))!,
-                            MyMaterialCode = reader.IsDBNull(9) ? string.Empty : Convert.ToString(reader.GetValue(9))!,
-                            Brand = reader.IsDBNull(10) ? string.Empty : Convert.ToString(reader.GetValue(10))!,
-                            Specification = reader.IsDBNull(11) ? string.Empty : Convert.ToString(reader.GetValue(11))!,
-                            Unit = reader.IsDBNull(12) ? string.Empty : Convert.ToString(reader.GetValue(12))!,
+                            MaterialName = reader.IsDBNull(7) ? string.Empty : Convert.ToString(reader.GetValue(7)),
+                            FactoryMaterialCode = reader.IsDBNull(8) ? string.Empty : Convert.ToString(reader.GetValue(8)),
+                            MyMaterialCode = reader.IsDBNull(9) ? string.Empty : Convert.ToString(reader.GetValue(9)),
+                            Brand = reader.IsDBNull(10) ? string.Empty : Convert.ToString(reader.GetValue(10)),
+                            Specification = reader.IsDBNull(11) ? string.Empty : Convert.ToString(reader.GetValue(11)),
+                            Unit = reader.IsDBNull(12) ? string.Empty : Convert.ToString(reader.GetValue(12)),
                             UnitPrice = reader.IsDBNull(13) ? 0 : Convert.ToDecimal(reader.GetValue(13)),
                             Quantity = reader.IsDBNull(14) ? 0 : Convert.ToDecimal(reader.GetValue(14)),
-                            Remarks = reader.IsDBNull(15) ? string.Empty : Convert.ToString(reader.GetValue(15))!,
+                            Remarks = reader.IsDBNull(15) ? string.Empty : Convert.ToString(reader.GetValue(15)),
                             IsComposite = !reader.IsDBNull(16) && Convert.ToInt32(reader.GetValue(16)) == 1,
-                            GroupCode = reader.IsDBNull(17) ? string.Empty : Convert.ToString(reader.GetValue(17))!,
-                            ItemName = reader.IsDBNull(18) ? string.Empty : Convert.ToString(reader.GetValue(18))!,
+                            GroupCode = reader.IsDBNull(17) ? string.Empty : Convert.ToString(reader.GetValue(17)),
+                            ItemName = reader.IsDBNull(18) ? string.Empty : Convert.ToString(reader.GetValue(18)),
                             ParentId = reader.IsDBNull(20) ? null : Convert.ToInt32(reader.GetValue(20)),
-                            FactoryName = reader.IsDBNull(23) ? string.Empty : Convert.ToString(reader.GetValue(23))!,
-                            ImageUrl = reader.IsDBNull(24) ? string.Empty : Convert.ToString(reader.GetValue(24))!,
-                            CreatedAt = reader.IsDBNull(21) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(21))!),
-                            UpdatedAt = reader.IsDBNull(22) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(22))!)
+                            FactoryName = reader.IsDBNull(23) ? string.Empty : Convert.ToString(reader.GetValue(23)),
+                            ImageUrl = reader.IsDBNull(24) ? string.Empty : Convert.ToString(reader.GetValue(24)),
+                            CreatedAt = reader.IsDBNull(21) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(21))),
+                            UpdatedAt = reader.IsDBNull(22) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(22)))
                         });
                     }
                 }
@@ -1819,10 +2231,10 @@ namespace FactoryProductManager.Services
                         list.Add(new CustomPart
                         {
                             Id = Convert.ToInt32(reader.GetValue(0)),
-                            PartName = reader.IsDBNull(1) ? string.Empty : Convert.ToString(reader.GetValue(1))!,
-                            Components = reader.IsDBNull(2) ? string.Empty : Convert.ToString(reader.GetValue(2))!,
-                            CreatedAt = reader.IsDBNull(3) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(3))!),
-                            UpdatedAt = reader.IsDBNull(4) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(4))!)
+                            PartName = reader.IsDBNull(1) ? string.Empty : Convert.ToString(reader.GetValue(1)),
+                            Components = reader.IsDBNull(2) ? string.Empty : Convert.ToString(reader.GetValue(2)),
+                            CreatedAt = reader.IsDBNull(3) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(3))),
+                            UpdatedAt = reader.IsDBNull(4) ? DateTime.Now : DateTime.Parse(Convert.ToString(reader.GetValue(4)))
                         });
                     }
                 }
@@ -1961,58 +2373,19 @@ namespace FactoryProductManager.Services
             }
         }
 
-        // ===== 产品物料库（SelectedMaterial 持久化） =====
-
-        private void EnsureProductMaterialsSchema(SQLiteConnection conn)
-        {
-            using var cmd = new SQLiteCommand(@"
-                CREATE TABLE IF NOT EXISTS ProductMaterials (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    product_id INTEGER NOT NULL,
-                    material_id INTEGER,
-                    factory_material_id INTEGER,
-                    part_name TEXT,
-                    material_name TEXT,
-                    specification TEXT,
-                    unit_price REAL DEFAULT 0,
-                    component_name TEXT,
-                    material_type_name TEXT,
-                    factory_material_code TEXT,
-                    my_material_code TEXT,
-                    brand TEXT,
-                    unit TEXT,
-                    image_url TEXT,
-                    remarks TEXT,
-                    factory_name TEXT,
-                    supply_cycle TEXT,
-                    is_composite INTEGER DEFAULT 0,
-                    group_code TEXT,
-                    item_name TEXT,
-                    parent_id INTEGER,
-                    quantity REAL DEFAULT 1,
-                    drawing_number TEXT,
-                    created_at TEXT,
-                    updated_at TEXT
-                )", conn);
-            cmd.ExecuteNonQuery();
-        }
-
-        /// <summary>
-        /// 获取所有项目名称（去重）
-        /// </summary>
         public List<string> GetAllProjectCodes()
         {
             try
             {
                 using var conn = GetConnection();
                 conn.Open();
-                using var cmd = new SQLiteCommand(
-                    "SELECT DISTINCT project_name FROM Products WHERE project_name IS NOT NULL AND project_name <> '' ORDER BY project_name", conn);
+                var sql = "SELECT DISTINCT project_code FROM Products ORDER BY project_code";
+                var cmd = new SQLiteCommand(sql, conn);
                 using var reader = cmd.ExecuteReader();
                 var codes = new List<string>();
                 while (reader.Read())
                 {
-                    var code = reader.IsDBNull(0) ? string.Empty : Convert.ToString(reader.GetValue(0) ?? string.Empty);
+                    var code = reader.GetString(0);
                     if (!string.IsNullOrEmpty(code))
                         codes.Add(code);
                 }
@@ -2020,262 +2393,210 @@ namespace FactoryProductManager.Services
             }
             catch (Exception ex)
             {
-                LogService.Error("获取所有项目名称失败", ex);
+                LogService.Error("获取所有项目编码失败", ex);
                 return new List<string>();
             }
         }
 
-        /// <summary>
-        /// 检查项目名称+序号组合的产品代码是否已存在
-        /// </summary>
-        public bool CheckProductCodeExists(string fullCode)
+        public bool CheckProductCodeExists(string projectCode, string productCode)
         {
-            if (string.IsNullOrWhiteSpace(fullCode)) return false;
             try
             {
                 using var conn = GetConnection();
                 conn.Open();
-                var parts = fullCode.Split('-');
-                if (parts.Length < 2) return false;
-                var projectName = parts[0].Trim();
-                var cmd = new SQLiteCommand(
-                    "SELECT COUNT(*) FROM Products WHERE project_name = @pn AND product_code LIKE @pattern", conn);
-                cmd.Parameters.AddWithValue("@pn", projectName);
-                cmd.Parameters.AddWithValue("@pattern", projectName + "-%");
+                var sql = "SELECT COUNT(*) FROM Products WHERE project_code = @projectCode AND product_code = @productCode";
+                var cmd = new SQLiteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@projectCode", projectCode);
+                cmd.Parameters.AddWithValue("@productCode", productCode);
                 long count = (long)cmd.ExecuteScalar();
                 return count > 0;
             }
             catch (Exception ex)
             {
-                LogService.Error($"检查产品代码是否存在失败: {fullCode}", ex);
+                LogService.Error("检查产品编码是否存在失败", ex);
                 return false;
             }
         }
 
-        /// <summary>
-        /// 检查图纸编号在指定项目中是否已存在，返回 (是否存在, 部品名, 组件名)
-        /// </summary>
-        public (bool exists, string partName, string componentName)? CheckDrawingNumberExistsInProject(string projectCode, string drawingNumber, int? excludeProductId = null)
+        public bool CheckProductCodeExistsForEdit(int excludeProductId, string productCode)
         {
-            if (string.IsNullOrWhiteSpace(drawingNumber)) return null;
             try
             {
                 using var conn = GetConnection();
                 conn.Open();
-
-                string sql = @"
-                    SELECT pm.part_name, pm.component_name
-                    FROM ProductMaterials pm
-                    INNER JOIN Products p ON pm.product_id = p.id
-                    WHERE pm.drawing_number = @dn AND p.project_name = @pn";
-                if (excludeProductId.HasValue)
-                    sql += " AND pm.product_id <> @pid";
-
+                var sql = "SELECT COUNT(*) FROM Products WHERE id <> @excludeId AND product_code = @productCode";
                 var cmd = new SQLiteCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@dn", drawingNumber.Trim());
-                cmd.Parameters.AddWithValue("@pn", projectCode.Trim());
-                if (excludeProductId.HasValue)
-                    cmd.Parameters.AddWithValue("@pid", excludeProductId.Value);
-
-                using var reader = cmd.ExecuteReader();
-                if (reader.Read())
-                {
-                    var partName = reader.IsDBNull(0) ? string.Empty : Convert.ToString(reader.GetValue(0) ?? string.Empty);
-                    var compName = reader.IsDBNull(1) ? string.Empty : Convert.ToString(reader.GetValue(1) ?? string.Empty);
-                    return (true, partName!, compName!);
-                }
-                return null;
+                cmd.Parameters.AddWithValue("@excludeId", excludeProductId);
+                cmd.Parameters.AddWithValue("@productCode", productCode);
+                long count = (long)cmd.ExecuteScalar();
+                return count > 0;
             }
             catch (Exception ex)
             {
-                LogService.Error($"检查图纸编号是否存在失败: {drawingNumber}", ex);
-                return null;
+                LogService.Error("检查产品编码是否存在失败", ex);
+                return false;
             }
         }
 
-        /// <summary>
-        /// 将 SelectedMaterial 列表保存到 ProductMaterials 表
-        /// </summary>
-        public int SaveProductMaterialsToLibrary(int productId, IReadOnlyList<SelectedMaterial> materials)
+        public void UpdateProductCode(int productId, string newCode)
         {
-            if (materials == null || materials.Count == 0) return 0;
             try
             {
                 using var conn = GetConnection();
                 conn.Open();
-                using var tx = conn.BeginTransaction();
-
-                using var delCmd = new SQLiteCommand("DELETE FROM ProductMaterials WHERE product_id = @pid", conn, tx);
-                delCmd.Parameters.AddWithValue("@pid", productId);
-                delCmd.ExecuteNonQuery();
-
-                int count = 0;
-                foreach (var mat in FlattenSelectedMaterials(materials))
-                {
-                    var cmd = new SQLiteCommand(@"
-                        INSERT INTO ProductMaterials
-                            (product_id, material_id, factory_material_id, part_name, material_name, specification,
-                             unit_price, component_name, material_type_name, factory_material_code,
-                             my_material_code, brand, unit, image_url, remarks, factory_name,
-                             supply_cycle, is_composite, group_code, item_name, parent_id,
-                             quantity, drawing_number, created_at, updated_at)
-                        VALUES
-                            (@pid, @mid, @fmid, @partName, @matName, @spec,
-                             @price, @compName, @matType, @fmCode,
-                             @myCode, @brand, @unit, @img, @remarks, @factName,
-                             @supply, @isComp, @grpCode, @itemName, @parentId,
-                             @qty, @drawNo, @created, @updated)", conn, tx);
-
-                    cmd.Parameters.AddWithValue("@pid", productId);
-                    cmd.Parameters.AddWithValue("@mid", mat.FactoryMaterialId > 0 ? mat.FactoryMaterialId : DBNull.Value);
-                    cmd.Parameters.AddWithValue("@fmid", mat.FactoryMaterialId > 0 ? mat.FactoryMaterialId : DBNull.Value);
-                    cmd.Parameters.AddWithValue("@partName", mat.PartName ?? string.Empty);
-                    cmd.Parameters.AddWithValue("@matName", mat.MaterialName ?? string.Empty);
-                    cmd.Parameters.AddWithValue("@spec", mat.Specification ?? string.Empty);
-                    cmd.Parameters.AddWithValue("@price", mat.UnitPrice);
-                    cmd.Parameters.AddWithValue("@compName", mat.ComponentName ?? string.Empty);
-                    cmd.Parameters.AddWithValue("@matType", mat.MaterialTypeName ?? string.Empty);
-                    cmd.Parameters.AddWithValue("@fmCode", mat.FactoryMaterialCode ?? string.Empty);
-                    cmd.Parameters.AddWithValue("@myCode", mat.MyMaterialCode ?? string.Empty);
-                    cmd.Parameters.AddWithValue("@brand", mat.Brand ?? string.Empty);
-                    cmd.Parameters.AddWithValue("@unit", mat.Unit ?? string.Empty);
-                    cmd.Parameters.AddWithValue("@img", mat.ImageUrl ?? string.Empty);
-                    cmd.Parameters.AddWithValue("@remarks", mat.Remarks ?? string.Empty);
-                    cmd.Parameters.AddWithValue("@factName", mat.FactoryName ?? string.Empty);
-                    cmd.Parameters.AddWithValue("@supply", mat.SupplyCycle ?? string.Empty);
-                    cmd.Parameters.AddWithValue("@isComp", mat.IsComposite ? 1 : 0);
-                    cmd.Parameters.AddWithValue("@grpCode", mat.GroupCode ?? string.Empty);
-                    cmd.Parameters.AddWithValue("@itemName", mat.ItemName ?? string.Empty);
-                    cmd.Parameters.AddWithValue("@parentId", mat.ParentRef ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@qty", mat.Quantity);
-                    cmd.Parameters.AddWithValue("@drawNo", mat.DrawingNumber ?? string.Empty);
-                    var now = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-                    cmd.Parameters.AddWithValue("@created", now);
-                    cmd.Parameters.AddWithValue("@updated", now);
-                    cmd.ExecuteNonQuery();
-                    count++;
-                }
-
-                tx.Commit();
-                LogService.Info($"保存产品物料库: productId={productId}, 共 {count} 条");
-                return count;
+                var sql = "UPDATE Products SET product_code = @newCode WHERE id = @id";
+                var cmd = new SQLiteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@newCode", newCode);
+                cmd.Parameters.AddWithValue("@id", productId);
+                cmd.ExecuteNonQuery();
             }
             catch (Exception ex)
             {
-                LogService.Error($"保存产品物料库失败: productId={productId}", ex);
+                LogService.Error($"更新产品编码失败: id={productId}", ex);
                 throw;
             }
         }
 
-        /// <summary>
-        /// 从 ProductMaterials 表加载 SelectedMaterial 列表
-        /// </summary>
-        public List<SelectedMaterial> LoadProductMaterialsFromLibrary(int productId)
+        public bool CheckProductCodeExists(string productCode)
         {
             try
             {
                 using var conn = GetConnection();
                 conn.Open();
-                using var cmd = new SQLiteCommand(@"
-                    SELECT id, product_id, material_id, factory_material_id, part_name, material_name, specification,
-                           unit_price, component_name, material_type_name, factory_material_code,
-                           my_material_code, brand, unit, image_url, remarks, factory_name,
-                           supply_cycle, is_composite, group_code, item_name, parent_id,
-                           quantity, drawing_number
-                    FROM ProductMaterials
-                    WHERE product_id = @pid
-                    ORDER BY id", conn);
-                cmd.Parameters.AddWithValue("@pid", productId);
-                using var reader = cmd.ExecuteReader();
-                var list = new List<SelectedMaterial>();
-                var byId = new Dictionary<int, SelectedMaterial>();
-
-                while (reader.Read())
-                {
-                        var mat = new SelectedMaterial
-                        {
-                            Id = Convert.ToInt32(reader.GetValue(0)),
-                            FactoryMaterialId = reader.IsDBNull(2) ? 0 : Convert.ToInt32(reader.GetValue(2)),
-                            PartName = reader.IsDBNull(4) ? string.Empty : Convert.ToString(reader.GetValue(4))!,
-                            MaterialName = reader.IsDBNull(5) ? string.Empty : Convert.ToString(reader.GetValue(5))!,
-                            Specification = reader.IsDBNull(6) ? string.Empty : Convert.ToString(reader.GetValue(6))!,
-                            UnitPrice = reader.IsDBNull(7) ? 0 : Convert.ToDecimal(reader.GetValue(7)),
-                            ComponentName = reader.IsDBNull(8) ? string.Empty : Convert.ToString(reader.GetValue(8))!,
-                            MaterialTypeName = reader.IsDBNull(9) ? string.Empty : Convert.ToString(reader.GetValue(9))!,
-                            FactoryMaterialCode = reader.IsDBNull(10) ? string.Empty : Convert.ToString(reader.GetValue(10))!,
-                            MyMaterialCode = reader.IsDBNull(11) ? string.Empty : Convert.ToString(reader.GetValue(11))!,
-                            Brand = reader.IsDBNull(12) ? string.Empty : Convert.ToString(reader.GetValue(12))!,
-                            Unit = reader.IsDBNull(13) ? string.Empty : Convert.ToString(reader.GetValue(13))!,
-                            ImageUrl = reader.IsDBNull(14) ? string.Empty : Convert.ToString(reader.GetValue(14))!,
-                            Remarks = reader.IsDBNull(15) ? string.Empty : Convert.ToString(reader.GetValue(15))!,
-                            FactoryName = reader.IsDBNull(16) ? string.Empty : Convert.ToString(reader.GetValue(16))!,
-                            SupplyCycle = reader.IsDBNull(17) ? string.Empty : Convert.ToString(reader.GetValue(17))!,
-                            IsComposite = !reader.IsDBNull(18) && Convert.ToInt32(reader.GetValue(18)) == 1,
-                            GroupCode = reader.IsDBNull(19) ? string.Empty : Convert.ToString(reader.GetValue(19))!,
-                            ItemName = reader.IsDBNull(20) ? string.Empty : Convert.ToString(reader.GetValue(20))!,
-                            ParentRef = reader.IsDBNull(21) ? null : Convert.ToInt32(reader.GetValue(21)),
-                            Quantity = reader.IsDBNull(22) ? 1 : Convert.ToDecimal(reader.GetValue(22)),
-                            DrawingNumber = reader.IsDBNull(23) ? string.Empty : Convert.ToString(reader.GetValue(23))!
-                        };
-                    byId[mat.Id] = mat;
-                    list.Add(mat);
-                }
-
-                foreach (var mat in list.Where(m => m.ParentRef.HasValue && byId.ContainsKey(m.ParentRef!.Value)))
-                    byId[mat.ParentRef!.Value].Children.Add(mat);
-
-                return list;
-            }
-            catch (Exception ex)
-            {
-                LogService.Error($"加载产品物料库失败: productId={productId}", ex);
-                return new List<SelectedMaterial>();
-            }
-        }
-
-        /// <summary>
-        /// 检查工厂物料编号是否已存在
-        /// </summary>
-        public bool ExistsFactoryMaterialCode(string code, int? excludeId = null)
-        {
-            if (string.IsNullOrWhiteSpace(code)) return false;
-            try
-            {
-                using var conn = GetConnection();
-                conn.Open();
-                string sql = "SELECT COUNT(*) FROM FactoryProducts WHERE my_product_code = @code";
-                if (excludeId.HasValue)
-                    sql += " AND id <> @excludeId";
+                var sql = "SELECT COUNT(*) FROM Products WHERE product_code = @productCode";
                 var cmd = new SQLiteCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@code", code.Trim());
-                if (excludeId.HasValue)
-                    cmd.Parameters.AddWithValue("@excludeId", excludeId.Value);
+                cmd.Parameters.AddWithValue("@productCode", productCode);
                 long count = (long)cmd.ExecuteScalar();
                 return count > 0;
             }
             catch (Exception ex)
             {
-                LogService.Error($"检查工厂物料编号是否存在失败: {code}", ex);
+                LogService.Error("检查产品编码是否存在失败", ex);
                 return false;
             }
         }
 
-        private List<SelectedMaterial> FlattenSelectedMaterials(IEnumerable<SelectedMaterial> materials)
+        public bool ExistsFactoryMaterialCode(string factoryCode, string materialCode)
         {
-            var result = new List<SelectedMaterial>();
-            foreach (var mat in materials)
+            try
             {
-                result.Add(mat);
-                if (mat.Children.Count > 0)
-                {
-                    foreach (var child in FlattenSelectedMaterials(mat.Children))
-                    {
-                        child.ParentRef = mat.Id > 0 ? mat.Id : 0;
-                        result.Add(child);
-                    }
-                }
+                using var conn = GetConnection();
+                conn.Open();
+                var sql = "SELECT COUNT(*) FROM FactoryMaterials WHERE factory_code = @factoryCode AND material_code = @materialCode";
+                var cmd = new SQLiteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@factoryCode", factoryCode);
+                cmd.Parameters.AddWithValue("@materialCode", materialCode);
+                long count = (long)cmd.ExecuteScalar();
+                return count > 0;
             }
-            return result;
+            catch (Exception ex)
+            {
+                LogService.Error("检查物料编码是否存在失败", ex);
+                return false;
+            }
+        }
+
+        public bool ExistsFactoryMaterialCode(string factoryCode, int? excludeId = null)
+        {
+            try
+            {
+                using var conn = GetConnection();
+                conn.Open();
+                var sql = "SELECT COUNT(*) FROM FactoryMaterials WHERE factory_code = @factoryCode";
+                if (excludeId.HasValue)
+                {
+                    sql += " AND id <> @excludeId";
+                }
+                var cmd = new SQLiteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@factoryCode", factoryCode);
+                if (excludeId.HasValue)
+                {
+                    cmd.Parameters.AddWithValue("@excludeId", excludeId.Value);
+                }
+                long count = (long)cmd.ExecuteScalar();
+                return count > 0;
+            }
+            catch (Exception ex)
+            {
+                LogService.Error("检查物料编码是否存在失败", ex);
+                return false;
+            }
+        }
+
+        public (bool exists, string partName, string componentName)? CheckDrawingNumberExistsInProject(string projectCode, string drawingNumber, int? excludeProductId = null)
+        {
+            try
+            {
+                using var conn = GetConnection();
+                conn.Open();
+                var sql = @"
+                    SELECT p.part_name, p.component_name
+                    FROM ProductMaterials pm
+                    INNER JOIN ProductParts p ON pm.part_id = p.id
+                    WHERE pm.project_code = @projectCode AND pm.drawing_number = @drawingNumber";
+                if (excludeProductId.HasValue)
+                {
+                    sql += " AND pm.product_id <> @excludeId";
+                }
+                sql += " LIMIT 1";
+                var cmd = new SQLiteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@projectCode", projectCode);
+                cmd.Parameters.AddWithValue("@drawingNumber", drawingNumber);
+                if (excludeProductId.HasValue)
+                {
+                    cmd.Parameters.AddWithValue("@excludeId", excludeProductId.Value);
+                }
+                using var reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    var partName = reader.IsDBNull(0) ? "" : reader.GetString(0);
+                    var componentName = reader.IsDBNull(1) ? "" : reader.GetString(1);
+                    return (true, partName, componentName);
+                }
+                return (false, "", "");
+            }
+            catch (Exception ex)
+            {
+                LogService.Error("检查图号是否存在失败", ex);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 查询项目内某物料已使用的图纸编号（从 ProductMaterialLibrary 查询）
+        /// </summary>
+        public string GetDrawingNumberForMaterialInProject(string projectCode, int factoryMaterialId)
+        {
+            try
+            {
+                using var conn = GetConnection();
+                conn.Open();
+                // 通过 product_code 前缀匹配找到对应的 product_id，然后查询 ProductMaterialLibrary
+                // projectCode 可能是 "XN29"，而 product_code 是 "XN29-A-1R1B-A"
+                var sql = @"
+                    SELECT pml.drawing_number
+                    FROM ProductMaterialLibrary pml
+                    INNER JOIN Products p ON pml.product_id = p.id
+                    WHERE p.product_code LIKE @projectCode || '%'
+                      AND pml.material_id = @materialId
+                      AND pml.drawing_number IS NOT NULL
+                      AND pml.drawing_number <> ''
+                    LIMIT 1";
+                var cmd = new SQLiteCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@projectCode", projectCode);
+                cmd.Parameters.AddWithValue("@materialId", factoryMaterialId);
+                var result = cmd.ExecuteScalar();
+                if (result != null && result != DBNull.Value)
+                {
+                    return result.ToString() ?? "";
+                }
+                return "";
+            }
+            catch (Exception ex)
+            {
+                LogService.Error("查询项目物料图纸编号失败", ex);
+                return "";
+            }
         }
     }
 }

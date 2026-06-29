@@ -58,90 +58,204 @@
                 </Border>
 
                 <!-- 主内容 -->
+                <Grid Grid.Row="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
                     <TextBlock x:Name="SubtitleText" Grid.Row="0"
                                Text="请为每个子项选择具体物料（带 * 为必选项）"
                                FontSize="12" Foreground="{StaticResource HintTextBrush}"
-                               Margin="5,5,5,10"/>
+                               Margin="10,10,10,5"/>
 
-                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                            <ItemsControl x:Name="ItemsPanel">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Style="{StaticResource SelectedMaterialItemStyle}" Padding="12" Margin="0,0,0,10">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="100"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="Auto"/>
-                                                    <RowDefinition Height="Auto"/>
-                                                </Grid.RowDefinitions>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" MaxHeight="250">
+                        <ItemsControl x:Name="ItemsPanel">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource SelectedMaterialItemStyle}" Padding="12" Margin="0,0,0,10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="100"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
 
-                                                <!-- 子项名 -->
-                                                <TextBlock Grid.Row="0" Grid.Column="0"
-                                                           FontSize="14" FontWeight="Bold"
-                                                           VerticalAlignment="Center"
-                                                           Foreground="{StaticResource PrimaryTextBrush}">
-                                                    <Run Text="{Binding ItemName, Mode=OneWay}"/>
-                                                    <Run Text="{Binding RequiredStar, Mode=OneWay}" Foreground="#E74C3C"/>
-                                                </TextBlock>
+                                            <!-- 子项名 -->
+                                            <TextBlock Grid.Row="0" Grid.Column="0"
+                                                       FontSize="14" FontWeight="Bold"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{StaticResource PrimaryTextBrush}">
+                                                <Run Text="{Binding ItemName, Mode=OneWay}"/>
+                                                <Run Text="{Binding RequiredStar, Mode=OneWay}" Foreground="#E74C3C"/>
+                                            </TextBlock>
 
-                                                <!-- 提示语 -->
-                                                <TextBlock Grid.Row="1" Grid.Column="0"
-                                                           Text="{Binding Prompt, Mode=OneWay}"
+                                            <!-- 提示语 -->
+                                            <TextBlock Grid.Row="1" Grid.Column="0"
+                                                       Text="{Binding Prompt, Mode=OneWay}"
+                                                       FontSize="11" Foreground="{StaticResource HintTextBrush}"
+                                                       TextWrapping="Wrap" Margin="0,4,0,0"
+                                                       Visibility="{Binding Prompt, Mode=OneWay, Converter={StaticResource NotNullToVisibilityConverter}}"/>
+
+                                            <!-- 已选物料名 / 物料类型说明 -->
+                                            <StackPanel Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
+                                                        VerticalAlignment="Center" Margin="10,0,10,0">
+                                                <TextBlock Text="{Binding SelectedDisplay, Mode=OneWay}"
+                                                           FontSize="13"
+                                                           Foreground="{StaticResource PrimaryTextBrush}"
+                                                           TextWrapping="Wrap"/>
+                                                <TextBlock Text="{Binding StatusText, Mode=OneWay}"
                                                            FontSize="11" Foreground="{StaticResource HintTextBrush}"
-                                                           TextWrapping="Wrap" Margin="0,4,0,0"
-                                                           Visibility="{Binding Prompt, Mode=OneWay, Converter={StaticResource NotNullToVisibilityConverter}}"/>
+                                                           Margin="0,3,0,0"/>
+                                            </StackPanel>
 
-                                                <!-- 已选物料名 / 物料类型说明 -->
-                                                <StackPanel Grid.Row="0" Grid.Column="1" Grid.RowSpan="2"
-                                                            VerticalAlignment="Center" Margin="10,0,10,0">
-                                                    <TextBlock Text="{Binding SelectedDisplay, Mode=OneWay}"
-                                                               FontSize="13"
-                                                               Foreground="{StaticResource PrimaryTextBrush}"
-                                                               TextWrapping="Wrap"/>
-                                                    <TextBlock Text="{Binding StatusText, Mode=OneWay}"
-                                                               FontSize="11" Foreground="{StaticResource HintTextBrush}"
-                                                               Margin="0,3,0,0"/>
-                                                </StackPanel>
+                                            <!-- 选物料按钮 -->
+                                            <Button Grid.Row="0" Grid.Column="2" Grid.RowSpan="2"
+                                                    Content="选择物料" Click="SelectItemMaterial_Click"
+                                                    Tag="{Binding}"
+                                                    Style="{StaticResource AddMaterialButtonStyle}"
+                                                    Width="100" Height="32"
+                                                    VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
 
-                                                <!-- 选物料按钮 -->
-                                                <Button Grid.Row="0" Grid.Column="2" Grid.RowSpan="2"
-                                                        Content="选择物料" Click="SelectItemMaterial_Click"
-                                                        Tag="{Binding}"
-                                                        Style="{StaticResource AddMaterialButtonStyle}"
-                                                        Width="100" Height="32"
-                                                        VerticalAlignment="Center"/>
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
+                    <!-- 图纸上传区域 -->
+                    <Border x:Name="ImagesDropZone"
+                            Grid.Row="2" Margin="0,8,0,0"
+                            Background="#FAFAFA"
+                            BorderBrush="#CCCCCC"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            MinHeight="120" MaxHeight="300"
+                            AllowDrop="True"
+                            DragOver="ImagesDropZone_DragOver"
+                            Drop="ImagesDropZone_Drop"
+                            MouseLeftButtonDown="ImagesDropZone_MouseLeftButtonDown">
+                        <Grid>
+                            <!-- 空状态提示（无图片时显示） -->
+                            <StackPanel x:Name="ImagesHintPanel"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Visibility="Visible">
+                                <Button x:Name="ImagesPickerButton"
+                                        Width="48" Height="48"
+                                        Background="#F0F0F0"
+                                        BorderBrush="#D0D0D0"
+                                        BorderThickness="1"
+                                        FontSize="24"
+                                        Foreground="#888888"
+                                        Cursor="Hand"
+                                        Content="+"
+                                        Click="ImagesDropZone_Click">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}"
+                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                                    CornerRadius="24">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                                <TextBlock Text="点击加号或拖拽图纸到这里"
+                                           Foreground="#AAAAAA"
+                                           FontSize="12"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,8,0,0"/>
+                            </StackPanel>
 
-                    <!-- 总价 -->
-                    <Border Grid.Row="2" Background="{StaticResource WarmHeaderBrush}"
-                            CornerRadius="8" Padding="12,8" Margin="0,10,0,0">
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                            <TextBlock Text="组合总价：" FontSize="14" FontWeight="Bold"
-                                       Foreground="{StaticResource PrimaryTextBrush}"/>
-                            <TextBlock x:Name="TotalPriceText" Text="¥0.00" FontSize="16" FontWeight="Bold"
-                                       Foreground="#E67E22"/>
-                        </StackPanel>
+                            <!-- 图片列表（有图片时显示） -->
+                            <ScrollViewer x:Name="ImagesScrollViewer"
+                                          VerticalScrollBarVisibility="Auto"
+                                          HorizontalScrollBarVisibility="Disabled"
+                                          Visibility="Collapsed"
+                                          Margin="8">
+                                <ItemsControl x:Name="ImagesPanel">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel MinWidth="{Binding ViewportWidth, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Width="100" Height="100"
+                                                    Margin="0,0,8,8"
+                                                    CornerRadius="6"
+                                                    BorderBrush="#DDDDDD"
+                                                    BorderThickness="1"
+                                                    Background="#F5F5F5"
+                                                    Cursor="Hand"
+                                                    MouseLeftButtonUp="ImageThumbnail_Click"
+                                                    Tag="{Binding}">
+                                                <Grid>
+                                                    <Image Source="{Binding Converter={StaticResource ImagePathToBitmapConverter}}" Stretch="UniformToFill"/>
+                                                    <!-- 删除按钮 -->
+                                                    <Button Content="×"
+                                                            Width="22" Height="22"
+                                                            HorizontalAlignment="Right"
+                                                            VerticalAlignment="Top"
+                                                            Margin="0,2,2,0"
+                                                            Background="#CC000000"
+                                                            Foreground="White"
+                                                            FontSize="14"
+                                                            Cursor="Hand"
+                                                            BorderThickness="0"
+                                                            Click="RemoveImage_Click"
+                                                            Tag="{Binding}">
+                                                        <Button.Template>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{TemplateBinding Background}"
+                                                                        CornerRadius="11">
+                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Button.Template>
+                                                    </Button>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Grid>
                     </Border>
 
-                    <!-- 底部按钮 -->
-                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,20,12">
-                        <Button Content="取消" Click="CancelButton_Click"
-                                Width="90" Height="35" Margin="0,0,10,0"
-                                Style="{StaticResource AddMaterialButtonStyle}"/>
-                        <Button x:Name="OkButton" Content="确定添加" Click="OkButton_Click"
-                                Width="100" Height="35"
-                                Style="{StaticResource AddMaterialButtonStyle}"/>
-                    </StackPanel>
+                    <!-- 底部区域：总价 + 按钮 -->
+                    <Border Grid.Row="3" Background="{StaticResource WarmHeaderBrush}"
+                            CornerRadius="8" Padding="12,8" Margin="0,10,0,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="组合总价：" FontSize="14" FontWeight="Bold"
+                                           Foreground="{StaticResource PrimaryTextBrush}"/>
+                                <TextBlock x:Name="TotalPriceText" Text="¥0.00" FontSize="16" FontWeight="Bold"
+                                           Foreground="#E67E22"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button Content="取消" Click="CancelButton_Click"
+                                        Width="90" Height="35" Margin="0,0,10,0"
+                                        Style="{StaticResource AddMaterialButtonStyle}"/>
+                                <Button x:Name="OkButton" Content="确定添加" Click="OkButton_Click"
+                                        Width="100" Height="35"
+                                        Style="{StaticResource AddMaterialButtonStyle}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
                 </Grid>
+            </Grid>
         </Border>
 </Window>

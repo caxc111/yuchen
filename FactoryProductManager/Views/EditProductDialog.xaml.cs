@@ -1,3 +1,4 @@
+using FactoryProductManager.Helpers;
 using FactoryProductManager.Models;
 using FactoryProductManager.Services;
 using Microsoft.Win32;
@@ -16,7 +17,7 @@ namespace FactoryProductManager.Views
 {
     public partial class EditProductDialog : Window, INotifyPropertyChanged
     {
-        private readonly DbService _dbService = new();
+        private readonly DbService _dbService = new DbService(DatabaseType.Project);
         private static readonly HashSet<string> ResidentialBusinessTypes = new(StringComparer.Ordinal)
         {
             "公寓",
@@ -100,6 +101,7 @@ namespace FactoryProductManager.Views
             ContentRendered += EditProductDialog_ContentRendered;
 
             WindowPositionService.AddPositionProtection(this);
+            this.EnableTrayMinimize();
             LogService.Debug("[EditProductDialog] 构造完成");
         }
 
@@ -170,31 +172,154 @@ namespace FactoryProductManager.Views
             }
         }
 
-        private void DeleteProductButton_Click(object sender, RoutedEventArgs e)
+        private void EditSequenceNumber_Click(object sender, RoutedEventArgs e)
         {
-            var result = MessageBox.Show(
-                $"确定要删除产品「{Product.ProductCode}」吗？\n\n此操作将同时删除该产品的部件和物料数据，且无法恢复。",
-                "确认删除",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning);
-
-            if (result == MessageBoxResult.Yes)
+            string currentCode = Product.ProductCode;
+            if (string.IsNullOrWhiteSpace(currentCode))
             {
-                try
-                {
-                    _dbService.DeleteProduct(Product.Id);
-                    LogService.Info($"[EditProductDialog] 已删除产品，ProductId={Product.Id}");
-
-                    IsDeleted = true;
-                    DialogResult = true;
-                    Close();
-                }
-                catch (Exception ex)
-                {
-                    LogService.Error("[EditProductDialog] 删除产品失败", ex);
-                    MessageBox.Show($"删除产品失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                MessageBox.Show("当前产品编码无效", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
             }
+
+            var parts = currentCode.Split('-');
+            if (parts.Length < 4)
+            {
+                MessageBox.Show("产品编码格式不正确，无法编辑序号", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            string codePrefix = string.Join("-", parts.Take(3)); // 项目-业态-户型
+            string currentSequence = parts[3]; // 当前序号
+
+            string? newSequence = PromptForSequenceNumber(codePrefix, currentSequence);
+            if (string.IsNullOrWhiteSpace(newSequence))
+                return; // 用户取消
+
+            string newCode = $"{codePrefix}-{newSequence}";
+
+            // 检查编码是否重复（排除当前产品）
+            if (_dbService.CheckProductCodeExistsForEdit(Product.Id, newCode))
+            {
+                MessageBox.Show($"产品编码「{newCode}」已存在，请重新输入序号", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // 更新产品编码
+            try
+            {
+                _dbService.UpdateProductCode(Product.Id, newCode);
+                Product.ProductCode = newCode;
+                OnPropertyChanged(nameof(Product));
+                LogService.Info($"[EditProductDialog] 已更新产品序号：{currentCode} -> {newCode}");
+                MessageBox.Show($"产品编码已更新为「{newCode}」", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                LogService.Error("[EditProductDialog] 更新产品序号失败", ex);
+                MessageBox.Show($"更新失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private string? PromptForSequenceNumber(string codePrefix, string currentSequence)
+        {
+            string? result = null;
+            var inputWindow = new Window
+            {
+                Title = "编辑户型序号",
+                Width = 450,
+                Height = 240,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = this,
+                WindowStyle = WindowStyle.ToolWindow,
+                ResizeMode = ResizeMode.NoResize,
+                Background = System.Windows.Media.Brushes.White
+            };
+
+            var grid = new Grid { Margin = new Thickness(20) };
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+            var label1 = new TextBlock
+            {
+                Text = $"当前序号：{currentSequence}",
+                Margin = new Thickness(0, 0, 0, 5),
+                FontSize = 13,
+                Foreground = System.Windows.Media.Brushes.Gray
+            };
+            Grid.SetRow(label1, 0);
+
+            var label2 = new TextBlock
+            {
+                Text = $"新的序号（将生成为：{codePrefix}-XX）：",
+                Margin = new Thickness(0, 0, 0, 10),
+                FontSize = 13
+            };
+            Grid.SetRow(label2, 1);
+
+            var textBox = new TextBox
+            {
+                Height = 36,
+                FontSize = 15,
+                Padding = new Thickness(8, 4, 8, 4),
+                VerticalContentAlignment = VerticalAlignment.Center,
+                Text = currentSequence
+            };
+            textBox.PreviewTextInput += (s, args) =>
+            {
+                args.Handled = !System.Text.RegularExpressions.Regex.IsMatch(args.Text, @"^[a-zA-Z0-9]+$");
+            };
+            Grid.SetRow(textBox, 2);
+
+            var buttonPanel = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Right,
+                Margin = new Thickness(0, 15, 0, 0)
+            };
+
+            var okButton = new Button
+            {
+                Content = "确定",
+                Width = 80,
+                Height = 32,
+                Margin = new Thickness(0, 0, 10, 0),
+                IsDefault = true
+            };
+            okButton.Click += (s, args) =>
+            {
+                result = textBox.Text.Trim();
+                inputWindow.DialogResult = true;
+            };
+
+            var cancelButton = new Button
+            {
+                Content = "取消",
+                Width = 80,
+                Height = 32,
+                IsCancel = true
+            };
+
+            buttonPanel.Children.Add(okButton);
+            buttonPanel.Children.Add(cancelButton);
+            Grid.SetRow(buttonPanel, 3);
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+
+            grid.Children.Add(label1);
+            grid.Children.Add(label2);
+            grid.Children.Add(textBox);
+            grid.Children.Add(buttonPanel);
+
+            inputWindow.Content = grid;
+
+            textBox.Focus();
+            textBox.SelectAll();
+
+            if (inputWindow.ShowDialog() == true)
+            {
+                return result;
+            }
+            return null;
         }
 
         private void EditPartsButton_Click(object sender, RoutedEventArgs e)
@@ -226,6 +351,8 @@ namespace FactoryProductManager.Views
             {
                 PartsSummaryTextBox.Text = string.Empty;
                 Product.HouseType = string.Empty;
+                Product.ProductCode = UpdateProductCodeHouseType(Product.ProductCode, string.Empty);
+                OnPropertyChanged(nameof(Product));
                 OnPropertyChanged(nameof(HouseTypeDisplay));
                 return;
             }
@@ -233,7 +360,40 @@ namespace FactoryProductManager.Views
             var summary = string.Join("，", _currentParts.Select(p => $"{p.PartName}*{p.Quantity}"));
             PartsSummaryTextBox.Text = summary;
             Product.HouseType = CalculateHouseType(_currentParts);
+
+            // 户型变化后自动更新产品编码
+            var newHouseTypeCode = GetHouseTypeCode(Product.HouseType);
+            Product.ProductCode = UpdateProductCodeHouseType(Product.ProductCode, newHouseTypeCode);
+
+            OnPropertyChanged(nameof(Product));
             OnPropertyChanged(nameof(HouseTypeDisplay));
+        }
+
+        private static string GetHouseTypeCode(string houseType)
+        {
+            return houseType.Trim() switch
+            {
+                "一房一卫" => "1R1B",
+                "两房一卫" => "2R1B",
+                "两房两卫" => "2R2B",
+                "三房两卫" => "3R2B",
+                "四房三卫" => "4R3B",
+                _ => houseType.Trim().ToUpperInvariant().Replace(" ", string.Empty)
+            };
+        }
+
+        private static string UpdateProductCodeHouseType(string originalCode, string newHouseTypeCode)
+        {
+            if (string.IsNullOrEmpty(originalCode)) return originalCode;
+
+            var parts = originalCode.Split('-');
+            if (parts.Length >= 3)
+            {
+                // 格式: 项目-业态-户型-序号，直接替换第3段（户型部分）
+                parts[2] = newHouseTypeCode;
+                return string.Join("-", parts);
+            }
+            return originalCode;
         }
 
         private static string CalculateHouseType(List<ProductPart> allParts)

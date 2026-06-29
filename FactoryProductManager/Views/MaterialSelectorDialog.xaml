@@ -61,9 +61,9 @@
                     BorderThickness="1">
                 <DataGrid x:Name="MaterialsDataGrid"
                           AutoGenerateColumns="False"
-                          IsReadOnly="False"
+                          IsReadOnly="True"
                           CanUserAddRows="False"
-                          SelectionMode="Single"
+                          SelectionMode="Extended"
                           GridLinesVisibility="None"
                           Background="Transparent"
                           BorderThickness="0"
@@ -72,10 +72,9 @@
                           RowHeight="42"
                           MinRowHeight="42"
                           PreviewMouseLeftButtonDown="MaterialsDataGrid_PreviewMouseLeftButtonDown"
-                          MouseDoubleClick="MaterialsDataGrid_MouseDoubleClick"
                           HeadersVisibility="Column"
                           CanUserResizeRows="False"
-                          SelectionUnit="FullRow"
+                          SelectionUnit="Cell"
                           ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                           ScrollViewer.VerticalScrollBarVisibility="Auto">
                     <DataGrid.ColumnHeaderStyle>
@@ -230,7 +229,8 @@
                                              BorderThickness="1"
                                              BorderBrush="{StaticResource InputBorderBrush}"
                                              PreviewTextInput="QuantityTextBox_PreviewTextInput"
-                                             TextChanged="QuantityTextBox_TextChanged"/>
+                                             TextChanged="QuantityTextBox_TextChanged"
+                                             GotFocus="QuantityTextBox_GotFocus"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>

@@ -35,8 +35,33 @@ namespace FactoryProductManager.Models
         public string ItemName { get; set; } = "";
         public int? ParentRef { get; set; }
 
+        // 复合物料图纸列表（多图，用竖线分隔存储）
+        private string _images = "";
+        public string Images
+        {
+            get => _images;
+            set
+            {
+                if (_images != value)
+                {
+                    _images = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(ImagesList));
+                }
+            }
+        }
+
+        public string[] ImagesList => string.IsNullOrEmpty(_images)
+            ? Array.Empty<string>()
+            : _images.Split('|', StringSplitOptions.RemoveEmptyEntries);
+
         // 柜子名称（如"电视柜"、"玄关柜"），用于组合显示名
         public string CabinetName { get; set; } = "";
+
+        // 排序字段（在 AddProductMaterialWindow 中设置）
+        public int PartOrder { get; set; }
+        public int ComponentOrder { get; set; }
+        public int DisplayOrder { get; set; }
 
         // 图纸编号（用于关联 CAD 图纸）
         private string _drawingNumber = "";

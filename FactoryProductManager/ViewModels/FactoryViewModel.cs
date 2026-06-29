@@ -22,7 +22,7 @@ namespace FactoryProductManager.ViewModels
             try
             {
                 LogService.Info("初始化FactoryViewModel...");
-                _dbService = new DbService();
+                _dbService = new DbService(DatabaseType.GlobalMaterial);
                 Factories = new ObservableCollection<Factory>();
                 LogService.Info("开始加载工厂数据...");
                 LoadFactories();

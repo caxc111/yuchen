@@ -5,6 +5,7 @@
         Closing="Window_Closing"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FactoryProductManager.Views"
+        xmlns:app="clr-namespace:FactoryProductManager"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
         Title="添加物料" Height="850" Width="1000"
@@ -34,7 +35,8 @@
             </Grid.RowDefinitions>
 
             <!-- 标题栏 -->
-            <Border Grid.Row="0" Background="{StaticResource WarmHeaderBrush}" CornerRadius="12,12,0,0">
+            <Border Grid.Row="0" Background="{StaticResource WarmHeaderBrush}" CornerRadius="12,12,0,0"
+                    app:WindowDragBehavior.Enable="True">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -133,12 +135,12 @@
                                                             ClipToBounds="True" Margin="0,0,12,0"
                                                             Cursor="Hand" MouseLeftButtonUp="CompositeThumbnail_Click" Tag="{Binding}">
                                                         <Grid>
-                                                            <TextBlock Text="🧩" FontSize="32" HorizontalAlignment="Center"
+                                                            <TextBlock x:Name="CompositeEmojiText" Text="🧩" FontSize="32" HorizontalAlignment="Center"
                                                                        VerticalAlignment="Center"/>
                                                             <Image x:Name="CompositeThumb" Stretch="Uniform"/>
                                                         </Grid>
                                                     </Border>
-                                                    <TextBlock Grid.Row="0" Grid.Column="1"
+                                                    <TextBlock x:Name="CompositeTitleTextBlock" Grid.Row="0" Grid.Column="1"
                                                                Text="{Binding MaterialName}"
                                                                FontSize="15" FontWeight="Bold"
                                                                Foreground="{StaticResource PrimaryTextBrush}"
@@ -181,16 +183,24 @@
                                                             <Run Text="{Binding Children.Count, Mode=OneWay}" Foreground="{StaticResource HintTextBrush}"/>
                                                             <Run Text=" 项)" Foreground="{StaticResource SubtleTextBrush}"/>
                                                         </TextBlock>
-                                                        <TextBlock Grid.Row="1" Grid.Column="2" Text="数量："
+                                                        <TextBlock Grid.Row="1" Grid.Column="2" Text="图纸编号："
                                                                    FontSize="12" Foreground="{StaticResource SubtleTextBrush}"
                                                                    Margin="10,3,0,3"/>
-                                                        <TextBox Grid.Row="1" Grid.Column="3"
-                                                                 Text="{Binding QuantityDisplay, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
-                                                                 Style="{StaticResource SmallTextBoxStyle}" Margin="0,1"/>
-                                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="合计："
+                                                        <TextBlock Grid.Row="1" Grid.Column="3"
+                                                                   Text="{Binding DrawingNumber, Mode=OneWay}"
+                                                                   FontSize="12" Foreground="{StaticResource PrimaryTextBrush}"
+                                                                   TextWrapping="Wrap" Margin="0,3"/>
+                                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="数量："
                                                                    FontSize="12" Foreground="{StaticResource SubtleTextBrush}"
                                                                    Margin="0,3"/>
-                                                        <TextBlock Grid.Row="2" Grid.Column="1" FontSize="14" FontWeight="Bold"
+                                                        <TextBox Grid.Row="2" Grid.Column="1"
+                                                                 Text="{Binding QuantityDisplay, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                                                 Style="{StaticResource SmallTextBoxStyle}"
+                                                                 Width="80" HorizontalAlignment="Left" Margin="0,1"/>
+                                                        <TextBlock Grid.Row="2" Grid.Column="2" Text="合计："
+                                                                   FontSize="12" Foreground="{StaticResource SubtleTextBrush}"
+                                                                   Margin="10,3,0,3"/>
+                                                        <TextBlock Grid.Row="2" Grid.Column="3" FontSize="14" FontWeight="Bold"
                                                                    Foreground="#E67E22" Margin="0,3">
                                                             <Run Text="¥"/><Run Text="{Binding TotalPrice, Mode=OneWay, StringFormat={}{0:F2}}"/>
                                                         </TextBlock>

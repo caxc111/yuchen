@@ -1,3 +1,4 @@
+using FactoryProductManager.Helpers;
 using FactoryProductManager.Models;
 using FactoryProductManager.Services;
 using Microsoft.Win32;
@@ -16,7 +17,7 @@ namespace FactoryProductManager.Views
 {
     public partial class AddProductDialog : Window, INotifyPropertyChanged
     {
-        private readonly DbService _dbService = new();
+        private readonly DbService _dbService = new DbService(DatabaseType.Project);
         private static readonly HashSet<string> ResidentialBusinessTypes = new(StringComparer.Ordinal)
         {
             "公寓",
@@ -89,6 +90,7 @@ namespace FactoryProductManager.Views
             BusinessType = BusinessTypeOptions[0];
             DataContext = this;
             WindowPositionService.AddPositionProtection(this);
+            this.EnableTrayMinimize();
             LoadProjectCodeSuggestions();
             Loaded += AddProductDialog_Loaded;
             LogService.Debug("[AddProductDialog] 构造完成");

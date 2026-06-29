@@ -1,21 +1,28 @@
+using FactoryProductManager.Helpers;
 using FactoryProductManager.Models;
 using FactoryProductManager.Services;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media.Imaging;
 
 namespace FactoryProductManager.Views
 {
     public partial class MaterialGroupEditorDialog : Window, INotifyPropertyChanged
     {
         private readonly DbService _dbService;
+        private DbService? _projectDbService;
         public MaterialGroup Group { get; }
         public string CabinetName { get; }  // 柜子名称（如"玄关柜"）
+        public string ProjectCode { get; private set; } = "";
 
         // UI 绑定的子项行（含运行时状态：已选物料等）
         public ObservableCollection<MaterialGroupItemRow> ItemRows { get; } = new();
@@ -23,13 +30,16 @@ namespace FactoryProductManager.Views
         // 返回值：调用方读取 Result，构造 SelectedMaterial
         public SelectedMaterial? Result { get; private set; }
 
+        // 复合物料图纸列表（多图）
+        private readonly List<string> _images = new();
+
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public MaterialGroupEditorDialog(MaterialGroup group, DbService dbService, string cabinetName, List<SelectedMaterial>? existingChildren = null)
+        public MaterialGroupEditorDialog(MaterialGroup group, DbService dbService, string cabinetName, List<SelectedMaterial>? existingChildren = null, string existingImages = "", DbService? projectDbService = null, string projectCode = "")
         {
             InitializeComponent();
             DataContext = this;
@@ -37,11 +47,21 @@ namespace FactoryProductManager.Views
             Group = group ?? throw new ArgumentNullException(nameof(group));
             _dbService = dbService ?? throw new ArgumentNullException(nameof(dbService));
             CabinetName = cabinetName ?? throw new ArgumentNullException(nameof(cabinetName));
+            _projectDbService = projectDbService;
+            ProjectCode = projectCode ?? "";
 
             TitleText.Text = $"配置{group.GroupName}";
             SubtitleText.Text = string.IsNullOrWhiteSpace(group.Description)
                 ? "请为每个子项选择具体物料（带 * 为必选项）"
                 : group.Description;
+
+            // 加载已有图纸
+            if (!string.IsNullOrWhiteSpace(existingImages))
+            {
+                foreach (var img in existingImages.Split('|', StringSplitOptions.RemoveEmptyEntries))
+                    _images.Add(img);
+                RefreshImagesPanel();
+            }
 
             // 按 ItemName 分组已有的子项
             var existingByItemName = (existingChildren ?? new List<SelectedMaterial>())
@@ -70,6 +90,7 @@ namespace FactoryProductManager.Views
             UpdateTotalPrice();
 
             WindowPositionService.AddPositionProtection(this);
+            this.EnableTrayMinimize();
         }
 
         public void NotifyItemChanged()
@@ -155,7 +176,18 @@ namespace FactoryProductManager.Views
                 }
                 // 根据 SelectionRule 决定是否允许多选
                 bool allowMultiple = row.Item.SelectionRule == SelectionRuleType.Multiple;
-                var dlg = new MaterialSelectorDialog(materialType, _dbService, preselectedList, allowMultiple) { Owner = this };
+
+                MaterialSelectorDialog dlg;
+                if (_projectDbService != null && !string.IsNullOrEmpty(ProjectCode))
+                {
+                    // 有项目数据库服务时，使用项目模式（支持图纸编号）
+                    dlg = new MaterialSelectorDialog(materialType, _dbService, _projectDbService, ProjectCode, preselectedList, allowMultiple) { Owner = this };
+                }
+                else
+                {
+                    // 无项目模式，只使用全局数据库
+                    dlg = new MaterialSelectorDialog(materialType, _dbService, preselectedList, allowMultiple) { Owner = this };
+                }
                 LogService.Debug($"[MaterialGroupEditorDialog] OpenSelector: dlg created, allowMultiple={allowMultiple}, ShowDialog about to be called");
                 if (dlg.ShowDialog() == true && dlg.SelectedMaterials.Count > 0)
                 {
@@ -200,7 +232,8 @@ namespace FactoryProductManager.Views
                 ComponentName = "固装",
                 CabinetName = cabinetName,
                 MaterialTypeName = cabinetName,
-                Quantity = 1
+                Quantity = 1,
+                Images = _images.Count > 0 ? string.Join("|", _images) : ""
             };
 
             LogService.Info($"[MaterialGroupEditorDialog] 构造的main: MaterialName={main.MaterialName}");
@@ -291,7 +324,8 @@ namespace FactoryProductManager.Views
                         ComponentName = "固装",
                         CabinetName = cabinetName,
                         MaterialTypeName = cabinetName,
-                        Quantity = 1
+                        Quantity = 1,
+                        Images = _images.Count > 0 ? string.Join("|", _images) : ""
                     };
 
                     foreach (var row in ItemRows)
@@ -315,6 +349,155 @@ namespace FactoryProductManager.Views
                 var closeMethod = typeof(Window).GetMethod("Close", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
                 closeMethod?.Invoke(this, null);
             }), System.Windows.Threading.DispatcherPriority.Background);
+        }
+
+        // ===== 复合物料图纸处理 =====
+        private void ImagesDropZone_DragOver(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                e.Effects = DragDropEffects.Copy;
+                e.Handled = true;
+            }
+        }
+
+        private void ImagesDropZone_Drop(object sender, DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            if (files.Length == 0) return;
+            foreach (var file in files)
+            {
+                if (IsValidImageFile(file))
+                    AddImage(file);
+            }
+        }
+
+        private void ImagesDropZone_Click(object sender, RoutedEventArgs e)
+        {
+            // "+"按钮点击 → 打开文件选择
+            OpenFileDialogAndAddImages();
+        }
+
+        private void ImagesDropZone_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            // 点击的是内部按钮（删除/图片缩略图）时，不重复弹框
+            if (e.OriginalSource is System.Windows.Controls.Button) return;
+            // 点击图片缩略图区域，由 ImageThumbnail_Click 处理
+            if (e.OriginalSource is Border border && border.Name != "ImagesDropZone") return;
+
+            // 点击空白区域 → 打开文件选择
+            OpenFileDialogAndAddImages();
+        }
+
+        private void OpenFileDialogAndAddImages()
+        {
+            var openFileDialog = new OpenFileDialog
+            {
+                Filter = "图片文件 (*.jpg;*.jpeg;*.png;*.gif;*.bmp)|*.jpg;*.jpeg;*.png;*.gif;*.bmp",
+                Title = "选择图纸",
+                Multiselect = true
+            };
+            if (openFileDialog.ShowDialog() == true)
+            {
+                foreach (var file in openFileDialog.FileNames)
+                    AddImage(file);
+            }
+        }
+
+        private bool IsValidImageFile(string filePath)
+        {
+            string ext = Path.GetExtension(filePath).ToLower();
+            return ext is ".jpg" or ".jpeg" or ".png" or ".gif" or ".bmp";
+        }
+
+        private void AddImage(string sourcePath)
+        {
+            try
+            {
+                string imagesDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
+                if (!Directory.Exists(imagesDir))
+                    Directory.CreateDirectory(imagesDir);
+
+                string fileName = Guid.NewGuid() + Path.GetExtension(sourcePath);
+                string destPath = Path.Combine(imagesDir, fileName);
+                File.Copy(sourcePath, destPath, true);
+
+                _images.Add(destPath);
+                RefreshImagesPanel();
+                LogService.Info($"[MaterialGroupEditorDialog] 添加图纸: {destPath}");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"图片加载失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void RemoveImage_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.Button btn && btn.Tag is string imagePath)
+            {
+                _images.Remove(imagePath);
+                RefreshImagesPanel();
+                LogService.Info($"[MaterialGroupEditorDialog] 删除图纸: {imagePath}");
+            }
+        }
+
+        private void ImageThumbnail_Click(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Border border && border.Tag is string imagePath)
+            {
+                try
+                {
+                    var viewer = new ImageViewerWindow(imagePath, "图纸")
+                    {
+                        Owner = this
+                    };
+                    viewer.ShowDialog();
+                }
+                catch (Exception ex)
+                {
+                    LogService.Error("[MaterialGroupEditorDialog] 打开图纸失败", ex);
+                }
+            }
+        }
+
+        private void RefreshImagesPanel()
+        {
+            if (_images.Count == 0)
+            {
+                // 无图片：隐藏图片列表，显示提示
+                ImagesHintPanel.Visibility = Visibility.Visible;
+                ImagesScrollViewer.Visibility = Visibility.Collapsed;
+                ImagesPanel.ItemsSource = null;
+            }
+            else
+            {
+                // 有图片：显示图片列表，隐藏提示
+                ImagesHintPanel.Visibility = Visibility.Collapsed;
+                ImagesScrollViewer.Visibility = Visibility.Visible;
+                ImagesPanel.ItemsSource = null;
+                ImagesPanel.ItemsSource = _images;
+            }
+        }
+
+        private BitmapImage? CreateBitmapImage(string? imagePath)
+        {
+            if (string.IsNullOrWhiteSpace(imagePath)) return null;
+            try
+            {
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.UriSource = new Uri(imagePath, UriKind.Absolute);
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.DecodePixelWidth = 100;
+                bitmap.EndInit();
+                return bitmap;
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 
@@ -359,7 +542,7 @@ namespace FactoryProductManager.Views
 
         public void AddMaterial(FactoryMaterial m)
         {
-            LogService.Debug($"[MaterialGroupItemRow] AddMaterial: MaterialName={m.MaterialName}, Quantity={m.Quantity}");
+            LogService.Debug($"[MaterialGroupItemRow] AddMaterial: MaterialName={m.MaterialName}, Quantity={m.Quantity}, DrawingNumber={m.DrawingNumber}");
             var sm = new SelectedMaterial
             {
                 IsComposite = false,  // 子项是普通物料，不是复合物料
@@ -379,9 +562,11 @@ namespace FactoryProductManager.Views
                 ComponentName = "固装",
                 MaterialTypeName = Item.MaterialType,
                 // ParentRef 用于子项归属主行
-                ParentRef = 0
+                ParentRef = 0,
+                // 图纸编号
+                DrawingNumber = m.DrawingNumber ?? ""
             };
-            LogService.Debug($"[MaterialGroupItemRow] AddMaterial 创建: Quantity={sm.Quantity}");
+            LogService.Debug($"[MaterialGroupItemRow] AddMaterial 创建: Quantity={sm.Quantity}, DrawingNumber={sm.DrawingNumber}");
             SelectedMaterials.Add(sm);
         }
 
@@ -403,13 +588,14 @@ namespace FactoryProductManager.Views
                 Brand = existing.Brand,
                 Unit = existing.Unit,
                 ImageUrl = existing.ImageUrl ?? "",
+                DrawingNumber = existing.DrawingNumber ?? "",  // 保留已有图纸编号
                 CabinetName = _owner.CabinetName,
                 ItemName = Item.ItemName,
                 ComponentName = existing.ComponentName,
                 MaterialTypeName = existing.MaterialTypeName,
                 ParentRef = existing.ParentRef
             };
-            LogService.Debug($"[MaterialGroupItemRow] AddExistingMaterial 创建后: sm.Quantity={sm.Quantity}");
+            LogService.Debug($"[MaterialGroupItemRow] AddExistingMaterial 创建后: sm.Quantity={sm.Quantity}, sm.DrawingNumber={sm.DrawingNumber}");
             SelectedMaterials.Add(sm);
         }
 

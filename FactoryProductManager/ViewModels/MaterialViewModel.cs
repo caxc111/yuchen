@@ -24,7 +24,7 @@ namespace FactoryProductManager.ViewModels
             try
             {
                 LogService.Info("初始化MaterialViewModel...");
-                _dbService = new DbService();
+                _dbService = new DbService(DatabaseType.GlobalMaterial);
                 Materials = new ObservableCollection<FactoryMaterial>();
                 LogService.Info("开始加载物料数据...");
                 LoadMaterials();

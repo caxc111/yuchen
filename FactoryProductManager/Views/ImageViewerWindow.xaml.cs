@@ -1,6 +1,7 @@
 using System;
 using System.Windows;
 using System.Windows.Input;
+using FactoryProductManager.Helpers;
 using MaterialDesignThemes.Wpf;
 
 namespace FactoryProductManager.Views
@@ -15,6 +16,7 @@ namespace FactoryProductManager.Views
             Title = title;
             InitializeComponent();
             TitleTextBlock.Text = title;
+            this.EnableTrayMinimize();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
