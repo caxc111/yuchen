@@ -182,6 +182,7 @@ namespace FactoryProductManager.Views
                 {
                     // 有项目数据库服务时，使用项目模式（支持图纸编号）
                     dlg = new MaterialSelectorDialog(materialType, _dbService, _projectDbService, ProjectCode, preselectedList, allowMultiple) { Owner = this };
+                    dlg.SkipDrawingNumberCheck = true; // 子物料不需要检查图纸编号唯一性
                 }
                 else
                 {

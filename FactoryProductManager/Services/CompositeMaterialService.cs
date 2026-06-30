@@ -44,6 +44,7 @@ namespace FactoryProductManager.Services
                     MaterialTypeName = mainRow.MaterialTypeName ?? "",
                     GroupCode = mainRow.GroupCode ?? "",
                     CabinetName = mainRow.MaterialName ?? "",
+                    DrawingNumber = mainRow.DrawingNumber ?? "",
                     Quantity = (int)(mainRow.Quantity > 0 ? mainRow.Quantity : 1)
                 };
 
@@ -108,6 +109,7 @@ namespace FactoryProductManager.Services
                     Quantity = composite.Quantity,
                     IsComposite = true,
                     GroupCode = composite.GroupCode,
+                    DrawingNumber = composite.DrawingNumber,
                     ItemName = "",
                     ParentId = null,
                     CreatedAt = DateTime.Now,
@@ -166,6 +168,7 @@ namespace FactoryProductManager.Services
                     MaterialTypeName = sm.MaterialTypeName,
                     GroupCode = sm.GroupCode,
                     CabinetName = sm.MaterialName,
+                    DrawingNumber = sm.DrawingNumber,
                     Quantity = (int)sm.Quantity
                 };
 

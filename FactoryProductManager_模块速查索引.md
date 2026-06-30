@@ -206,6 +206,10 @@
   - 支持传入项目数据库和项目代码，查询项目内已有图纸编号
   - 选中物料或输入数量时，如果物料没有图纸编号则弹出输入框
   - 显示该项目内该物料之前用过的图纸编号
+  - **图纸编号唯一性规则**：
+    - 同一项目内：物料和图纸编号完全通用
+    - 不同项目间：图纸编号不可通用
+    - 注：已移除唯一性检查
 - `CustomPartEditorDialog`
   - 自定义部件编辑
   - 维护默认部品列表
@@ -276,7 +280,13 @@
 - `FactoryMaterials`
   - 工厂物料主数据（factory_code, material_code, material_name...）
 - `Products`
-  - 产品主数据（project_code, product_code, house_type...）
+  - 产品主数据
+  - 关键字段：
+    - `project_name`：项目代码（如 XN29）- 语义是项目名称，实际存项目代码
+    - `product_code`：完整产品编码（如 XN29-A-1R1B-A）
+    - `house_type`：户型
+    - `business_type`：业态
+  - 注意：`GetAllProjectCodes()` 从 `project_name` 字段查询项目代码
 - `ProductParts`
   - 产品部件（part_name, component_name...）
 - `ProductPartMaterials`

@@ -36,14 +36,15 @@ namespace FactoryProductManager.Models
         public string Images { get; set; } = string.Empty;
         // 1=主行（代表"定制橱柜"这种整体）；0=普通行或子行
         public bool IsComposite { get; set; }
+        // 图纸编号
+        public string DrawingNumber { get; set; } = string.Empty;
+
         // 组合编码（如 CB-001），与 MaterialGroups.group_code 关联
         public string GroupCode { get; set; } = string.Empty;
         // 子项名（如"柜体"/"门板"/"台面"），普通行为空
         public string ItemName { get; set; } = string.Empty;
         // 子行指向主行 id；主行此字段为 null
         public int? ParentId { get; set; }
-        // 图纸编号
-        public string DrawingNumber { get; set; } = string.Empty;
 
         public decimal Quantity
         {

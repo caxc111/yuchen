@@ -17,6 +17,7 @@ namespace FactoryProductManager.Models
         private string _materialTypeName = "";
         private string _groupCode = "";
         private string _cabinetName = "";  // 如"定制橱柜"、"玄关柜"
+        private string _drawingNumber = ""; // 图纸编号
         private int _quantity = 1;
 
         public int Id
@@ -65,6 +66,15 @@ namespace FactoryProductManager.Models
         {
             get => _cabinetName;
             set { _cabinetName = value; OnPropertyChanged(); OnPropertyChanged(nameof(DisplayName)); }
+        }
+
+        /// <summary>
+        /// 图纸编号
+        /// </summary>
+        public string DrawingNumber
+        {
+            get => _drawingNumber;
+            set { _drawingNumber = value; OnPropertyChanged(); }
         }
 
         public int Quantity

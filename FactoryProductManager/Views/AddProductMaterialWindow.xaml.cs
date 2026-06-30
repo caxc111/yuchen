@@ -892,16 +892,21 @@ namespace FactoryProductManager.Views
                                 return;
                             }
 
-                            // 先弹出图纸编号输入框
-                            var drawingInputDialog = new DrawingNumberInputDialog()
+                            // 先弹出图纸编号输入框（循环直到输入有效或取消）
+                            string? cabinetDrawingNumber = null;
+                            while (true)
                             {
-                                Owner = this
-                            };
-                            if (drawingInputDialog.ShowDialog() != true)
-                            {
-                                return;
+                                var drawingInputDialog = new DrawingNumberInputDialog(cabinetDrawingNumber ?? "")
+                                {
+                                    Owner = this
+                                };
+                                if (drawingInputDialog.ShowDialog() != true)
+                                {
+                                    return; // 用户取消
+                                }
+                                cabinetDrawingNumber = drawingInputDialog.DrawingNumber;
+                                break; // 同项目内图纸编号可通用，直接使用
                             }
-                            var cabinetDrawingNumber = drawingInputDialog.DrawingNumber;
 
                             var dlg = new MaterialGroupEditorDialog(template, _globalDbService, selectedText, null, "", _projectDbService, _projectCode) { Owner = this };
                             if (dlg.ShowDialog() == true && dlg.Result != null)
@@ -929,7 +934,8 @@ namespace FactoryProductManager.Views
                     // 普通物料：走 MaterialSelectorDialog（传入项目数据库和项目代码，以便查询已有图纸编号）
                     var selectorDialog = new MaterialSelectorDialog(materialTypeNames, _globalDbService, _projectDbService, _projectCode)
                     {
-                        Owner = this
+                        Owner = this,
+                        ProductId = _productId  // 传入产品ID，用于排除当前产品内的重复检查
                     };
 
                     // 不预选任何物料，添加操作需要用户手动选择

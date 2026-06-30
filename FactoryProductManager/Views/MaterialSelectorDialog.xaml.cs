@@ -30,6 +30,12 @@ namespace FactoryProductManager.Views
         // 项目代码（用于查询项目内已有的图纸编号）
         public string ProjectCode { get; set; } = "";
 
+        // 产品ID（用于排除当前产品，仅在同一产品内检查唯一性）
+        public int ProductId { get; set; } = 0;
+
+        // 是否跳过图纸编号唯一性检查（子物料不需要检查）
+        public bool SkipDrawingNumberCheck { get; set; } = false;
+
         // 新增构造函数，支持预选
         public MaterialSelectorDialog(string materialType, DbService dbService, List<SelectedMaterial>? preselectedMaterials = null, bool allowMultiple = false)
         {
@@ -382,9 +388,14 @@ namespace FactoryProductManager.Views
             }
 
             var inputDialog = new DrawingNumberInputDialog(existingDrawingNumber) { Owner = this };
-            if (inputDialog.ShowDialog() == true)
+
+            // 循环让用户输入，直到输入有效或取消
+            while (inputDialog.ShowDialog() == true)
             {
-                material.DrawingNumber = inputDialog.DrawingNumber;
+                string drawingNumber = inputDialog.DrawingNumber;
+
+                // 验证通过
+                material.DrawingNumber = drawingNumber;
                 LogService.Debug($"[MaterialSelectorDialog] 图纸编号已设置: {material.DrawingNumber}");
 
                 // 设置图纸编号时自动勾选该物料（避免用户忘记勾选导致图纸编号无法保存）
@@ -394,12 +405,11 @@ namespace FactoryProductManager.Views
                     LogService.Debug($"[MaterialSelectorDialog] 自动勾选物料: Id={material.Id}, MaterialName={material.MaterialName}");
                     UpdateOkButtonState();
                 }
+                return;
             }
-            else
-            {
-                // 用户取消，保持 DrawingNumber 不变
-                LogService.Debug($"[MaterialSelectorDialog] 用户取消输入图纸编号，保持为: {material.DrawingNumber}");
-            }
+
+            // 用户取消，保持 DrawingNumber 不变
+            LogService.Debug($"[MaterialSelectorDialog] 用户取消输入图纸编号，保持为: {material.DrawingNumber}");
         }
 
         private void UpdateOkButtonState()
@@ -441,6 +451,7 @@ namespace FactoryProductManager.Views
 
                     if (inputDialog.ShowDialog() == true && !string.IsNullOrEmpty(inputDialog.DrawingNumber))
                     {
+                        // 先检查图纸编号是否重复
                         missingDrawingNumbers.First().DrawingNumber = inputDialog.DrawingNumber;
                         var stillMissing = SelectedMaterials.Where(m => string.IsNullOrEmpty(m.DrawingNumber)).ToList();
                         if (stillMissing.Count > 0)
@@ -623,10 +634,10 @@ namespace FactoryProductManager.Views
             }
         }
 
-        // 图纸编号输入框失去焦点时（可以在这里添加验证逻辑）
+        // 图纸编号输入框失去焦点时
         private void DrawingNumberInDialogTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
-            // 暂时不需要特殊处理，Binding 已经更新了数据
+            // 同项目内图纸编号可通用，不再检查唯一性
         }
     }
 }
